@@ -1,0 +1,707 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S u m m a r y   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Compilation
+-----------
+File     : /home3/y14/y14/di1c13/cgpack/head/cgca_m3gbf.f90
+Compiled : 02/18/16  16:36:37
+Compiler : Version 8.3.7
+Ftnlx    : Version 8318 (libcif 83016)
+Target   : x86-64
+Command  : ftn_driver.exe -hcpu=ivybridge -hstatic -D__CRAYXC
+           -D__CRAY_IVYBRIDGE -D__CRAYXT_COMPUTE_LINUX_TARGET -hnetwork=aries
+           -c -eacFn -dm -m2 -rl -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/mpt/7.1.1/gni/mpich2-cray/83/include
+           -I/opt/cray/libsci/13.0.1/CRAY/83/sandybridge/include
+           -I/opt/cray/rca/1.0.0-2.0502.57212.2.56.ari/include
+           -I/opt/cray/alps/5.2.3-2.0502.9295.14.14.ari/include
+           -I/opt/cray/xpmem/0.1-2.0502.57015.1.15.ari/include
+           -I/opt/cray/gni-headers/4.0-1.0502.10317.9.2.ari/include
+           -I/opt/cray/dmapp/7.0.1-1.0502.10246.8.47.ari/include
+           -I/opt/cray/pmi/5.0.6-1.0000.10439.140.2.ari/include
+           -I/opt/cray/ugni/6.0-1.0502.10245.9.9.ari/include
+           -I/opt/cray/udreg/2.3.2-1.0502.9889.2.20.ari/include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/pkgconfig/../include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/wlm_detect/1.0-1.0502.57063.1.1.ari/include
+           -I/opt/cray/krca/1.0.0-2.0502.57202.2.45.ari/include
+           -I/opt/cray-hss-devel/7.2.0/include cgca_m3gbf.f90
+
+ftnlx report
+------------
+Source   : /home3/y14/y14/di1c13/cgpack/head/cgca_m3gbf.f90
+Date     : 02/18/2016  16:36:38
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S o u r c e   L i s t i n g
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    1.    !$Id: cgca_m3gbf.f90 14 2014-12-01 10:14:16Z mexas $
+    2.    
+    3.    !**********************************************************************73
+    4.    
+    5.    !*robodoc*m* CGPACK/cgca_m3gbf
+    6.    !  NAME
+    7.    !    cgca_m3gbf
+    8.    !  SYNOPSIS
+    9.    
+   10.    module cgca_m3gbf
+   11.    
+   12.    !  DESCRIPTION
+   13.    !    Module dealing with grain boundary fractures.
+   14.    !  AUTHOR
+   15.    !    Anton Shterenlikht
+   16.    !  COPYRIGHT
+   17.    !    See CGPACK_Copyright
+   18.    !  CONTAINS
+   19.    !    cgca_gbf1p, cgca_gbf1f
+   20.    !  USES
+   21.    !    cgca_m1co, cgca_m2glm
+   22.    !  USED BY
+   23.    !  SOURCE
+   24.    
+   25.    use cgca_m1co
+   26.    use cgca_m2glm
+   27.    implicit none
+   28.    
+   29.    private
+   30.    public :: cgca_gbf1p, cgca_gbf1f
+   31.    
+   32.    contains
+   33.    
+   34.    !*roboend*
+   35.    
+   36.    
+   37.    !*robodoc*s* cgca_m3gbf/cgca_gbf1p
+   38.    !  NAME
+   39.    !    cgca_gbf1p
+   40.    !  SYNOPSIS
+   41.    
+   42.    subroutine cgca_gbf1p(coarray)
+   43.    
+   44.    !  INPUTS
+   45.    
+   46.    integer(kind=iarr),allocatable,intent(inout) :: coarray(:,:,:,:)[:,:,:]
+   47.    
+   48.    !  SIDE EFFECTS
+   49.    !    state of coarray changes
+   50.    !  DESCRIPTION
+   51.    !    This routine does a single iteration of grain boundary fracture
+   52.    !    propagation assuming periodic boundary conditions.
+   53.    !  NOTE
+   54.    !    Use only with periodic BC. For fixed BC use cgca_gbf1f.
+   55.    !  SOURCE
+   56.    
+   57.    integer(kind=iarr),allocatable,save :: array(:,:,:)
+   58.    integer(kind=iarr) :: range1(3), range2(3), range3(3)
+   59.    
+   60.    integer(kind=idef) :: &
+   61.      lbv(4) ,& ! lower bounds of the complete (plus virtual) coarray
+   62.      ubv(4) ,& ! upper bounds of the complete (plus virtual) coarray
+   63.      lbr(4) ,& ! lower bounds of the "real" coarray, lower virtual+1
+   64.      ubr(4) ,& ! upper bounds of the "real" coarray, upper virtual-1
+   65.      x1     ,& ! local coordinates in an array, which are also
+   66.      x2     ,& ! do loop counters
+   67.      x3
+   68.    
+   69.    integer :: thisimage, errstat, nimages
+   70.    
+   71.    ! Do not check coarray for allocated, as this wastes time.
+   72.    ! Instead let the code fail if coarray is not allocated.
+   73.    
+   74.    ! use local vars to save time
+   75.    thisimage = this_image()
+   76.    nimages = num_images()
+   77.    
+   78.    ! determine the extents
+   79.    lbv = lbound( coarray )
+ftn-6205 ftn: VECTOR File = cgca_m3gbf.f90, Line = 79 
+  A loop starting at line 79 was vectorized with a single vector iteration.
+
+   80.    ubv = ubound( coarray )
+ftn-6004 ftn: SCALAR File = cgca_m3gbf.f90, Line = 80 
+  A loop starting at line 80 was fused with the loop starting at line 79.
+
+   81.    lbr = lbv + 1
+ftn-6004 ftn: SCALAR File = cgca_m3gbf.f90, Line = 81 
+  A loop starting at line 81 was fused with the loop starting at line 79.
+
+   82.    ubr = ubv - 1
+ftn-6004 ftn: SCALAR File = cgca_m3gbf.f90, Line = 82 
+  A loop starting at line 82 was fused with the loop starting at line 79.
+
+   83.    
+   84.    ! Allocate the temp array if not already allocated.
+   85.    ! The array has the SAVE attribute, as this routine
+   86.    ! is likely to be called many times.
+   87.     
+   88.    if (.not. allocated(array)) &
+   89.     allocate(array(lbv(1):ubv(1),lbv(2):ubv(2),lbv(3):ubv(3)),stat=errstat)
+   90.    if (errstat.ne.0) then
+ftn-7405 ftn: CAUTION File = cgca_m3gbf.f90, Line = 90 
+  Variable "errstat" may be used before it is defined.
+
+   91.     write (*,'(a,i0)') "ERROR: cgca_gbf1p: image ",thisimage
+   92.     write (*,'(a)') "ERROR: cgca_gbf1p: cannot allocate array"
+   93.     error stop
+   94.    end if
+   95.    
+   96.    ! Copy coarray fracture state type into a local array
+   97.    array = coarray(:,:,:,cgca_state_type_frac)
+ftn-6066 ftn: SCALAR File = cgca_m3gbf.f90, Line = 97 
+   A loop nest at line 97 collapsed to a single loop.
+
+ftn-6231 ftn: VECTOR File = cgca_m3gbf.f90, Line = 97 
+  A statement was replaced by a library call.
+
+   98.    
+   99.    ! scan across all cells
+  100.    do x3=lbr(3),ubr(3)
+ftn-6289 ftn: VECTOR File = cgca_m3gbf.f90, Line = 100 
+  A loop starting at line 100 was not vectorized because a recurrence was found on "range1" between lines 108 and 116.
+
+  101.    do x2=lbr(2),ubr(2)
+ftn-6289 ftn: VECTOR File = cgca_m3gbf.f90, Line = 101 
+  A loop starting at line 101 was not vectorized because a recurrence was found on "range1" between lines 108 and 116.
+
+  102.    do x1=lbr(1),ubr(1)
+ftn-6289 ftn: VECTOR File = cgca_m3gbf.f90, Line = 102 
+  A loop starting at line 102 was not vectorized because a recurrence was found on "range1" between lines 108 and 116.
+
+  103.    
+  104.     ! Analyse only live cells
+  105.     if ( array(x1,x2,x3) .ne. cgca_intact_state ) cycle
+  106.    
+  107.     ! set up ranges to save compute time
+  108.     range1 = (/ x1-1, x1, x1+1 /)
+ftn-6271 ftn: VECTOR File = cgca_m3gbf.f90, Line = 108 
+  A loop starting at line 108 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3gbf.f90, Line = 108 
+  A loop starting at line 108 was unwound.
+
+  109.     range2 = (/ x2-1, x2, x2+1 /)
+ftn-6004 ftn: SCALAR File = cgca_m3gbf.f90, Line = 109 
+  A loop starting at line 109 was fused with the loop starting at line 108.
+
+  110.     range3 = (/ x3-1, x3, x3+1 /)
+ftn-6004 ftn: SCALAR File = cgca_m3gbf.f90, Line = 110 
+  A loop starting at line 110 was fused with the loop starting at line 108.
+
+  111.    
+  112.     ! If the cell
+  113.     !  (1) is on the grain boundary
+  114.     !  (2) has a fractured neighbour
+  115.     ! then it becomes cgca_gb_state_fractured.
+  116.     if ( any( coarray(range1,range2,range3,cgca_state_type_grain) .ne. &
+ftn-6334 ftn: VECTOR File = cgca_m3gbf.f90, Line = 116 
+  A loop starting at line 116 was not vectorized because it contains multiple potential exits.
+
+  117.               coarray(x1,x2,x3,cgca_state_type_grain) ) .and.          &
+  118.          any( array(range1,range2,range3) .ne. cgca_intact_state ) )   &
+  119.     then
+  120.      coarray(x1,x2,x3,cgca_state_type_frac) = cgca_gb_state_fractured
+  121.     end if
+  122.        
+  123.    end do
+  124.    end do
+  125.    end do
+  126.    
+  127.    end subroutine cgca_gbf1p
+ftn-5001 ftn: NOTE File = cgca_m3gbf.f90, Line = 127 
+  Local variable "NIMAGES" is assigned a value but never used.
+
+  128.    
+  129.    !*roboend*
+  130.    
+  131.    
+  132.    !*robodoc*s* cgca_m3gbf/cgca_gbf1f
+  133.    !  NAME
+  134.    !    cgca_gbf1f
+  135.    !  SYNOPSIS
+  136.    
+  137.    subroutine cgca_gbf1f(coarray)
+  138.    
+  139.    !  INPUTS
+  140.    
+  141.    integer(kind=iarr),allocatable,intent(inout) :: coarray(:,:,:,:)[:,:,:]
+  142.    
+  143.    !  SIDE EFFECTS
+  144.    !    state of coarray changes
+  145.    !  DESCRIPTION
+  146.    !    This routine does a single iteration of grain boundary fracture
+  147.    !    propagation assuming fixed boundary conditions.
+  148.    !  NOTE
+  149.    !    Use only with fixed BC. For periodic BC use cgca_gbf1p.
+  150.    !  USES
+  151.    !    cgca_lg
+  152.    !  SOURCE
+  153.    
+  154.    integer(kind=iarr),allocatable,save :: array(:,:,:)
+  155.    integer(kind=iarr) :: range1(3), range2(3), range3(3)
+  156.    
+  157.    integer(kind=idef) :: &
+  158.      lbv(4),    & ! lower bounds of the complete (plus virtual) coarray
+  159.      ubv(4),    & ! upper bounds of the complete (plus virtual) coarray
+  160.      lbr(4),    & ! lower bounds of the "real" coarray, lower virtual+1
+  161.      ubr(4),    & ! upper bounds of the "real" coarray, upper virtual-1
+  162.      x1,x2,x3,  & ! local coordinates in an array
+  163.      super(3),  & ! global (super) coordinates of a cell
+  164.      imgpos(3), & ! image position in the image grid
+  165.      local(3),  & ! local coordinates of a cell
+  166.      ubsuper(3),& ! upper bounds of the super array
+  167.      frnei,     & ! number of fractured neighbours
+  168.      i            ! loop counter
+  169.    
+  170.    integer :: thisimage, errstat, nimages
+  171.    
+  172.    ! Do not check coarray for allocated, as this wastes time.
+  173.    ! Instead let the code fail if coarray is not allocated.
+  174.    
+  175.    ! use local vars to save time
+  176.    thisimage = this_image()
+  177.    nimages = num_images()
+  178.    imgpos = this_image(coarray)
+ftn-6271 ftn: VECTOR File = cgca_m3gbf.f90, Line = 178 
+  A loop starting at line 178 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3gbf.f90, Line = 178 
+  A loop starting at line 178 was unwound.
+
+  179.    
+  180.    ! determine the extents
+  181.    lbv = lbound( coarray )
+ftn-6205 ftn: VECTOR File = cgca_m3gbf.f90, Line = 181 
+  A loop starting at line 181 was vectorized with a single vector iteration.
+
+  182.    ubv = ubound( coarray )
+ftn-6004 ftn: SCALAR File = cgca_m3gbf.f90, Line = 182 
+  A loop starting at line 182 was fused with the loop starting at line 181.
+
+  183.    lbr = lbv + 1
+ftn-6004 ftn: SCALAR File = cgca_m3gbf.f90, Line = 183 
+  A loop starting at line 183 was fused with the loop starting at line 181.
+
+  184.    ubr = ubv - 1
+ftn-6004 ftn: SCALAR File = cgca_m3gbf.f90, Line = 184 
+  A loop starting at line 184 was fused with the loop starting at line 181.
+
+  185.    ubsuper = (ubr(1:3) - lbr(1:3) + 1) * nimages
+ftn-6271 ftn: VECTOR File = cgca_m3gbf.f90, Line = 185 
+  A loop starting at line 185 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3gbf.f90, Line = 185 
+  A loop starting at line 185 was unwound.
+
+  186.    
+  187.    ! Allocate the temp array if not already allocated.
+  188.    ! The array has the SAVE attribute, as this routine
+  189.    ! is likely to be called many times.
+  190.     
+  191.    if (.not. allocated(array)) &
+  192.     allocate(array(lbv(1):ubv(1),lbv(2):ubv(2),lbv(3):ubv(3)),stat=errstat)
+  193.    if (errstat.ne.0) then
+ftn-7405 ftn: CAUTION File = cgca_m3gbf.f90, Line = 193 
+  Variable "errstat" may be used before it is defined.
+
+  194.     write (*,'(a,i0)') "ERROR: cgca_gbf1f: image ",thisimage
+  195.     write (*,'(a)') "ERROR: cgca_gbf1f: cannot allocate array"
+  196.     error stop
+  197.    end if
+  198.    
+  199.    ! Copy coarray fracture state type into a local array
+  200.    array = coarray(:,:,:,cgca_state_type_frac)
+ftn-6066 ftn: SCALAR File = cgca_m3gbf.f90, Line = 200 
+   A loop nest at line 200 collapsed to a single loop.
+
+ftn-6231 ftn: VECTOR File = cgca_m3gbf.f90, Line = 200 
+  A statement was replaced by a library call.
+
+  201.    
+  202.    ! scan across all cells
+  203.    do x3=lbr(3),ubr(3)
+ftn-6288 ftn: VECTOR File = cgca_m3gbf.f90, Line = 203 
+  A loop starting at line 203 was not vectorized because it contains a call to subroutine "cgca_lg" on line 212.
+
+  204.    do x2=lbr(2),ubr(2)
+ftn-6288 ftn: VECTOR File = cgca_m3gbf.f90, Line = 204 
+  A loop starting at line 204 was not vectorized because it contains a call to subroutine "cgca_lg" on line 212.
+
+  205.    do x1=lbr(1),ubr(1)
+ftn-6288 ftn: VECTOR File = cgca_m3gbf.f90, Line = 205 
+  A loop starting at line 205 was not vectorized because it contains a call to subroutine "cgca_lg" on line 212.
+
+  206.    
+  207.     ! Analyse only live cells
+  208.     if ( array(x1,x2,x3) .ne. cgca_intact_state ) cycle
+  209.    
+  210.     ! Skip cells adjacent to halo cells
+  211.     local = (/ x1, x2, x3 /)
+ftn-6271 ftn: VECTOR File = cgca_m3gbf.f90, Line = 211 
+  A loop starting at line 211 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3gbf.f90, Line = 211 
+  A loop starting at line 211 was unwound.
+
+  212.     call cgca_lg(imgpos,local,coarray,super)
+                ^                                   
+ftn-3095 ftn: IPA CGCA_GBF1F, File = cgca_m3gbf.f90, Line = 212, Column = 7 
+  "cgca_lg" (called from "cgca_gbf1f") was not inlined because the containing loop does I/O.
+
+  213.     if ( any( super .eq. 1) .or. any( super .eq. ubsuper) ) cycle
+ftn-6334 ftn: VECTOR File = cgca_m3gbf.f90, Line = 213 
+  A loop starting at line 213 was not vectorized because it contains multiple potential exits.
+
+  214.    
+  215.     ! set up ranges to save compute time
+  216.     range1 = (/ x1-1, x1, x1+1 /)
+ftn-6271 ftn: VECTOR File = cgca_m3gbf.f90, Line = 216 
+  A loop starting at line 216 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3gbf.f90, Line = 216 
+  A loop starting at line 216 was unwound.
+
+  217.     range2 = (/ x2-1, x2, x2+1 /)
+ftn-6004 ftn: SCALAR File = cgca_m3gbf.f90, Line = 217 
+  A loop starting at line 217 was fused with the loop starting at line 216.
+
+  218.     range3 = (/ x3-1, x3, x3+1 /)
+ftn-6004 ftn: SCALAR File = cgca_m3gbf.f90, Line = 218 
+  A loop starting at line 218 was fused with the loop starting at line 216.
+
+  219.    
+  220.     ! count fractured neighbours, only cleavage edges and fractured GB
+  221.     frnei = 0
+  222.     ! first all cleavage edge states
+  223.     do i=1,size(cgca_clvg_states_edge)
+ftn-6294 ftn: VECTOR File = cgca_m3gbf.f90, Line = 223 
+  A loop starting at line 223 was not vectorized because a better candidate was found at line 224.
+
+  224.      frnei = frnei + count(                                            &
+ftn-6271 ftn: VECTOR File = cgca_m3gbf.f90, Line = 224 
+  A loop starting at line 224 was not vectorized because its trip count is too small.
+
+  225.       array(range1,range2,range3) .eq. cgca_clvg_states_edge(i) )
+  226.     end do
+  227.     ! then all GB fractured states
+  228.     frnei = frnei + count(                                             &
+ftn-6004 ftn: SCALAR File = cgca_m3gbf.f90, Line = 228 
+  A loop starting at line 228 was fused with the loop starting at line 223.
+
+ftn-6271 ftn: VECTOR File = cgca_m3gbf.f90, Line = 228 
+  A loop starting at line 228 was not vectorized because its trip count is too small.
+
+  229.      array(range1,range2,range3) .eq. cgca_gb_state_fractured )
+  230.    
+  231.     ! If the cell
+  232.     !  (1) is on the grain boundary
+  233.     !  (2) has 5 fractured neighbours
+  234.     ! then it becomes cgca_gb_state_fractured.
+  235.     if ( any( coarray(range1,range2,range3,cgca_state_type_grain) .ne. &
+  236.               coarray(x1,x2,x3,cgca_state_type_grain) ) .and.          &
+  237.          (frnei .ge. 5) ) then
+  238.      coarray(x1,x2,x3,cgca_state_type_frac) = cgca_gb_state_fractured
+  239.     end if
+  240.        
+  241.    end do
+  242.    end do
+  243.    end do
+  244.    
+  245.    end subroutine cgca_gbf1f
+  246.    
+  247.    !*roboend*
+  248.    
+  249.    end module cgca_m3gbf
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                         E x t e r n a l   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Name  Messages
+----  --------
+ABORT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ABORT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ALLOCATED(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_GBF1P in CGCA_M3GBF (Line 88, file cgca_m3gbf.f90)
+                   CGCA_GBF1F in CGCA_M3GBF (Line 191, file cgca_m3gbf.f90)
+
+Name  Messages
+----  --------
+ANY(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_GBF1P in CGCA_M3GBF (Line 116, file cgca_m3gbf.f90)
+                   CGCA_GBF1P in CGCA_M3GBF (Line 118, file cgca_m3gbf.f90)
+                   CGCA_GBF1F in CGCA_M3GBF (Line 213, file cgca_m3gbf.f90)
+                   CGCA_GBF1F in CGCA_M3GBF (Line 213, file cgca_m3gbf.f90)
+                   CGCA_GBF1F in CGCA_M3GBF (Line 235, file cgca_m3gbf.f90)
+
+Name  Messages
+----  --------
+CGCA_GBF1F in CGCA_M3GBF
+      Defined as:  Subroutine (line 30, file cgca_m3gbf.f90)
+
+      Interface:   None
+
+      Calls:       CGCA_LG in CGCA_M2GLM (Line 212, file cgca_m3gbf.f90)
+                   SIZE(Intrinsic) (Line 223, file cgca_m3gbf.f90)
+                   THIS_IMAGE(Intrinsic) (Line 176, file cgca_m3gbf.f90)
+                   THIS_IMAGE(Intrinsic) (Line 178, file cgca_m3gbf.f90)
+                   shmem_n_pes(Intrinsic) (Line 177, file cgca_m3gbf.f90)
+                   LBOUND(Intrinsic) (Line 181, file cgca_m3gbf.f90)
+                   UBOUND(Intrinsic) (Line 182, file cgca_m3gbf.f90)
+                   ALLOCATED(Intrinsic) (Line 191, file cgca_m3gbf.f90)
+                   ANY(Intrinsic) (Line 213, file cgca_m3gbf.f90)
+                   ANY(Intrinsic) (Line 213, file cgca_m3gbf.f90)
+                   ANY(Intrinsic) (Line 235, file cgca_m3gbf.f90)
+                   COUNT(Intrinsic) (Line 224, file cgca_m3gbf.f90)
+                   COUNT(Intrinsic) (Line 228, file cgca_m3gbf.f90)
+
+Name  Messages
+----  --------
+CGCA_GBF1P in CGCA_M3GBF
+      Defined as:  Subroutine (line 30, file cgca_m3gbf.f90)
+
+      Interface:   None
+
+      Calls:       THIS_IMAGE(Intrinsic) (Line 75, file cgca_m3gbf.f90)
+                   shmem_n_pes(Intrinsic) (Line 76, file cgca_m3gbf.f90)
+                   LBOUND(Intrinsic) (Line 79, file cgca_m3gbf.f90)
+                   UBOUND(Intrinsic) (Line 80, file cgca_m3gbf.f90)
+                   ALLOCATED(Intrinsic) (Line 88, file cgca_m3gbf.f90)
+                   ANY(Intrinsic) (Line 116, file cgca_m3gbf.f90)
+                   ANY(Intrinsic) (Line 118, file cgca_m3gbf.f90)
+
+Name  Messages
+----  --------
+CGCA_GL in CGCA_M2GLM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_LG in CGCA_M2GLM
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_GBF1F in CGCA_M3GBF (Line 212, file cgca_m3gbf.f90)
+
+Name  Messages
+----  --------
+CGCA_M1CO
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M3GBF
+
+Name  Messages
+----  --------
+CGCA_M2GLM
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M3GBF
+
+Name  Messages
+----  --------
+CGCA_M3GBF
+      Defined as:  Module (line 10, file cgca_m3gbf.f90)
+
+        Uses:      CGCA_M1CO
+                   ISO_FORTRAN_ENV  (indirectly)
+                   CGCA_M2GLM
+
+Name  Messages
+----  --------
+COUNT(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_GBF1F in CGCA_M3GBF (Line 224, file cgca_m3gbf.f90)
+                   CGCA_GBF1F in CGCA_M3GBF (Line 228, file cgca_m3gbf.f90)
+
+Name  Messages
+----  --------
+EXIT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH_8
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FTN_LIB_DEFINITIONS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+Name  Messages
+----  --------
+HUGE(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL_J
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ISO_FORTRAN_ENV
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M3GBF  (indirectly)
+
+Name  Messages
+----  --------
+KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+LBOUND(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_GBF1P in CGCA_M3GBF (Line 79, file cgca_m3gbf.f90)
+                   CGCA_GBF1F in CGCA_M3GBF (Line 181, file cgca_m3gbf.f90)
+
+Name  Messages
+----  --------
+SELECTED_INT_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SELECTED_REAL_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SIZE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_GBF1F in CGCA_M3GBF (Line 223, file cgca_m3gbf.f90)
+
+Name  Messages
+----  --------
+THIS_IMAGE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_GBF1P in CGCA_M3GBF (Line 75, file cgca_m3gbf.f90)
+                   CGCA_GBF1F in CGCA_M3GBF (Line 176, file cgca_m3gbf.f90)
+                   CGCA_GBF1F in CGCA_M3GBF (Line 178, file cgca_m3gbf.f90)
+
+Name  Messages
+----  --------
+UBOUND(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_GBF1P in CGCA_M3GBF (Line 80, file cgca_m3gbf.f90)
+                   CGCA_GBF1F in CGCA_M3GBF (Line 182, file cgca_m3gbf.f90)
+
+Name  Messages
+----  --------
+shmem_n_pes(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_GBF1P in CGCA_M3GBF (Line 76, file cgca_m3gbf.f90)
+                   CGCA_GBF1F in CGCA_M3GBF (Line 177, file cgca_m3gbf.f90)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

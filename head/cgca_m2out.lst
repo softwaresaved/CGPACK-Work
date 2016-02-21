@@ -1,0 +1,817 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S u m m a r y   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Compilation
+-----------
+File     : /home3/y14/y14/di1c13/cgpack/head/cgca_m2out.F90
+Compiled : 02/18/16  16:36:37
+Compiler : Version 8.3.7
+Ftnlx    : Version 8318 (libcif 83016)
+Target   : x86-64
+Command  : ftn_driver.exe -hcpu=ivybridge -hstatic -D__CRAYXC
+           -D__CRAY_IVYBRIDGE -D__CRAYXT_COMPUTE_LINUX_TARGET -hnetwork=aries
+           -c -eacFn -dm -m2 -rl -DCRAY=yes
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/mpt/7.1.1/gni/mpich2-cray/83/include
+           -I/opt/cray/libsci/13.0.1/CRAY/83/sandybridge/include
+           -I/opt/cray/rca/1.0.0-2.0502.57212.2.56.ari/include
+           -I/opt/cray/alps/5.2.3-2.0502.9295.14.14.ari/include
+           -I/opt/cray/xpmem/0.1-2.0502.57015.1.15.ari/include
+           -I/opt/cray/gni-headers/4.0-1.0502.10317.9.2.ari/include
+           -I/opt/cray/dmapp/7.0.1-1.0502.10246.8.47.ari/include
+           -I/opt/cray/pmi/5.0.6-1.0000.10439.140.2.ari/include
+           -I/opt/cray/ugni/6.0-1.0502.10245.9.9.ari/include
+           -I/opt/cray/udreg/2.3.2-1.0502.9889.2.20.ari/include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/pkgconfig/../include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/wlm_detect/1.0-1.0502.57063.1.1.ari/include
+           -I/opt/cray/krca/1.0.0-2.0502.57202.2.45.ari/include
+           -I/opt/cray-hss-devel/7.2.0/include cgca_m2out.F90
+
+ftnlx report
+------------
+Source   : /home3/y14/y14/di1c13/cgpack/head/cgca_m2out.F90
+Date     : 02/18/2016  16:36:37
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S o u r c e   L i s t i n g
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    1.    !$Id: cgca_m2out.F90 175 2015-12-15 12:31:30Z mexas $
+    2.    
+    3.    !*robodoc*m* CGPACK/cgca_m2out
+    4.    !  NAME
+    5.    !    cgca_m2out
+    6.    !  SYNOPSIS
+    7.    
+    8.    module cgca_m2out
+    9.    
+   10.    !  AUTHOR
+   11.    !    Anton Shterenlikht
+   12.    !  COPYRIGHT
+   13.    !    See CGPACK_Copyright
+   14.    !  DESCRIPTION
+   15.    !    Module dealing with output 
+   16.    !  CONTAINS
+   17.    !    cgca_swci, cgca_csvi, cgca_pc
+   18.    !  USES
+   19.    !    cgca_m1co
+   20.    !  USED BY
+   21.    !    cgca
+   22.    !  SOURCE
+   23.    
+   24.    use cgca_m1co
+   25.    implicit none
+   26.    
+   27.    private
+   28.    public :: cgca_swci
+   29.    #ifdef CRAY
+   30.    public :: cgca_pc ! only for Cray
+   31.    #endif
+   32.    
+   33.    contains
+   34.    
+   35.    !*roboend*
+   36.    
+   37.    
+   38.    !*robodoc*s* cgca_m2out/cgca_swci
+   39.    !  NAME
+   40.    !    cgca_swci
+   41.    !  SYNOPSIS
+   42.    
+   43.    subroutine cgca_swci( coarray, stype, iounit, fname )
+   44.    
+   45.    !  INPUTS
+   46.     
+   47.    integer( kind=iarr ),allocatable,intent( in ) :: coarray(:,:,:,:)[:,:,:]
+   48.    integer( kind=idef ),intent( in ) :: stype, iounit
+   49.    character( len=* ),intent( in ) :: fname
+   50.    
+   51.    !  SIDE EFFECTS
+   52.    !    A single binary file is created on image 1 with contents of coarray.
+   53.    !  DESCRIPTION
+   54.    !    Stream Write Coarray of Integers:
+   55.    !    - coarray - what array to dump
+   56.    !    - stype - what cell state type to dump
+   57.    !    - iounit - which I/O unit to use
+   58.    !    - fname - what file name to use
+   59.    !  NOTES
+   60.    !    All images call this routine!
+   61.    !    However only image 1 does all the work.
+   62.    !    The other images are waiting. 
+   63.    !  USES
+   64.    !    none
+   65.    !  USED BY
+   66.    !    none, end user.
+   67.    !  SOURCE
+   68.    
+   69.    integer :: errstat, coi1, coi2, coi3, i2, i3, &
+   70.      lb(4),   & ! lower bounds   of the coarray
+   71.      ub(4),   & ! upper bounds   of the coarray
+   72.      lcob(3), & ! lower cobounds of the coarray
+   73.      ucob(3)    ! upper cobounds of the coarray
+   74.    
+   75.    ! Only image1 does this. All other images do nothing.
+   76.    ! So sync all probably should be used after a call to
+   77.    ! this routine in the program.
+   78.    
+   79.    main: if ( this_image() .eq. 1 ) then
+   80.     errstat = 0
+   81.    
+   82.     ! Assume the coarray has halos. Don't write those.
+   83.     lb   = lbound( coarray ) + 1
+ftn-6205 ftn: VECTOR File = cgca_m2out.F90, Line = 83 
+  A loop starting at line 83 was vectorized with a single vector iteration.
+
+   84.     ub   = ubound( coarray ) - 1
+ftn-6004 ftn: SCALAR File = cgca_m2out.F90, Line = 84 
+  A loop starting at line 84 was fused with the loop starting at line 83.
+
+   85.     lcob = lcobound( coarray )
+ftn-6271 ftn: VECTOR File = cgca_m2out.F90, Line = 85 
+  A loop starting at line 85 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m2out.F90, Line = 85 
+  A loop starting at line 85 was unwound.
+
+   86.     ucob = ucobound( coarray )
+ftn-6004 ftn: SCALAR File = cgca_m2out.F90, Line = 86 
+  A loop starting at line 86 was fused with the loop starting at line 85.
+
+   87.    
+   88.    !write (*,*) "DEBUG: cgca_swci: lb: " , lb
+   89.    !write (*,*) "DEBUG: cgca_swci: ub: " , ub
+   90.    !write (*,*) "DEBUG: cgca_swci: lcob: " , lcob
+   91.    !write (*,*) "DEBUG: cgca_swci: ucob: " , ucob
+   92.    
+   93.     open( unit=iounit, file=fname, form="unformatted", access="stream", &
+           ^                                                                     
+ftn-3021 ftn: IPA CGCA_SWCI, File = cgca_m2out.F90, Line = 93, Column = 2 
+  "_OPEN" (called from "cgca_swci") was not inlined because the compiler was unable to locate the routine.
+
+   94.           status="replace", iostat=errstat )
+   95.     if ( errstat .ne. 0 ) then
+   96.      write (*,'(a)') "ERROR: cgca_swci: cannot open file for writing"
+   97.      write (*,'(a,i0)') "ERROR: cgca_swci: error code: ", errstat
+   98.      error stop
+   99.     end if
+  100.    
+  101.    !write (*,*) "DEBUG: cgca_swci: starting data output"
+  102.    
+  103.     ! nested loops for writing in correct order from all images
+  104.     do coi3 = lcob(3), ucob(3)
+ftn-6263 ftn: VECTOR File = cgca_m2out.F90, Line = 104 
+  A loop starting at line 104 was not vectorized because it contains a reference to a non-vector intrinsic on line 111.
+
+  105.       do i3 = lb(3), ub(3)
+ftn-6263 ftn: VECTOR File = cgca_m2out.F90, Line = 105 
+  A loop starting at line 105 was not vectorized because it contains a reference to a non-vector intrinsic on line 111.
+
+  106.         do coi2 = lcob(2), ucob(2)
+ftn-6263 ftn: VECTOR File = cgca_m2out.F90, Line = 106 
+  A loop starting at line 106 was not vectorized because it contains a reference to a non-vector intrinsic on line 111.
+
+  107.           do i2 = lb(2), ub(2)
+ftn-6263 ftn: VECTOR File = cgca_m2out.F90, Line = 107 
+  A loop starting at line 107 was not vectorized because it contains a reference to a non-vector intrinsic on line 111.
+
+  108.             do coi1 = lcob(1), ucob(1)
+ftn-6263 ftn: VECTOR File = cgca_m2out.F90, Line = 108 
+  A loop starting at line 108 was not vectorized because it contains a reference to a non-vector intrinsic on line 111.
+
+  109.    
+  110.      write(unit=iounit, iostat=errstat) &
+  111.        coarray(lb(1):ub(1),i2,i3,stype)[coi1,coi2,coi3]
+  112.      if (errstat .ne. 0) then
+  113.        write (*,'(a)') "ERROR: cgca_swci: cannot write to file"
+  114.        write (*,'(a,i0)') "ERROR: cgca_swci: error code: ", errstat
+  115.        error stop
+  116.      end if
+  117.    
+  118.    !write (*,*) "DEBUG: cgca_swci: wrote cells with: i2, i3, coi1, coi2, coi3", i2, i3, coi1, coi2, coi3
+  119.    
+  120.             end do
+  121.           end do
+  122.         end do
+  123.       end do
+  124.     end do
+  125.    
+  126.    !write (*,*) "DEBUG: cgca_swci: finished data output"
+  127.    
+  128.     close( unit=iounit, iostat=errstat )
+           ^                                    
+ftn-3021 ftn: IPA CGCA_SWCI, File = cgca_m2out.F90, Line = 128, Column = 2 
+  "_CLOSE" (called from "cgca_swci") was not inlined because the compiler was unable to locate the routine.
+
+  129.     if ( errstat .ne. 0 ) then
+  130.      write (*,'(a)') "ERROR: cgca_swci: cannot close file"
+  131.      write (*,'(a,i0)') "ERROR: cgca_swci: error code: ", errstat
+  132.      error stop
+  133.     end if
+  134.    
+  135.    end if main
+  136.    
+  137.    end subroutine cgca_swci
+  138.    
+  139.    !*roboend*
+  140.    
+  141.    
+  142.    #ifdef CRAY
+  143.    !*robodoc*s* cgca_m2out/cgca_pc
+  144.    !  NAME
+  145.    !    cgca_pc
+  146.    !  NOTE
+  147.    !    Uses Cray extensions, so compile only on Cray!
+  148.    !  SYNOPSIS
+  149.     
+  150.    subroutine cgca_pc( coarray, stype, fname )
+  151.    
+  152.    !  INPUTS
+  153.    
+  154.    integer( kind=iarr ), allocatable, intent( in ) ::                     &
+  155.     coarray(:,:,:,:)[:,:,:]
+  156.    integer( kind=idef ),intent( in ) :: stype
+  157.    character( len=* ), intent( in ) :: fname
+  158.    
+  159.    !    - coarray - what array to dump
+  160.    !    - stype - what cell state type to dump
+  161.    !    - fname - what file name to use
+  162.    !  SIDE EFFECTS
+  163.    !    creates a binary file from *all images* and writes coarray to it
+  164.    !  DESCRIPTION
+  165.    !    Parallel Cray output routine. This routine works only on Cray
+  166.    !    systems using non-standandard proprietary Cray extension, beware!
+  167.    !    Refer to Cray "Enhanced I/O: Using the assign Environment",
+  168.    !    section 13 of Cray Fortran Reference Manual, S-3901-83, June 2014
+  169.    !    or later version:
+  170.    !    http://docs.cray.com/cgi-bin/craydoc.cgi?mode=View;id=S-3901-83
+  171.    !
+  172.    !    First Cray assign enviroment is established, setting fname
+  173.    !    for shared IO access. Then image 1 writes the last record in
+  174.    !    the file. After that all images know the length of the file.
+  175.    !    Then all images can write their data in the correct place in
+  176.    !    this file in parallel. The expectation is that this is faster
+  177.    !    than a serial writer, cgca_swci.
+  178.    !
+  179.    !    All images must call this routine!
+  180.    !    Performance is not guaranteed, use with caution!
+  181.    !  USES
+  182.    !    none
+  183.    !  USED BY
+  184.    !    end user
+  185.    !  SOURCE
+  186.    
+  187.    integer :: errstat=0, img, nimgs, i2, i3, fu, reclen, recnum,          &
+  188.      help1, help2, help3,                                                 &
+  189.      cosub(3),  & ! set of cosubscripts for this image
+  190.      lb(4),     & ! lower bounds   of the coarray
+  191.      ub(4),     & ! upper bounds   of the coarray
+  192.      spsz(4),   & ! size of the space array along each dimension
+  193.      lcob(3),   & ! lower cobounds of the coarray
+  194.      ucob(3),   & ! upper cobounds of the coarray
+  195.      cosz(3)      ! size of the space coarray along each dimension
+  196.    
+  197.    ! Assume the coarray has halos. Don't write those.
+  198.       lb = lbound( coarray ) + 1
+ftn-6205 ftn: VECTOR File = cgca_m2out.F90, Line = 198 
+  A loop starting at line 198 was vectorized with a single vector iteration.
+
+  199.       ub = ubound( coarray ) - 1
+ftn-6004 ftn: SCALAR File = cgca_m2out.F90, Line = 199 
+  A loop starting at line 199 was fused with the loop starting at line 198.
+
+  200.     spsz = ub - lb + 1
+ftn-6004 ftn: SCALAR File = cgca_m2out.F90, Line = 200 
+  A loop starting at line 200 was fused with the loop starting at line 198.
+
+  201.     lcob = lcobound( coarray )
+ftn-6271 ftn: VECTOR File = cgca_m2out.F90, Line = 201 
+  A loop starting at line 201 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m2out.F90, Line = 201 
+  A loop starting at line 201 was unwound.
+
+  202.     ucob = ucobound( coarray )
+ftn-6004 ftn: SCALAR File = cgca_m2out.F90, Line = 202 
+  A loop starting at line 202 was fused with the loop starting at line 201.
+
+  203.     cosz = ucob - lcob + 1
+ftn-6004 ftn: SCALAR File = cgca_m2out.F90, Line = 203 
+  A loop starting at line 203 was fused with the loop starting at line 201.
+
+  204.      img = this_image()
+  205.    cosub = this_image( coarray )
+ftn-6004 ftn: SCALAR File = cgca_m2out.F90, Line = 205 
+  A loop starting at line 205 was fused with the loop starting at line 201.
+
+  206.    nimgs = num_images()
+  207.    
+  208.    ! Initialise Cray assign environment
+  209.    ! -m on - "Special handling of direct access file that will be accessed
+  210.    !          concurrently by several processes or tasks"
+  211.    ! -F system - no buffering
+  212.    ! fname - this assign enviroment will apply only to file name "fname".
+  213.    call asnfile( trim(fname), '-m on -F system', errstat )
+               ^                                                  
+ftn-3021 ftn: IPA CGCA_PC, File = cgca_m2out.F90, Line = 213, Column = 6 
+  "asnfile" (called from "cgca_pc") was not inlined because the compiler was unable to locate the routine.
+
+  214.    
+  215.    ! Need to set up record length
+  216.    inquire( iolength=reclen ) coarray( lb(1):ub(1), 1, 1, stype) [1,1,1]
+  217.    if ( img .eq. 1 ) then
+  218.      write (*,*) "INFO: cgca_pc: asnfile errstat:", errstat
+  219.      write (*,*) "INFO: cgca_pc: record length:", reclen
+  220.      write (*,*) "INFO: cgca_pc: last record num:", spsz(2)*spsz(3)*nimgs
+  221.    end if
+  222.    
+  223.    ! open file on image 1, write the last record to it and close it
+  224.    if ( img .eq. nimgs ) then
+  225.      open( newunit=fu, file=trim(fname), access="direct", recl=reclen,    &
+            ^                                                                      
+ftn-3021 ftn: IPA CGCA_PC, File = cgca_m2out.F90, Line = 225, Column = 3 
+  "_OPEN" (called from "cgca_pc") was not inlined because the compiler was unable to locate the routine.
+
+  226.            form="unformatted", status="replace" )
+  227.      recnum = spsz(2) * spsz(3) * nimgs 
+  228.      write( fu, rec= recnum ) coarray( lb(1):ub(1), ub(2), ub(3), stype )
+ftn-7405 ftn: CAUTION File = cgca_m2out.F90, Line = 228 
+  Variable "fu" may be used before it is defined.
+
+  229.      close( fu )
+            ^           
+ftn-3021 ftn: IPA CGCA_PC, File = cgca_m2out.F90, Line = 229, Column = 3 
+  "_CLOSE" (called from "cgca_pc") was not inlined because the compiler was unable to locate the routine.
+
+  230.    end if
+  231.    
+  232.    ! all images wait until the file size is known
+  233.    sync all
+  234.    
+  235.    ! open file on all images
+  236.    open( unit=fu, file=fname, access="direct", recl=reclen,               &
+          ^                                                                        
+ftn-3021 ftn: IPA CGCA_PC, File = cgca_m2out.F90, Line = 236, Column = 1 
+  "_OPEN" (called from "cgca_pc") was not inlined because the compiler was unable to locate the routine.
+
+  237.          form="unformatted", status="old" )
+  238.    
+  239.    ! Calculate intermediate variables to reduce the FLOPs
+  240.    ! The exact expression for recnum 
+  241.    !     ( (cosub(3)-1) * spsz(3) + i3 - 1 ) * cosz(2) * spsz(2) * cosz(1) &
+  242.    !   + ( (cosub(2)-1) * spsz(2) + i2 - 1 ) * cosz(1) + cosub(1)
+  243.    help3 = (cosub(3)-1) * spsz(3) - 1
+  244.    help2 = (cosub(2)-1) * spsz(2) - 1
+  245.    help1 = cosz(2) * spsz(2) * cosz(1)
+  246.    
+  247.    ! write data
+  248.    do i3 = lb(3), ub(3)
+ftn-6263 ftn: VECTOR File = cgca_m2out.F90, Line = 248 
+  A loop starting at line 248 was not vectorized because it contains a reference to a non-vector intrinsic on line 251.
+
+  249.    do i2 = lb(2), ub(2)
+ftn-6263 ftn: VECTOR File = cgca_m2out.F90, Line = 249 
+  A loop starting at line 249 was not vectorized because it contains a reference to a non-vector intrinsic on line 251.
+
+  250.      recnum = (help3 + i3) * help1 + (help2 + i2) * cosz(1) + cosub(1)
+  251.      write( unit=fu, rec= recnum ) coarray( lb(1):ub(1), i2, i3, stype )
+  252.    end do
+  253.    end do
+  254.    
+  255.    ! flush data
+  256.    flush( unit=fu )
+          ^                
+ftn-3021 ftn: IPA CGCA_PC, File = cgca_m2out.F90, Line = 256, Column = 1 
+  "_FLUSH" (called from "cgca_pc") was not inlined because the compiler was unable to locate the routine.
+
+  257.    
+  258.    ! wait till all images wrote data and flushed
+  259.    sync all
+  260.    
+  261.    ! close the file
+  262.    close( fu )
+          ^           
+ftn-3021 ftn: IPA CGCA_PC, File = cgca_m2out.F90, Line = 262, Column = 1 
+  "_CLOSE" (called from "cgca_pc") was not inlined because the compiler was unable to locate the routine.
+
+  263.    
+  264.    end subroutine cgca_pc
+  265.    
+  266.    !*roboend*
+  267.    #endif
+  268.    
+  269.    
+  270.    !*robodoc*s* cgca_m2out/cgca_csvi
+  271.    !  NAME
+  272.    !    cgca_csvi
+  273.    !  SYNOPSIS
+  274.     
+  275.    subroutine cgca_csvi(coarray,iounit,fname)
+  276.    
+  277.    !  INPUTS
+  278.    
+  279.    integer(kind=iarr),allocatable,intent(in) :: coarray(:,:,:)[:,:,:]
+  280.    integer(kind=idef),intent(in) :: iounit
+  281.    character(len=*),intent(in) :: fname
+  282.    
+  283.    !  SIDE EFFECTS
+  284.    !    creates a text file from image 1 and writes coarray in it
+  285.    !  DESCRIPTION
+  286.    !    Comma Separated Values of Integers.
+  287.    !    All images call this routine.
+  288.    !    However only image 1 does all the work.
+  289.    !    The other images are waiting. 
+  290.    !  WARNINGS
+  291.    !    DO NOT USE!!!!
+  292.    !    This subroutine is not very useful, and therefore
+  293.    !    the work on it stopped.
+  294.    !    In fact it might not work at all.
+  295.    !    So for now it is just a dummy.
+  296.    !    If you want to use it, do so on your own risk.
+  297.    !    In fact it is not even accessible from outside of the enclosing module.
+  298.    !    It might be removed in future version with no notice!
+  299.    !  USES
+  300.    !    none
+  301.    !  USED BY
+  302.    !    none, DO NOT USE!!!
+  303.    !  SOURCE
+  304.    
+  305.    integer :: errstat, coi1, coi2, coi3, i1, i2, i3, &
+  306.      lbv(3)      , & ! lower bounds of the "virtual" coarray
+  307.      ubv(3)      , & ! upper bounds of the "virtual" coarray
+  308.      lbr(3)      , & ! lower bounds of the "real" coarray, lbv+1
+  309.      ubr(3)      , & ! upper bounds of the "real" coarray, ubv-1
+  310.      lcob(3)     , & ! lower cobounds of the coarray
+  311.      ucob(3)     , & ! upper cobounds of the coarray
+  312.      dimr(3)         ! shape of the "real" coarray
+  313.    
+  314.    ! leave immediately, 
+  315.    write (*,*) "PROBLEM: cgca_csvi is not ready for use, skipping"
+  316.    return
+  317.    
+  318.    ! Only image1 does this. All other images do nothing.
+  319.    ! So sync all probably should be used after a call to
+  320.    ! this routine in the program.
+  321.    
+  322.    main: if (this_image() .eq. 1) then
+  323.      errstat = 0
+  324.    
+  325.      ! Assume the coarray has halos. Don't write those.
+  326.      lbv=lbound(coarray)
+  327.      ubv=ubound(coarray)
+  328.      lbr=lbv+1
+  329.      ubr=ubv-1
+  330.      dimr=ubr-lbr+1
+  331.      lcob=lcobound(coarray)
+  332.      ucob=ucobound(coarray)
+  333.    
+  334.      open(unit=iounit,file=fname, form="formatted", status="replace", &
+            ^                                                                  
+ftn-3021 ftn: IPA CGCA_CSVI, File = cgca_m2out.F90, Line = 334, Column = 3 
+  "_OPEN" (called from "cgca_csvi") was not inlined because the compiler was unable to locate the routine.
+
+  335.        iostat=errstat)
+  336.      if (errstat.ne.0) then
+  337.        write (*,*) &
+  338.          "ERROR: cgca_csvi: cannot open file for writing"
+  339.        error stop
+  340.      end if
+  341.    
+  342.      ! write in any order
+  343.      do concurrent ( i1 =  lbr(1): ubr(1), &
+  344.                      i2 =  lbr(2): ubr(2), &
+  345.                      i3 =  lbr(3): ubr(3), &
+  346.                    coi1 = lcob(1):ucob(1), &
+  347.                    coi2 = lcob(2):ucob(2), &
+  348.                    coi3 = lcob(3):ucob(3) )
+  349.        ! need to calculate the global cell coordinates
+  350.        write (unit=iounit, iostat=errstat, fmt='(3(i0,a),i0)' ) &
+  351.          i1 + dimr(1)*(coi1-1), " , ", & 
+  352.          i2 + dimr(2)*(coi2-1), " , ", & 
+  353.          i3 + dimr(3)*(coi3-1), " , ", & 
+  354.          coarray(i1,i2,i3)[coi1,coi2,coi3]
+  355.        if (errstat.ne.0) then
+  356.          write (*,'(a)') "ERROR: cgca_csvi: cannot write to file"
+  357.          write (*,'(a,i0)') "ERROR: cgca_csvi: error code: ", errstat
+  358.          ! ideally should issue "error stop" here, but it is an image
+  359.          ! control statement, which are not allowed inside do concurrent 
+  360.        end if
+  361.      end do
+  362.    
+  363.      close(unit=iounit,iostat=errstat)
+            ^                                 
+ftn-3021 ftn: IPA CGCA_CSVI, File = cgca_m2out.F90, Line = 363, Column = 3 
+  "_CLOSE" (called from "cgca_csvi") was not inlined because the compiler was unable to locate the routine.
+
+  364.      if (errstat.ne.0) error stop "ERROR: cgca_csvi: cannot close file"
+  365.    
+  366.    end if main
+  367.    
+  368.    end subroutine cgca_csvi
+ftn-5003 ftn: NOTE File = cgca_m2out.F90, Line = 368 
+  Local variable "COI1" is used but not assigned a value.
+
+ftn-5003 ftn: NOTE File = cgca_m2out.F90, Line = 368 
+  Local variable "I3" is used but not assigned a value.
+
+ftn-5003 ftn: NOTE File = cgca_m2out.F90, Line = 368 
+  Local variable "I2" is used but not assigned a value.
+
+ftn-5003 ftn: NOTE File = cgca_m2out.F90, Line = 368 
+  Local variable "COI2" is used but not assigned a value.
+
+ftn-5003 ftn: NOTE File = cgca_m2out.F90, Line = 368 
+  Local variable "I1" is used but not assigned a value.
+
+ftn-5003 ftn: NOTE File = cgca_m2out.F90, Line = 368 
+  Local variable "COI3" is used but not assigned a value.
+
+  369.    
+  370.    !*roboend*
+  371.    
+  372.    end module cgca_m2out
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                         E x t e r n a l   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Name  Messages
+----  --------
+ABORT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ABORT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ASNFILE
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PC in CGCA_M2OUT (Line 213, file cgca_m2out.F90)
+
+Name  Messages
+----  --------
+CGCA_CSVI in CGCA_M2OUT
+      Defined as:  Subroutine (line 275, file cgca_m2out.F90)
+
+      Interface:   None
+
+      Calls:       THIS_IMAGE(Intrinsic) (Line 322, file cgca_m2out.F90)
+                   LBOUND(Intrinsic) (Line 326, file cgca_m2out.F90)
+                   UBOUND(Intrinsic) (Line 327, file cgca_m2out.F90)
+                   LCOBOUND(Intrinsic) (Line 331, file cgca_m2out.F90)
+                   UCOBOUND(Intrinsic) (Line 332, file cgca_m2out.F90)
+
+Name  Messages
+----  --------
+CGCA_M1CO
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M2OUT
+
+Name  Messages
+----  --------
+CGCA_M2OUT
+      Defined as:  Module (line 8, file cgca_m2out.F90)
+
+        Uses:      CGCA_M1CO
+                   ISO_FORTRAN_ENV  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_PC in CGCA_M2OUT
+      Defined as:  Subroutine (line 30, file cgca_m2out.F90)
+
+      Interface:   None
+
+      Calls:       LBOUND(Intrinsic) (Line 198, file cgca_m2out.F90)
+                   UBOUND(Intrinsic) (Line 199, file cgca_m2out.F90)
+                   LCOBOUND(Intrinsic) (Line 201, file cgca_m2out.F90)
+                   UCOBOUND(Intrinsic) (Line 202, file cgca_m2out.F90)
+                   THIS_IMAGE(Intrinsic) (Line 204, file cgca_m2out.F90)
+                   THIS_IMAGE(Intrinsic) (Line 205, file cgca_m2out.F90)
+                   shmem_n_pes(Intrinsic) (Line 206, file cgca_m2out.F90)
+                   TRIM(Intrinsic) (Line 213, file cgca_m2out.F90)
+                   TRIM(Intrinsic) (Line 225, file cgca_m2out.F90)
+                   ASNFILE (Line 213, file cgca_m2out.F90)
+
+Name  Messages
+----  --------
+CGCA_SWCI in CGCA_M2OUT
+      Defined as:  Subroutine (line 28, file cgca_m2out.F90)
+
+      Interface:   None
+
+      Calls:       THIS_IMAGE(Intrinsic) (Line 79, file cgca_m2out.F90)
+                   LBOUND(Intrinsic) (Line 83, file cgca_m2out.F90)
+                   UBOUND(Intrinsic) (Line 84, file cgca_m2out.F90)
+                   LCOBOUND(Intrinsic) (Line 85, file cgca_m2out.F90)
+                   UCOBOUND(Intrinsic) (Line 86, file cgca_m2out.F90)
+
+Name  Messages
+----  --------
+EXIT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH_8
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FTN_LIB_DEFINITIONS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+Name  Messages
+----  --------
+HUGE(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL_J
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ISO_FORTRAN_ENV
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M2OUT  (indirectly)
+
+Name  Messages
+----  --------
+KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+LBOUND(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_SWCI in CGCA_M2OUT (Line 83, file cgca_m2out.F90)
+                   CGCA_PC in CGCA_M2OUT (Line 198, file cgca_m2out.F90)
+                   CGCA_CSVI in CGCA_M2OUT (Line 326, file cgca_m2out.F90)
+
+Name  Messages
+----  --------
+LCOBOUND(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_SWCI in CGCA_M2OUT (Line 85, file cgca_m2out.F90)
+                   CGCA_PC in CGCA_M2OUT (Line 201, file cgca_m2out.F90)
+                   CGCA_CSVI in CGCA_M2OUT (Line 331, file cgca_m2out.F90)
+
+Name  Messages
+----  --------
+SELECTED_INT_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SELECTED_REAL_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SIZE(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+THIS_IMAGE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_SWCI in CGCA_M2OUT (Line 79, file cgca_m2out.F90)
+                   CGCA_PC in CGCA_M2OUT (Line 204, file cgca_m2out.F90)
+                   CGCA_PC in CGCA_M2OUT (Line 205, file cgca_m2out.F90)
+                   CGCA_CSVI in CGCA_M2OUT (Line 322, file cgca_m2out.F90)
+
+Name  Messages
+----  --------
+TRIM(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PC in CGCA_M2OUT (Line 213, file cgca_m2out.F90)
+                   CGCA_PC in CGCA_M2OUT (Line 225, file cgca_m2out.F90)
+
+Name  Messages
+----  --------
+UBOUND(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_SWCI in CGCA_M2OUT (Line 84, file cgca_m2out.F90)
+                   CGCA_PC in CGCA_M2OUT (Line 199, file cgca_m2out.F90)
+                   CGCA_CSVI in CGCA_M2OUT (Line 327, file cgca_m2out.F90)
+
+Name  Messages
+----  --------
+UCOBOUND(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_SWCI in CGCA_M2OUT (Line 86, file cgca_m2out.F90)
+                   CGCA_PC in CGCA_M2OUT (Line 202, file cgca_m2out.F90)
+                   CGCA_CSVI in CGCA_M2OUT (Line 332, file cgca_m2out.F90)
+
+Name  Messages
+----  --------
+shmem_n_pes(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PC in CGCA_M2OUT (Line 206, file cgca_m2out.F90)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

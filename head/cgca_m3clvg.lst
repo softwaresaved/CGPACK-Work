@@ -1,0 +1,3184 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S u m m a r y   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Compilation
+-----------
+File     : /home3/y14/y14/di1c13/cgpack/head/cgca_m3clvg.F90
+Compiled : 02/18/16  16:36:39
+Compiler : Version 8.3.7
+Ftnlx    : Version 8318 (libcif 83016)
+Target   : x86-64
+Command  : ftn_driver.exe -hcpu=ivybridge -hstatic -D__CRAYXC
+           -D__CRAY_IVYBRIDGE -D__CRAYXT_COMPUTE_LINUX_TARGET -hnetwork=aries
+           -c -eacFn -dm -m2 -rl -DCRAY=yes
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/mpt/7.1.1/gni/mpich2-cray/83/include
+           -I/opt/cray/libsci/13.0.1/CRAY/83/sandybridge/include
+           -I/opt/cray/rca/1.0.0-2.0502.57212.2.56.ari/include
+           -I/opt/cray/alps/5.2.3-2.0502.9295.14.14.ari/include
+           -I/opt/cray/xpmem/0.1-2.0502.57015.1.15.ari/include
+           -I/opt/cray/gni-headers/4.0-1.0502.10317.9.2.ari/include
+           -I/opt/cray/dmapp/7.0.1-1.0502.10246.8.47.ari/include
+           -I/opt/cray/pmi/5.0.6-1.0000.10439.140.2.ari/include
+           -I/opt/cray/ugni/6.0-1.0502.10245.9.9.ari/include
+           -I/opt/cray/udreg/2.3.2-1.0502.9889.2.20.ari/include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/pkgconfig/../include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/wlm_detect/1.0-1.0502.57063.1.1.ari/include
+           -I/opt/cray/krca/1.0.0-2.0502.57202.2.45.ari/include
+           -I/opt/cray-hss-devel/7.2.0/include cgca_m3clvg.F90
+
+ftnlx report
+------------
+Source   : /home3/y14/y14/di1c13/cgpack/head/cgca_m3clvg.F90
+Date     : 02/18/2016  16:36:41
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S o u r c e   L i s t i n g
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    1.    !$Id: cgca_m3clvg.F90 211 2016-02-17 16:37:18Z mexas $
+    2.    
+    3.    !*********************************************************************72
+    4.    
+    5.    !*robodoc*m* CGPACK/cgca_m3clvg
+    6.    !  NAME
+    7.    !    cgca_m3clvg
+    8.    !  SYNOPSIS
+    9.    
+   10.    module cgca_m3clvg
+   11.    
+   12.    !  DESCRIPTION
+   13.    !    Module dealing with cleavage
+   14.    !  AUTHOR
+   15.    !    Anton Shterenlikht
+   16.    !  COPYRIGHT
+   17.    !    See CGPACK_Copyright
+   18.    !  CONTAINS
+   19.    !    cgca_clvgs_abstract,
+   20.    !    cgca_clvgn, cgca_clvgsd, cgca_clvgsp, cgca_clvgp,
+   21.    !    cgca_clvgp_nocosum, 
+   22.    !    cgca_clvgp1, cgca_dacf, cgca_gcupd
+   23.    !  USES
+   24.    !    cgca_m2gb, cgca_m2hx, cgca_m2rot
+   25.    !  USED BY
+   26.    !    cgca
+   27.    !  SOURCE
+   28.    
+   29.    use cgca_m1co
+   30.    use cgca_m2gb,  only: cgca_gcr, cgca_gcf
+   31.    use cgca_m2hx,  only: cgca_hxi, cgca_hxg
+   32.    use cgca_m2rot, only: cgca_csym
+   33.    use cgca_m2rnd, only: cgca_irs
+   34.    
+   35.    implicit none
+   36.    
+   37.    private
+   38.    public :: cgca_clvgp_nocosum, cgca_clvgp1, cgca_clvgsd, cgca_clvgsp, &
+   39.              cgca_dacf, cgca_dacf1, cgca_tchk
+   40.    #ifndef IFORT
+   41.    public :: cgca_clvgp
+   42.    #endif
+   43.    
+   44.    ! This is a GC (grain connectivity) update coarray
+   45.    ! to store the (grain, neighbour) pairs from each image,
+   46.    ! up to a maximum of:
+   47.    integer( kind=idef ), parameter :: gculen = 100_iarr
+   48.    
+   49.    ! This array is *private* to this module, hence, the name
+   50.    ! does not need to start with cgca_ as there can be no name clash.
+   51.    ! This array is used to update local GC arrays.
+   52.    ! The components are as follows:
+   53.    !
+   54.    !  gcupd(:,1) - grain
+   55.    !  gcupd(:,2) - neighbour
+   56.    !  gcupd(:,3) - state, either cgca_gb_state_intact    or
+   57.    !                             cgca_gb_state_fractured
+   58.    !
+   59.    ! The idea is that this array is updated every time a grain
+   60.    ! boundary is crossed. Then all local arrays are updated using
+   61.    ! _gcf and this coarray.
+   62.    !
+   63.    ! The state must be set initially to intact.
+   64.    ! To easily distinuguish real records from blanks, it would
+   65.    ! be better to set grain numbers to some impossible values initially,
+   66.    ! e.g. negative. I might do this later.
+   67.    !
+   68.    integer( kind=iarr ) :: gcupd( gculen, 3 ) [*] = cgca_gb_state_intact
+   69.    
+   70.    ! This is a new gc update array. It uses multiple codimensions
+   71.    ! to make it easier to read data from neighbouring images
+   72.    integer( kind=iarr ), allocatable :: gcupd_arr(:,:) [:,:,:]
+   73.    
+   74.    ! Counter of a gcupd_arr pair. Set to 1 initially.
+   75.    integer( kind=idef ) :: gcucnt=1
+   76.    
+   77.    real( kind=rdef ), parameter ::    &
+   78.         zero = 0.0_rdef,              &
+   79.          one = 1.0_rdef,              &
+   80.        sqrt2 = sqrt(2.0_rdef),        &
+   81.     onesqrt2 = one/sqrt2,             &
+   82.        sqrt3 = sqrt(3.0_rdef),        &
+   83.     onesqrt3 = one/sqrt3,             &
+   84.    
+   85.     ! 27 unit vectors connecting the central cell with all its
+   86.     ! 26 neighbours + itself, which is a zero vector.
+   87.     e(3, -1:1, -1:1, -1:1) =          &
+   88.       reshape( (/                     &
+   89.     -onesqrt3,-onesqrt3,-onesqrt3,    & ! -1 -1 -1
+   90.      zero,    -onesqrt2,-onesqrt2,    & !  0 -1 -1
+   91.      onesqrt3,-onesqrt3,-onesqrt3,    & !  1 -1 -1
+   92.     
+   93.     -onesqrt2, zero,    -onesqrt2,    & ! -1  0 -1 
+   94.      zero,     zero,    -one,         & !  0  0 -1
+   95.      onesqrt2, zero,    -onesqrt2,    & !  1  0 -1
+   96.     
+   97.     -onesqrt3, onesqrt3,-onesqrt3,    & ! -1  1 -1
+   98.      zero,     onesqrt2,-onesqrt2,    & !  0  1 -1
+   99.      onesqrt3, onesqrt3,-onesqrt3,    & !  1  1 -1
+  100.     
+  101.     -onesqrt2,-onesqrt2, zero,        & ! -1 -1  0
+  102.      zero,    -one,      zero,        & !  0 -1  0
+  103.      onesqrt2,-onesqrt2, zero,        & !  1 -1  0
+  104.     
+  105.     -one,      zero,     zero,        & ! -1  0  0
+  106.      zero,     zero,     zero,        & !  0  0  0
+  107.      one,      zero,     zero,        & !  1  0  0
+  108.     
+  109.     -onesqrt2, onesqrt2, zero,        & ! -1  1  0
+  110.      zero,     one,      zero,        & !  0  1  0
+  111.      onesqrt2, onesqrt2, zero,        & !  1  1  0
+  112.     
+  113.     -onesqrt3,-onesqrt3, onesqrt3,    & ! -1 -1  1
+  114.      zero,    -onesqrt2, onesqrt2,    & !  0 -1  1
+  115.      onesqrt3,-onesqrt3, onesqrt3,    & !  1 -1  1
+  116.     
+  117.     -onesqrt2, zero,     onesqrt2,    & ! -1  0  1
+  118.      zero,     zero,     one,         & !  0  0  1
+  119.      onesqrt2, zero,     onesqrt2,    & !  1  0  1
+  120.     
+  121.     -onesqrt3, onesqrt3, onesqrt3,    & ! -1  1  1
+  122.      zero,     onesqrt2, onesqrt2,    & !  0  1  1
+  123.      onesqrt3, onesqrt3, onesqrt3     & !  1  1  1
+  124.      /), (/ 3,3,3,3 /) )
+  125.    
+  126.    interface
+  127.      module subroutine cgca_gcupd
+  128.      end subroutine cgca_gcupd
+  129.      module subroutine cgca_gcupdn( periodicbc )
+  130.        logical( kind=ldef ), intent( in ) :: periodicbc
+  131.      end subroutine cgca_gcupdn
+  132.    end interface
+  133.    
+  134.    !*roboend*
+  135.    
+  136.    
+  137.    !*robodoc*c* cgca_m3clvg/cgca_clvgs_abstract
+  138.    !  NAME
+  139.    !    cgca_clvgs_abstract
+  140.    !  SYNOPSIS
+  141.    
+  142.    abstract interface
+  143.    
+  144.    !  DESCRIPTION
+  145.    !    Abstract interface is a fortran 2003 feature.
+  146.    !    This interface is for cleavage "change state" routines.
+  147.    !    The interface for such routines - cgca_clvgsd and cgca_clvgsp,
+  148.    !    must match it.
+  149.    !    Using this interface, the cleavage "change state"
+  150.    !    routines can be passed as actual arguments to the cleavage
+  151.    !    propagation routines, cgca_clvgp and cgca_clvgp1, where
+  152.    !    the dummy arguments for these routines are defined by
+  153.    !     procedure(cgca_clvgs_abstract)
+  154.    !  USES
+  155.    !    The interface is the exact copy of cgca_clvgsd, cgca_clvgsp
+  156.    !  USED BY
+  157.    !    cgca_clvgp, cgca_clvgp1
+  158.    !  SOURCE
+  159.    
+  160.     subroutine cgca_clvgs_abstract( farr, marr, n, cstate, debug,         &
+  161.                                     newstate )
+  162.      use cgca_m1co
+  163.      integer, parameter :: l=-1, centre=l+1, u=centre+1
+  164.      integer( kind=iarr ), intent(in) :: farr(l:u,l:u,l:u),               &
+  165.        marr(l:u,l:u,l:u), cstate
+  166.      real( kind=rdef ), intent(in) :: n(3)
+  167.      logical( kind=ldef ), intent(in) :: debug
+  168.      integer( kind=iarr ), intent(out) :: newstate
+  169.     end subroutine cgca_clvgs_abstract
+  170.    end interface
+  171.    
+  172.    !*roboend*
+  173.    
+  174.    
+  175.    contains
+  176.    
+  177.    
+  178.    !*robodoc*s* cgca_m3clvg/gcupd_alloc
+  179.    !  NAME
+  180.    !    gcupd_alloc
+  181.    !  SYNOPSIS
+  182.    
+  183.    subroutine gcupd_alloc
+  184.    
+  185.    !  DESCRIPTION
+  186.    !    This is a private routine, hence the name does not start with
+  187.    !    cgca_.
+  188.    !    This routine allocates gcupd_arr array coarray. Therefore it
+  189.    !    involves implicit sync all.
+  190.    !    If gcupd_arr is allocated already,
+  191.    !    it is first deallocated and then reallocated with new
+  192.    !    codimensions.
+  193.    !  SIDE EFFECTS
+  194.    !    gcupd_arr is (re)allocated.
+  195.    !  USES
+  196.    !  USED BY
+  197.    !  SOURCE
+  198.    
+  199.    integer :: errstat = 0
+  200.    
+  201.    ! Deallocate if already allocated
+  202.    if ( allocated( gcupd_arr ) ) then
+  203.      deallocate( gcupd_arr, stat=errstat )
+  204.      if ( errstat .ne. 0 ) then
+  205.        write (*,'(a,i0)') "ERROR: cgca_m3clvg/gcupd_alloc:&
+  206.         & deallocate( gcupd_arr ), err. code:", errstat
+  207.        error stop
+  208.      end if
+  209.    end if
+  210.    
+  211.    ! Allocate and set all values to cgca_gb_state_intact.
+  212.    allocate( gcupd_arr( cgca_gcupd_size1, cgca_gcupd_size2 )              &
+  213.      [ cgca_slcob(1):cgca_sucob(1), cgca_slcob(2):cgca_sucob(2),          &
+  214.        cgca_slcob(3):* ], source = cgca_gb_state_intact, stat=errstat )
+  215.    if ( errstat .ne. 0 ) then
+  216.      write (*,'(a,i0)') "ERROR: cgca_m3clvg/gcupd_alloc:&
+  217.         & allocate( gcupd_arr ), err. code:", errstat
+  218.      error stop
+  219.    end if
+  220.    
+  221.    end subroutine gcupd_alloc
+  222.    
+  223.    !*roboend*
+  224.    
+  225.    
+  226.    !*robodoc*s* cgca_m3clvg/cgca_clvgn
+  227.    !  NAME
+  228.    !    cgca_clvgn
+  229.    !  SYNOPSIS  
+  230.    
+  231.    subroutine cgca_clvgn( t, r, tcrit, flag, n, cstate )
+  232.    
+  233.    !  INPUTS
+  234.    
+  235.    real( kind=rdef ), intent(in) :: t(3,3), r(3,3), tcrit(3)
+  236.    
+  237.    !  OUTPUTS
+  238.    
+  239.    logical( kind=ldef ), intent(out) :: flag
+  240.    real(    kind=rdef ), intent(out) :: n(3)
+  241.    integer( kind=iarr ), intent(out) :: cstate
+  242.    
+  243.    !  DESCRIPTION
+  244.    !    Given the stress tensor in the spatial CS, (t)
+  245.    !    and the crystal rotation tensor (r), this routine first
+  246.    !    calculates whether cleavage happens or not (flag). If cleavage
+  247.    !    conditions are met (flag=.true.), then the routine calculates the
+  248.    !    acting cleavage plane normal in spatial coord. system (n) and the
+  249.    !    type of the cleavage plane (cstate).
+  250.    !
+  251.    !    Inputs:
+  252.    !    - t - stress tensor in spatial CS
+  253.    !    - r - crystal rotation tensor
+  254.    !    - tcrit - critical values of cleavage stress on 100, 110
+  255.    !              and 111 planes
+  256.    !
+  257.    !    Outputs:
+  258.    !    - flag - .true. if cleavage conditions are met, .false. otherwise
+  259.    !    - n - unit normal vector defining the acting cleavage plane
+  260.    !    - cstate - cell state, one of the cleavage type.
+  261.    !
+  262.    !    On output, if flag=.false. then n=0, cstate=cgca_instact_state
+  263.    !  USES
+  264.    !    cgca_csym
+  265.    !  USED BY
+  266.    !    cgca_clvgsd, cgca_clvgsp
+  267.    !  NOTES
+  268.    !    Not accessible from outside of the cgca_clvg module
+  269.    !  SOURCE
+  270.    
+  271.    ! unit vectors defining 3 cleavage plane families
+  272.    real( kind=rdef ), parameter ::                & 
+  273.     n100(3) = (/ one,      zero,     zero     /), &
+  274.     n110(3) = (/ onesqrt2, onesqrt2, zero     /), &
+  275.     n111(3) = (/ onesqrt3, onesqrt3, onesqrt3 /)
+  276.    
+  277.    integer( kind=iarr ) :: i
+  278.    real( kind=rdef ) :: &
+  279.     tc(3,3),     & ! stress tensor in crystal CS
+  280.     rsym(3,3),   & ! rotation symmetry tensor
+  281.     n100rot(3),  & ! normal to a 100 plane
+  282.     n110rot(3),  & ! normal to a 110 plane
+  283.     n111rot(3),  & ! normal to a 111 plane
+  284.     ttmp(3),     & ! normal stress to a crystallographic plane
+  285.     tmax(3),     & ! max normal stress to a crystallographic plane
+  286.     n100max(3),  & ! normal to the 100 plane that has max normal stress
+  287.     n110max(3),  & ! normal to the 110 plane that has max normal stress
+  288.     n111max(3),  & ! normal to the 111 plane that has max normal stress
+  289.     p(3),        & ! cleavage stress ratios
+  290.     pmax           ! max cleavage stress ratio
+  291.    
+  292.    ! Set important values to zero, and initialise the default
+  293.    ! values for outputs
+  294.    n100max = zero
+ftn-6271 ftn: VECTOR File = cgca_m3clvg.F90, Line = 294 
+  A loop starting at line 294 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3clvg.F90, Line = 294 
+  A loop starting at line 294 was unwound.
+
+  295.    n110max = zero
+ftn-6004 ftn: SCALAR File = cgca_m3clvg.F90, Line = 295 
+  A loop starting at line 295 was fused with the loop starting at line 294.
+
+  296.    n111max = zero
+ftn-6004 ftn: SCALAR File = cgca_m3clvg.F90, Line = 296 
+  A loop starting at line 296 was fused with the loop starting at line 294.
+
+  297.       flag = .false.
+  298.          n = zero
+ftn-6004 ftn: SCALAR File = cgca_m3clvg.F90, Line = 298 
+  A loop starting at line 298 was fused with the loop starting at line 294.
+
+  299.     cstate = cgca_intact_state
+  300.       tmax = zero
+ftn-6004 ftn: SCALAR File = cgca_m3clvg.F90, Line = 300 
+  A loop starting at line 300 was fused with the loop starting at line 294.
+
+  301.    
+  302.    ! stress tensor in crystal CS
+  303.    ! By our convention, r rotates a vector from the cryst.
+  304.    ! coord. system to spatial. Here we rotate the other
+  305.    ! way round, from spatial to crystal system, hence the
+  306.    ! transpose: ! tc = r^T . t . r
+  307.    tc = matmul( matmul( transpose( r ), t ), r )
+ftn-6008 ftn: SCALAR File = cgca_m3clvg.F90, Line = 307 
+  A loop starting at line 307 was unwound.
+
+ftn-6271 ftn: VECTOR File = cgca_m3clvg.F90, Line = 307 
+  A loop starting at line 307 was not vectorized because its trip count is too small.
+
+  308.    
+  309.    ! Find the max normal stresses to three cleavage plane families.
+  310.    do i = 1, 24
+ftn-6315 ftn: VECTOR File = cgca_m3clvg.F90, Line = 310 
+  A loop starting at line 310 was not vectorized because the target array (n100rot) would require rank expansion.
+
+  311.    
+  312.      ! pick a rotation tensor 
+  313.      call cgca_csym( i, rsym )
+ftn-6066 ftn: SCALAR File = cgca_m3clvg.F90, Line = 313 
+   A loop nest at line 313 collapsed to a single loop.
+
+ftn-6204 ftn: VECTOR File = cgca_m3clvg.F90, Line = 313 
+  A loop starting at line 313 was vectorized.
+
+                 ^                    
+ftn-3001 ftn: IPA CGCA_CLVGN, File = cgca_m3clvg.F90, Line = 313, Column = 8 
+  The call to tiny leaf routine "cgca_csym" was textually inlined.
+
+  314.    
+  315.      ! normals to partucular {100}, {110}, {111} planes
+  316.      n100rot = matmul( rsym, n100 )
+ftn-6008 ftn: SCALAR File = cgca_m3clvg.F90, Line = 316 
+  A loop starting at line 316 was unwound.
+
+ftn-6271 ftn: VECTOR File = cgca_m3clvg.F90, Line = 316 
+  A loop starting at line 316 was not vectorized because its trip count is too small.
+
+  317.      n110rot = matmul( rsym, n110 )
+ftn-6008 ftn: SCALAR File = cgca_m3clvg.F90, Line = 317 
+  A loop starting at line 317 was unwound.
+
+ftn-6004 ftn: SCALAR File = cgca_m3clvg.F90, Line = 317 
+  A loop starting at line 317 was fused with the loop starting at line 316.
+
+  318.      n111rot = matmul( rsym, n111 )
+ftn-6008 ftn: SCALAR File = cgca_m3clvg.F90, Line = 318 
+  A loop starting at line 318 was unwound.
+
+ftn-6004 ftn: SCALAR File = cgca_m3clvg.F90, Line = 318 
+  A loop starting at line 318 was fused with the loop starting at line 316.
+
+  319.    
+  320.      ! Projections of the stress tensor to normals, i.e.
+  321.      ! the normal stresses to crystallographic planes. 
+  322.      ! (tc . n) . n
+  323.      ttmp(1) = dot_product( n100rot, matmul( tc, n100rot) )
+ftn-6008 ftn: SCALAR File = cgca_m3clvg.F90, Line = 323 
+  A loop starting at line 323 was unwound.
+
+ftn-6271 ftn: VECTOR File = cgca_m3clvg.F90, Line = 323 
+  A loop starting at line 323 was not vectorized because its trip count is too small.
+
+  324.      ttmp(2) = dot_product( n110rot, matmul( tc, n110rot) )
+ftn-6008 ftn: SCALAR File = cgca_m3clvg.F90, Line = 324 
+  A loop starting at line 324 was unwound.
+
+ftn-6004 ftn: SCALAR File = cgca_m3clvg.F90, Line = 324 
+  A loop starting at line 324 was fused with the loop starting at line 323.
+
+  325.      ttmp(3) = dot_product( n111rot, matmul( tc, n111rot) )
+ftn-6008 ftn: SCALAR File = cgca_m3clvg.F90, Line = 325 
+  A loop starting at line 325 was unwound.
+
+ftn-6004 ftn: SCALAR File = cgca_m3clvg.F90, Line = 325 
+  A loop starting at line 325 was fused with the loop starting at line 323.
+
+  326.    
+  327.      ! Choose the plane of each type, that has the max normal stress
+  328.      ! Signs are taken into account. Since tmax is zero initially,
+  329.      ! negative stresses are less than tmax, and thus do not cause
+  330.      ! cleavage.
+  331.    
+  332.      if ( ttmp(1) .gt. tmax(1) ) then   ! 100 plane
+  333.        tmax(1) = ttmp(1)                ! stress
+  334.        n100max = n100rot                ! normal to a particular 100 plane
+ftn-6271 ftn: VECTOR File = cgca_m3clvg.F90, Line = 334 
+  A loop starting at line 334 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3clvg.F90, Line = 334 
+  A loop starting at line 334 was unwound.
+
+  335.      end if
+  336.      if ( ttmp(2) .gt. tmax(2) ) then   ! 110 plane
+  337.        tmax(2) = ttmp(2)                ! stress
+  338.        n110max = n110rot                ! normal to a particular 110 plane
+ftn-6271 ftn: VECTOR File = cgca_m3clvg.F90, Line = 338 
+  A loop starting at line 338 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3clvg.F90, Line = 338 
+  A loop starting at line 338 was unwound.
+
+  339.      end if
+  340.      if ( ttmp(3) .gt. tmax(3) ) then   ! 111 plane
+  341.        tmax(3) = ttmp(3)                ! stress
+  342.        n111max = n111rot                ! normal to a particular 111 plane
+ftn-6271 ftn: VECTOR File = cgca_m3clvg.F90, Line = 342 
+  A loop starting at line 342 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3clvg.F90, Line = 342 
+  A loop starting at line 342 was unwound.
+
+  343.      end if
+  344.    
+  345.    end do
+  346.    
+  347.    ! calculate the cleavage factors (ratios)
+  348.    p = tmax / tcrit
+ftn-6271 ftn: VECTOR File = cgca_m3clvg.F90, Line = 348 
+  A loop starting at line 348 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3clvg.F90, Line = 348 
+  A loop starting at line 348 was unwound.
+
+  349.    pmax = maxval(p)
+ftn-6004 ftn: SCALAR File = cgca_m3clvg.F90, Line = 349 
+  A loop starting at line 349 was fused with the loop starting at line 348.
+
+  350.    
+  351.    ! check for cleavage
+  352.    if ( pmax .ge. one ) then
+  353.    
+  354.      ! cleavage is happening, on 100 by default
+  355.        flag = .true.
+  356.           n = n100max
+ftn-6271 ftn: VECTOR File = cgca_m3clvg.F90, Line = 356 
+  A loop starting at line 356 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3clvg.F90, Line = 356 
+  A loop starting at line 356 was unwound.
+
+  357.      cstate = cgca_clvg_state_100_edge 
+  358.    
+  359.      if ( p(2) .gt. p(1) ) then
+  360.        ! cleavage on 110
+  361.             n = n110max
+ftn-6271 ftn: VECTOR File = cgca_m3clvg.F90, Line = 361 
+  A loop starting at line 361 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3clvg.F90, Line = 361 
+  A loop starting at line 361 was unwound.
+
+  362.        cstate = cgca_clvg_state_110_edge 
+  363.      end if
+  364.      
+  365.      if ( p(3) .gt. p(1) .and. p(3) .gt. p(2) ) then
+  366.        ! cleavage on 111
+  367.             n = n111max
+ftn-6271 ftn: VECTOR File = cgca_m3clvg.F90, Line = 367 
+  A loop starting at line 367 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3clvg.F90, Line = 367 
+  A loop starting at line 367 was unwound.
+
+  368.        cstate = cgca_clvg_state_111_edge 
+  369.      end if
+  370.    
+  371.      ! rotate n back into the spatial coord. system
+  372.      n = matmul( r, n ) 
+ftn-6008 ftn: SCALAR File = cgca_m3clvg.F90, Line = 372 
+  A loop starting at line 372 was unwound.
+
+ftn-6271 ftn: VECTOR File = cgca_m3clvg.F90, Line = 372 
+  A loop starting at line 372 was not vectorized because its trip count is too small.
+
+  373.    
+  374.    end if
+  375.    
+  376.    end subroutine cgca_clvgn
+  377.    
+  378.    !*roboend*
+  379.    
+  380.    
+  381.    !*robodoc*s* cgca_m3clvg/cgca_clvgsd
+  382.    !  NAME
+  383.    !    cgca_clvgsd
+  384.    !  SYNOPSIS
+  385.    
+  386.    subroutine cgca_clvgsd( farr, marr, n, cstate, debug, newstate )
+  387.    
+  388.    !  PARAMETERS
+  389.    
+  390.    integer, parameter :: l=-1, centre=l+1, u=centre+1
+  391.    real( kind=rdef ), parameter :: trshld = 0.17325932611400130485_rdef
+  392.    
+  393.    !  INPUTS
+  394.    
+  395.    integer( kind=iarr ), intent(in) :: farr(l:u,l:u,l:u), &
+  396.     marr(l:u,l:u,l:u), cstate
+  397.    real(    kind=rdef ), intent(in) :: n(3)
+  398.    logical( kind=ldef ), intent(in) :: debug
+  399.    
+  400.    !  OUTPUT
+  401.    
+  402.    integer( kind=iarr ), intent(out) :: newstate
+  403.    
+  404.    !  USES
+  405.    !    cgca_gcr, cgca_gcf
+  406.    !  USED BY
+  407.    !    cgca_clvgp
+  408.    !  DESCRIPTION
+  409.    !    This routine determines the cleavage (CLVG) state (S) of the
+  410.    !    central cell. This is a deterministic (D) routine.
+  411.    !    Hence the name is CLVGSD.
+  412.    !    If there is a cleaved neighbour, such that the vector connecting
+  413.    !    it to the central cell is on or close to the cleavage plane,
+  414.    !    then the central cell state is changed to the given cleavage state.
+  415.    !
+  416.    !    If the cleaved neighbour belongs to another grain, the analysis
+  417.    !    takes into account the grain boundary state. If the grain
+  418.    !    boundary is marked as intact, then the crack can cross it,
+  419.    !    and the central cell takes the values of the cleaved neighbour.
+  420.    !    If the grain boundary is marked as fractured, then the crack
+  421.    !    cannot cross it. This means that even if there is a cleaved
+  422.    !    neighbour on the cleavage plane, the central cell will still not
+  423.    !    change state.
+  424.    !
+  425.    !    If the grain boudary is intact, and crack crosses it,
+  426.    !    mark this GB as fractured immediately in the local CG array
+  427.    !    and add this GB fracture to gcupd_arr on this image.
+  428.    !
+  429.    !    Inputs:
+  430.    !    - farr - (3,3,3) array of failed states, cell state type
+  431.    !             cgca_state_type_frac
+  432.    !    - marr - (3,3,3) array of material states, cell state type
+  433.    !             cgca_state_type_grain
+  434.    !    - n - vector defining the cleavage plane
+  435.    !    - cstate - cleavage state 
+  436.    !    - debug - if .true. will dump some debug info
+  437.    !
+  438.    !    Outputs:
+  439.    !    - newstate - updated central cell state
+  440.    !
+  441.    !  NOTES
+  442.    !    The threshold analysis is explained in
+  443.    !    A. Shterenlikht, L. Margetts, Three-dimensional cellular automata
+  444.    !    modelling of cleavage propagation across crystal boundaries in
+  445.    !    polycrystalline microstructures, Proc. Roy. Soc. A, accepted
+  446.    !    for publication, 5-MAR-2015.
+  447.    !    There are always at least 2 neighbouring cells for which
+  448.    !    dot_product(e,n) is less than ~0.1732. However, 2 cells
+  449.    !    is not enough! If threshold is left at that, 2 cells
+  450.    !    lead to linear 1D cracks, which are not reasonable.
+  451.    !  SOURCE
+  452.    
+  453.    integer( kind=idef ) :: &
+  454.     x1, x2, x3,            & ! coordinates within (3,3,3) neighbourhood
+  455.     img,                   & ! this_image()
+  456.     nimgs                    ! num_images()
+  457.    
+  458.    logical :: intact
+  459.    
+  460.      img = this_image()
+  461.    nimgs = num_images()
+  462.    
+  463.    ! initially the new central cell state is the same as old
+  464.    newstate = farr( centre, centre, centre )
+  465.    
+  466.    ! scan all neighbourhood cells
+  467.    outer: do x3 = l, u
+ftn-6288 ftn: VECTOR File = cgca_m3clvg.F90, Line = 467 
+  A loop starting at line 467 was not vectorized because it contains a call to subroutine "cgca_gcr" on line 506.
+
+  468.           do x2 = l, u
+ftn-6288 ftn: VECTOR File = cgca_m3clvg.F90, Line = 468 
+  A loop starting at line 468 was not vectorized because it contains a call to subroutine "cgca_gcr" on line 506.
+
+  469.           do x1 = l, u
+ftn-6288 ftn: VECTOR File = cgca_m3clvg.F90, Line = 469 
+  A loop starting at line 469 was not vectorized because it contains a call to subroutine "cgca_gcr" on line 506.
+
+  470.    
+  471.      ! Check whether the neighbour has cleaved. The central cell is never
+  472.      ! cleaved, so the check will always fail for the central cell.
+  473.      clv: if ( any( cgca_clvg_states .eq. farr(x1,x2,x3)) ) then
+ftn-6334 ftn: VECTOR File = cgca_m3clvg.F90, Line = 473 
+  A loop starting at line 473 was not vectorized because it contains multiple potential exits.
+
+  474.    
+  475.        ! If the neighbour is from the same grain, then just check the
+  476.        ! orientation of the cleavage plane
+  477.        same: if ( marr(centre,centre,centre) .eq. marr(x1,x2,x3) ) then
+  478.    
+  479.          ! debug
+  480.          !  if (debug) then
+  481.          !   call cgca_gcr(1,2, intact)
+  482.          !   if (.not. intact) write (*,"(2(a,i0),a,3(tr1,f7.4),a,f7.4)") &
+  483.          !    "zzz: grain=",marr(centre,centre,centre), &
+  484.          !    ", cstate=", cstate, &
+  485.          !    ", n=(", n, ") ", &
+  486.          !    abs(dot_product(e(:,x1,x2,x3),n))
+  487.          !  end if
+  488.    
+  489.          ! If the dot product is smaller than the threshold, i.e. if
+  490.          ! the vector connecting the central cell with the neighbour
+  491.          ! is in the cleavage plane, then the central cell has cleaved
+  492.          if ( abs( dot_product( e(:,x1,x2,x3), n ) ) .lt. trshld ) then
+ftn-6271 ftn: VECTOR File = cgca_m3clvg.F90, Line = 492 
+  A loop starting at line 492 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3clvg.F90, Line = 492 
+  A loop starting at line 492 was unwound.
+
+  493.            newstate = cstate  ! change its state
+  494.            exit outer         ! and exit the main loop
+  495.          end if
+  496.    
+  497.        else
+  498.    
+  499.          ! The neighbour is from a different grain. In this case
+  500.          ! the boundary must be intact in addition to the cleavage
+  501.          ! plane orientation criterion.
+  502.          intact = .false.
+  503.    
+  504.          ! get the recorded state of the boundary between the two grains
+  505.          !  cgca_gcr returns .TRUE. if intact and .FALSE. if fractured
+  506.          call cgca_gcr( marr(centre,centre,centre), marr(x1,x2,x3), intact)
+                     ^                                                             
+ftn-3095 ftn: IPA CGCA_CLVGSD, File = cgca_m3clvg.F90, Line = 506, Column = 12 
+  "cgca_gcr" (called from "cgca_clvgsd") was not inlined because the containing loop does I/O.
+
+  507.    
+  508.          ! same as in the previous case, but with the added constraint
+  509.          ! that the grain boundary must be intact
+  510.          crossgb: if ( intact .and.                                       &
+ftn-6271 ftn: VECTOR File = cgca_m3clvg.F90, Line = 510 
+  A loop starting at line 510 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3clvg.F90, Line = 510 
+  A loop starting at line 510 was unwound.
+
+  511.               abs( dot_product( e(:,x1,x2,x3), n ) ) .lt. trshld ) then
+  512.    
+  513.            ! change its state
+  514.            newstate = cstate
+  515.    
+  516.            ! Mark GB as fractured on this image
+  517.            call cgca_gcf( marr(centre, centre, centre), marr(x1, x2, x3) )
+                       ^                                                          
+ftn-3095 ftn: IPA CGCA_CLVGSD, File = cgca_m3clvg.F90, Line = 517, Column = 14 
+  "cgca_gcf" (called from "cgca_clvgsd") was not inlined because the containing loop does I/O.
+
+  518.    
+  519.            ! Add the (grain, neighbour) pair to gcupd_arr coarray
+  520.            ! on this image
+  521.            gcupd_arr( gcucnt, : ) = (/ marr( centre , centre , centre ) , &
+ftn-6271 ftn: VECTOR File = cgca_m3clvg.F90, Line = 521 
+  A loop starting at line 521 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3clvg.F90, Line = 521 
+  A loop starting at line 521 was unwound.
+
+  522.                                    marr(   x1   ,   x2   ,   x3   ) ,     &
+  523.                                    cgca_gb_state_fractured /)
+  524.    
+  525.            ! debug output
+  526.            if (debug)                                                     &
+  527.              write (*,"(4(a,i0),2(tr1,i0),')',a,27(i0,tr1),').')")        &
+  528.                "DEBUG: cgca_clvgsd: img: ", img, ": newstate=", newstate, & 
+  529.                ", gcucnt=", gcucnt,                                       &
+  530.                ", calling cgca_gcf, gcupd_arr=(", gcupd_arr( gcucnt , : ),&
+  531.                ", marr=(", marr
+  532.    
+  533.            ! increment the gcupd_arr pair counter
+  534.            gcucnt = gcucnt + 1
+  535.    
+  536.            ! Issue fatal error if the length of the gcupd_arr has been
+  537.            ! exceeded.
+  538.            if ( gcucnt .gt. cgca_gcupd_size1 ) then
+  539.              write( *, '(a,i0)' ) "ERROR: cgca_m3clvg/cgca_clvgsd:&
+  540.                & gcucnt .gt. cgca_gcupd_size1, image: ", img
+  541.              error stop
+  542.            end if
+  543.    
+  544.            ! now exit the main loop
+  545.            exit outer
+  546.    
+  547.          end if crossgb
+  548.    
+  549.        end if same
+  550.    
+  551.     end if clv
+  552.    
+  553.     ! now check another neighbouring cell, i.e. increment the loop counter
+  554.    
+  555.    end do
+  556.    end do
+  557.    end do outer
+  558.    
+  559.    end subroutine cgca_clvgsd
+ftn-5001 ftn: NOTE File = cgca_m3clvg.F90, Line = 559 
+  Local variable "NIMGS" is assigned a value but never used.
+
+  560.    
+  561.    !*roboend*
+  562.    
+  563.    
+  564.    !*robodoc*s* cgca_m3clvg/cgca_clvgsp
+  565.    !  NAME
+  566.    !    cgca_clvgsp
+  567.    !  SYNOPSIS
+  568.    
+  569.    subroutine cgca_clvgsp( farr, marr, n, cstate, debug, newstate )
+  570.    
+  571.    !  PARAMETERS
+  572.    
+  573.    integer,parameter :: l=-1, centre=l+1, u=centre+1
+  574.    real(kind=rdef),parameter ::            &
+  575.     ltrshld = 0.17325932611400130485_rdef, & ! see cgca_clvgpd
+  576.     utrshld = 0.27_rdef, interval = utrshld-ltrshld
+  577.    
+  578.    !  INPUTS
+  579.    
+  580.    integer(kind=iarr),intent(in) :: farr(l:u,l:u,l:u), &
+  581.     marr(l:u,l:u,l:u), cstate
+  582.    real(kind=rdef),intent(in) :: n(3)
+  583.    logical(kind=ldef),intent(in) :: debug
+  584.    
+  585.    !  OUTPUT
+  586.    
+  587.    integer(kind=iarr),intent(out) :: newstate
+  588.    
+  589.    !  DESCRIPTION
+  590.    !    This routine determines the cleavage (CLVG) state (S) of the central
+  591.    !    cell. This is a probabilistic (P) routine. Hence the name is CLVGSP.
+  592.    !    If there is a cleaved neighbour, such that the vector connecting it to
+  593.    !    the central cell is on or close to the cleavage plane, then the
+  594.    !    central cell has a probability of changing state to the given cleavage
+  595.    !    state.
+  596.    !
+  597.    !    If the cleaved neighbour belongs to another grain, the analysis takes
+  598.    !    into account the grain boundary state. If the grain boundary is
+  599.    !    marked as intact, then the crack can cross it, and the central cell
+  600.    !    takes the values of the cleaved neighbour. If the grain boundary
+  601.    !    is marked as fractured, then the crack cannot cross it. This means
+  602.    !    that even if there is a cleaved neighbour on the cleavage plane,
+  603.    !    the central cell will still not change state.
+  604.    !
+  605.    !    Inputs:
+  606.    !    - farr - array of failed states, cell state type cgca_state_type_frac
+  607.    !    - marr - array of material states, cel state type cgca_state_type_grain
+  608.    !    - n - vector defining the cleavage plane
+  609.    !    - cstate - cleavage state 
+  610.    !    - debug - if .true. will dump some debug info
+  611.    !
+  612.    !    Outputs:
+  613.    !    - newstate - updated central cell state
+  614.    !  NOTES
+  615.    !    This routine has two thresholds, the upper and the lower.
+  616.    !  USES
+  617.    !    cgca_gcr, cgca_gcf
+  618.    !  USED BY
+  619.    !  SOURCE
+  620.    
+  621.    integer(kind=idef) :: x1,x2,x3
+  622.    real(kind=rdef) :: rnd, proj, prob
+  623.    
+  624.    logical :: intact
+  625.    
+  626.    ! initially the new central cell state is the same as old
+  627.    newstate = farr(centre,centre,centre)
+  628.    
+  629.    ! scan all neighbourhood cells
+  630.    outer: do x3=l,u
+ftn-6288 ftn: VECTOR File = cgca_m3clvg.F90, Line = 630 
+  A loop starting at line 630 was not vectorized because it contains a call to subroutine "cgca_gcr" on line 668.
+
+  631.    do x2=l,u
+ftn-6288 ftn: VECTOR File = cgca_m3clvg.F90, Line = 631 
+  A loop starting at line 631 was not vectorized because it contains a call to subroutine "cgca_gcr" on line 668.
+
+  632.    do x1=l,u
+ftn-6288 ftn: VECTOR File = cgca_m3clvg.F90, Line = 632 
+  A loop starting at line 632 was not vectorized because it contains a call to subroutine "cgca_gcr" on line 668.
+
+  633.    
+  634.     ! Check whether the neighbour has cleaved. The central cell is never
+  635.     ! cleaved, so the check will always fail for the central cell.
+  636.     clv: if ( any( cgca_clvg_states .eq. farr(x1,x2,x3)) ) then
+ftn-6334 ftn: VECTOR File = cgca_m3clvg.F90, Line = 636 
+  A loop starting at line 636 was not vectorized because it contains multiple potential exits.
+
+  637.    
+  638.      proj = abs(dot_product(e(:,x1,x2,x3),n))
+ftn-6271 ftn: VECTOR File = cgca_m3clvg.F90, Line = 638 
+  A loop starting at line 638 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3clvg.F90, Line = 638 
+  A loop starting at line 638 was unwound.
+
+  639.    
+  640.      same: if ( marr(centre,centre,centre) .eq. marr(x1,x2,x3) ) then
+  641.       ! The neighbour is from the same grain.
+  642.       ! If the central cell is close to the cleavage plane,
+  643.       ! change its state. This is a deterministic check for the
+  644.       ! lower threshold. If the central cell is further from the
+  645.       ! cleavage plane, but not too far, it has some probability
+  646.       ! to cleave. This is a probabilistic check for upper threshold.
+  647.       z1: if ( proj .lt. ltrshld ) then
+  648.        newstate = cstate
+  649.        exit outer
+  650.       else if ( proj .lt. utrshld ) then
+  651.        ! The power must be .ge. 1. If the power is 1,
+  652.        ! then the probability is a linear function of proj.
+  653.        ! If the power is > 1 then the probability is a power function.
+  654.        ! The higher the power, the steeper the descent.
+  655.        ! In other words, the higher the power, the lower the chances
+  656.        ! of cleavage for proj values greater than the lower threshold. 
+  657.        prob = ((utrshld-proj) / interval)**1
+ftn-6010 ftn: SCALAR File = cgca_m3clvg.F90, Line = 657 
+  A divide was turned into a multiply by a reciprocal
+
+  658.        call random_number(rnd)
+  659.        if ( prob .gt. rnd) newstate = cstate
+  660.        exit outer
+  661.       end if z1
+  662.    
+  663.      else
+  664.    
+  665.       ! The neighbour is from another grain. As above, but the
+  666.       ! additional condition is that the grain boundary must be intact.
+  667.       intact = .false.
+  668.       call cgca_gcr(marr(centre,centre,centre), marr(x1,x2,x3), intact)
+                  ^                                                            
+ftn-3095 ftn: IPA CGCA_CLVGSP, File = cgca_m3clvg.F90, Line = 668, Column = 9 
+  "cgca_gcr" (called from "cgca_clvgsp") was not inlined because the containing loop does I/O.
+
+  669.       inta: if ( intact ) then
+  670.        z2: if ( proj .lt. ltrshld ) then
+  671.         newstate = cstate
+  672.    
+  673.         ! Mark GB as fractured straight away
+  674.         call cgca_gcf( marr(centre,centre,centre), marr(x1,x2,x3) )
+                    ^                                                      
+ftn-3095 ftn: IPA CGCA_CLVGSP, File = cgca_m3clvg.F90, Line = 674, Column = 11 
+  "cgca_gcf" (called from "cgca_clvgsp") was not inlined because the containing loop does I/O.
+
+  675.    
+  676.         ! debug output
+  677.         if (debug) write (*,"(2(a,i0),2(tr1,i0),').')")                   &
+  678.           "DEBUG: cgca_clvgsd: image ", this_image(),                     &
+  679.           ": called _gcf, set gcupd_arr=(", gcupd_arr
+  680.    
+  681.         exit outer
+  682.        else if ( proj .lt. utrshld ) then
+  683.         prob = ((utrshld-proj) / interval)**1
+ftn-6010 ftn: SCALAR File = cgca_m3clvg.F90, Line = 683 
+  A divide was turned into a multiply by a reciprocal
+
+  684.         call random_number(rnd)
+  685.         if ( prob .gt. rnd) then
+  686.          newstate = cstate
+  687.          ! Mark GB as fractured straight away
+  688.          call cgca_gcf( marr(centre,centre,centre), marr(x1,x2,x3) )
+                     ^                                                      
+ftn-3095 ftn: IPA CGCA_CLVGSP, File = cgca_m3clvg.F90, Line = 688, Column = 12 
+  "cgca_gcf" (called from "cgca_clvgsp") was not inlined because the containing loop does I/O.
+
+  689.          ! debug output
+  690.          if (debug) write (*,"(2(a,i0),2(tr1,i0),').')")                  &
+  691.           "DEBUG: cgca_clvgsd: image ", this_image(),                     &
+  692.           ": called _gcf, set gcupd_arr=(", gcupd_arr
+  693.          exit outer
+  694.         end if
+  695.        end if z2
+  696.       end if inta
+  697.    
+  698.      end if same
+  699.     end if clv
+  700.    end do
+  701.    end do
+  702.    end do outer
+  703.    
+  704.    end subroutine cgca_clvgsp
+  705.    
+  706.    !*roboend*
+  707.    
+  708.    
+  709.    !*robodoc*s* cgca_m3clvg/cgca_clvgp
+  710.    !  NAME
+  711.    !    cgca_clvgp
+  712.    !  NOTES
+  713.    !    not for ifort due to the use of CO_SUM
+  714.    #ifndef IFORT
+  715.    !  SYNOPSIS
+  716.    
+  717.    subroutine cgca_clvgp( coarray, rt, t, scrit, sub, periodicbc, iter,   &
+  718.                           heartbeat, debug )
+  719.    
+  720.    !  INPUTS
+  721.    
+  722.    integer( kind=iarr ), allocatable, intent(inout) ::                    &
+  723.     coarray(:,:,:,:)[:,:,:]
+  724.    real(    kind=rdef ), allocatable, intent(inout) :: rt(:,:,:)[:,:,:]
+  725.    real(    kind=rdef ), intent(in) :: t(3,3), scrit(3)
+  726.    procedure( cgca_clvgs_abstract ) :: sub
+  727.    logical( kind=ldef ), intent(in) :: periodicbc
+  728.    integer( kind=idef ), intent(in) :: iter, heartbeat
+  729.    logical( kind=ldef ), intent(in) :: debug
+  730.    
+  731.    !  SIDE EFFECTS
+  732.    !    Many:
+  733.    !    - change state of coarray
+  734.    !    - change state of gc array
+  735.    !  DESCRIPTION
+  736.    !    This is a cleavage propagation routine.
+  737.    !
+  738.    !    Inputs:
+  739.    !    - coarray - cellular array
+  740.    !    - rt - rotation tensor coarray
+  741.    !    - t - stress tensor in spatial CS
+  742.    !    - scrit - critical values of cleavage stress on 100,
+  743.    !      110 and 111 planes
+  744.    !    - sub - name of the cleavage state calculation routine,
+  745.    !      either cgca_clvgsd, or cgca_clvgsp.
+  746.    !    - periodicbc - if .true. periodic boundary conditions are used,
+  747.    !      i.e. global halo exchange is called before every iteration
+  748.    !    - iter - number of cleavage iterations, if <=0 then error
+  749.    !    - heartbeat - if >0 then dump a simple message every
+  750.    !      heartbeat iterations
+  751.    !    - debug - if .true. then will call cgca_dacf with debug
+  752.    !
+  753.    !    We copy the model (coarray) into the local array.
+  754.    !    We then analyse the local array, but update the coarray.
+  755.    !
+  756.    !    All images must call this routine
+  757.    !  USES
+  758.    !    cgca_clvgs_abstract, cgca_clvgsd, cgca_clvgsp, cgca_clvgn,
+  759.    !    cgca_hxi, cgca_hxg, cgca_dacf
+  760.    !  USED BY
+  761.    !    none, end user
+  762.    !  SOURCE
+  763.    
+  764.    real( kind=rdef ) :: n(3)
+  765.    integer( kind=iarr ), allocatable :: array(:,:,:)
+  766.    integer( kind=iarr ) :: grold, grnew, cstate
+  767.    
+  768.    integer(kind=idef) ::                                              &
+  769.      lbv(4) ,& ! lower bounds of the complete (plus virtual) coarray
+  770.      ubv(4) ,& ! upper bounds of the complete (plus virtual) coarray
+  771.      lbr(4) ,& ! lower bounds of the "real" coarray, lower virtual+1
+  772.      ubr(4) ,& ! upper bounds of the "real" coarray, upper virtual-1
+  773.      x1     ,& ! local coordinates in an array, which are also
+  774.      x2     ,& ! do loop counters
+  775.      x3     ,& !
+  776.      iteration ! iteration counter
+  777.    
+  778.    integer :: thisimage, errstat=0, nimages
+  779.    integer, save :: clvgglob[*]
+  780.    
+  781.    logical(kind=ldef) :: clvgflag
+  782.    
+  783.    ! Make sure to allocate gcupd_arr!
+  784.    if ( .not. allocated( gcupd_arr ) ) call gcupd_alloc
+                                                   ^           
+ftn-3171 ftn: IPA CGCA_CLVGP, File = cgca_m3clvg.F90, Line = 784, Column = 42 
+  "gcupd_alloc" (called from "cgca_clvgp") was not inlined because it is not in the body of a loop.
+
+  785.    
+  786.    ! Set the global cleavage flag initially to zero on all images,
+  787.    ! i.e. no cleavage
+  788.    clvgglob = 0
+  789.    
+  790.    ! Set the local cleavage flag to .false.
+  791.    clvgflag = .false. 
+  792.    
+  793.    ! use local vars to save time
+  794.    thisimage = this_image()
+  795.      nimages = num_images()
+  796.    
+  797.    ! determine the extents
+  798.    lbv = lbound(coarray)
+ftn-6205 ftn: VECTOR File = cgca_m3clvg.F90, Line = 798 
+  A loop starting at line 798 was vectorized with a single vector iteration.
+
+  799.    ubv = ubound(coarray)
+ftn-6004 ftn: SCALAR File = cgca_m3clvg.F90, Line = 799 
+  A loop starting at line 799 was fused with the loop starting at line 798.
+
+  800.    lbr = lbv+1
+ftn-6004 ftn: SCALAR File = cgca_m3clvg.F90, Line = 800 
+  A loop starting at line 800 was fused with the loop starting at line 798.
+
+  801.    ubr = ubv-1
+ftn-6004 ftn: SCALAR File = cgca_m3clvg.F90, Line = 801 
+  A loop starting at line 801 was fused with the loop starting at line 798.
+
+  802.    
+  803.    !*************************************************
+  804.    ! Sanity checks
+  805.    !*************************************************
+  806.    
+  807.    ! check for allocated
+  808.    if ( .not. allocated( coarray ) ) then
+  809.      write (*,'(a,i0)') "ERROR: cgca_clvgp: image ",thisimage
+  810.      write (*,'(a)')    "ERROR: cgca_clvgp: coarray is not allocated"
+  811.      error stop
+  812.    end if
+  813.    if ( .not. allocated( rt ) ) then
+  814.      write (*,'(a,i0)') "ERROR: cgca_clvgp: image ",thisimage
+  815.      write (*,'(a)')    "ERROR: cgca_clvgp: rt is not allocated"
+  816.      error stop
+  817.    end if
+  818.    
+  819.    ! check there are no liquid cells in the grain array
+  820.    if ( any( coarray(lbr(1):ubr(1),lbr(2):ubr(2),lbr(3):ubr(3),           &
+ftn-6334 ftn: VECTOR File = cgca_m3clvg.F90, Line = 820 
+  A loop starting at line 820 was not vectorized because it contains multiple potential exits.
+
+  821.      cgca_state_type_grain) .eq. cgca_liquid_state)) then
+  822.      write (*,'(a,i0,a)') "ERROR: cgca_clvgp: image ",thisimage,          &
+  823.       ": liquid phase in the model"
+  824.      error stop
+  825.    end if
+  826.    
+  827.    if ( iter .le. 0 ) then
+  828.      write (*,'(a,i0,a)') "ERROR: cgca_clvgp: image ",thisimage,          &
+  829.       ": negative number of iterations given"
+  830.      error stop
+  831.    end if
+  832.    
+  833.    !*************************************************
+  834.    ! End of sanity checks
+  835.    !*************************************************
+  836.    
+  837.    ! allocate the temp array
+  838.    allocate( array(lbv(1):ubv(1),lbv(2):ubv(2),lbv(3):ubv(3) ),           &
+ftn-7418 ftn: CAUTION File = cgca_m3clvg.F90, Line = 838 
+  Fortran allocatable variable "array" may be used before being allocated.
+
+  839.              stat=errstat )
+  840.    if ( errstat .ne. 0 ) then
+  841.      write (*,"(2(a,i0))") "ERROR: cgca_clvgp: image ", thisimage,        &
+  842.       " : cannot allocate array, errcode: ", errstat
+  843.      error stop
+  844.    end if
+  845.    
+  846.    ! initialise the iteration counter
+  847.    iteration = 1
+  848.    
+  849.    ! initialise the old grain to liquid
+  850.    grold = cgca_liquid_state
+  851.    
+  852.    ! initial halo exchange, to make sure the coarray is in a correct state
+  853.    call cgca_hxi( coarray )
+               ^                   
+ftn-3022 ftn: IPA CGCA_CLVGP, File = cgca_m3clvg.F90, Line = 853, Column = 6 
+  "cgca_hxi" (called from "cgca_clvgp") was not inlined because too much text will get expanded inline. 
+
+  854.    if ( periodicbc ) call cgca_hxg( coarray )
+                                 ^                   
+ftn-3022 ftn: IPA CGCA_CLVGP, File = cgca_m3clvg.F90, Line = 854, Column = 24 
+  "cgca_hxg" (called from "cgca_clvgp") was not inlined because too much text will get expanded inline. 
+
+  855.    sync all
+  856.    
+  857.    ! start the main loop for cleavage iterations
+  858.    main: do
+ftn-6262 ftn: VECTOR File = cgca_m3clvg.F90, Line = 858 
+  A loop starting at line 858 was not vectorized because it contains a call to a subroutine or function on line 861.
+
+  859.    
+  860.      ! copy coarray fracture state type into a local array
+  861.      array = coarray(:,:,:,cgca_state_type_frac)
+ftn-6066 ftn: SCALAR File = cgca_m3clvg.F90, Line = 861 
+   A loop nest at line 861 collapsed to a single loop.
+
+ftn-6231 ftn: VECTOR File = cgca_m3clvg.F90, Line = 861 
+  A statement was replaced by a library call.
+
+  862.    
+  863.      ! propagate cleavage
+  864.      do x3 = lbr(3),ubr(3)
+ftn-6263 ftn: VECTOR File = cgca_m3clvg.F90, Line = 864 
+  A loop starting at line 864 was not vectorized because it contains a reference to a non-vector intrinsic on line 879.
+
+  865.      do x2 = lbr(2),ubr(2)
+ftn-6263 ftn: VECTOR File = cgca_m3clvg.F90, Line = 865 
+  A loop starting at line 865 was not vectorized because it contains a reference to a non-vector intrinsic on line 879.
+
+  866.      do x1 = lbr(1),ubr(1)
+ftn-6263 ftn: VECTOR File = cgca_m3clvg.F90, Line = 866 
+  A loop starting at line 866 was not vectorized because it contains a reference to a non-vector intrinsic on line 879.
+
+  867.    
+  868.        ! scan only through undamaged cells
+  869.        live: if ( array(x1,x2,x3) .eq. cgca_intact_state .or.             &
+  870.                   array(x1,x2,x3) .eq. cgca_gb_state_intact) then
+  871.    
+  872.          ! what grain are we in?
+  873.          grnew = coarray( x1, x2, x3, cgca_state_type_grain )
+  874.    
+  875.          ! If the new grain differs from the old, then
+  876.          ! we have crossed the grain boundary, and need
+  877.          ! to calculate the cleavage plane again.
+  878.          if ( grnew .ne. grold ) then
+  879.            call cgca_clvgn( t, rt(grnew,:,:), scrit, clvgflag, n, cstate )
+                       ^                                                          
+ftn-3095 ftn: IPA CGCA_CLVGP, File = cgca_m3clvg.F90, Line = 879, Column = 14 
+  "cgca_clvgn" (called from "cgca_clvgp") was not inlined because the containing loop does I/O.
+
+                                        ^                                         
+ftn-1438 ftn: CAUTION CGCA_CLVGP, File = cgca_m3clvg.F90, Line = 879, Column = 31 
+  This argument produces a copy in to a temporary variable.
+
+  880.            grold = grnew
+  881.          end if
+  882.    
+  883.          ! debug
+  884.          !   if (debug) write (*,"(a,i0,a,l1)")      &
+  885.          !    "DEBUG: cgca_clvgp: img ", thisimage,  &
+  886.          !    " clvgflag=", clvgflag
+  887.    
+  888.          ! If cleavage conditions are met, propagate cleavage into
+  889.          ! this cell. Note that we pass the local array, but return
+  890.          ! the new state of the central cell into the coarray.
+  891.          ! The sub name is provided as an input to cgca_clvgp.
+  892.          ! It can be either the deterministic routine cgca_clvgsd,
+  893.          ! or the probabilistic routine cgca_clvgsp.
+  894.          if ( clvgflag ) then
+  895.    
+  896.            ! mark that cleavage has occurred. The value is not important,
+  897.            ! any non-zero integer will do, but the same on all images.
+  898.            clvgglob = 1
+  899.            call sub(   array(x1-1:x1+1, x2-1:x2+1, x3-1:x3+1),            &
+                       ^                                                           
+ftn-3021 ftn: IPA CGCA_CLVGP, File = cgca_m3clvg.F90, Line = 899, Column = 14 
+  "sub" (called from "cgca_clvgp") was not inlined because the compiler was unable to locate the routine.
+
+                                   ^                                               
+ftn-1438 ftn: CAUTION CGCA_CLVGP, File = cgca_m3clvg.F90, Line = 899, Column = 26 
+  This argument produces a copy in to a temporary variable.
+
+  900.                      coarray(x1-1:x1+1, x2-1:x2+1, x3-1:x3+1,             &
+                                   ^                                               
+ftn-1438 ftn: CAUTION CGCA_CLVGP, File = cgca_m3clvg.F90, Line = 900, Column = 26 
+  This argument produces a copy in to a temporary variable.
+
+  901.                                           cgca_state_type_grain),         &
+  902.                     n, cstate, debug,                                     &
+  903.                        coarray(x1,x2,x3,cgca_state_type_frac) )
+  904.          end if
+  905.        end if live
+  906.    
+  907.      end do
+  908.      end do
+  909.      end do
+  910.    
+  911.      ! Add together all cleavage identifiers from all images
+  912.      ! no sync is required!
+  913.      call co_sum( clvgglob )
+                 ^                  
+ftn-3021 ftn: IPA CGCA_CLVGP, File = cgca_m3clvg.F90, Line = 913, Column = 8 
+  "__caf_cosum" (called from "cgca_clvgp") was not inlined because the compiler was unable to locate the routine.
+
+  914.    
+  915.      ! Check if cleavage happened anywhere in the model.
+  916.      if ( clvgglob .eq. 0 ) then
+  917.        if ( thisimage .eq. 1 )                                            &
+  918.          write (*,*) "INFO: cgca_clvgp: no cleavage anywhere, leaving"
+  919.        exit main
+  920.      end if
+  921.    
+  922.      sync all
+  923.       
+  924.      ! update all local GC arrays using the nearest image data
+  925.      call cgca_gcupdn( periodicbc )
+                 ^                         
+ftn-3021 ftn: IPA CGCA_CLVGP, File = cgca_m3clvg.F90, Line = 925, Column = 8 
+  "cgca_gcupdn" (called from "cgca_clvgp") was not inlined because the compiler was unable to locate the routine.
+
+  926.    
+  927.      ! halo exchange after a cleavage propagation step
+  928.      call cgca_hxi( coarray )
+                 ^                   
+ftn-3095 ftn: IPA CGCA_CLVGP, File = cgca_m3clvg.F90, Line = 928, Column = 8 
+  "cgca_hxi" (called from "cgca_clvgp") was not inlined because the containing loop does I/O.
+
+  929.      if ( periodicbc ) call cgca_hxg( coarray )
+                                   ^                   
+ftn-3095 ftn: IPA CGCA_CLVGP, File = cgca_m3clvg.F90, Line = 929, Column = 26 
+  "cgca_hxg" (called from "cgca_clvgp") was not inlined because the containing loop does I/O.
+
+  930.    
+  931.      ! deactivate crack flanks, ignore grain boundaries
+  932.      call cgca_dacf( coarray, debug=.false. )
+ftn-6067 ftn: SCALAR File = cgca_m3clvg.F90, Line = 932 
+  A loop nest at line 932 was partially collapsed.
+
+ftn-6231 ftn: VECTOR File = cgca_m3clvg.F90, Line = 932 
+  A statement was replaced by a library call.
+
+ftn-6231 ftn: VECTOR File = cgca_m3clvg.F90, Line = 932 
+  A statement was replaced by a library call.
+
+ftn-6214 ftn: VECTOR File = cgca_m3clvg.F90, Line = 932 
+  A loop starting at line 932 was conditionally vectorized with a single vector iteration.
+
+                 ^                                   
+ftn-3001 ftn: IPA CGCA_CLVGP, File = cgca_m3clvg.F90, Line = 932, Column = 8 
+  The call to leaf routine "cgca_dacf" was textually inlined.
+
+  933.    
+  934.      sync all
+  935.     
+  936.      ! Reset all gcupd_arr
+  937.      gcupd_arr = cgca_gb_state_intact
+ftn-6066 ftn: SCALAR File = cgca_m3clvg.F90, Line = 937 
+   A loop nest at line 937 collapsed to a single loop.
+
+ftn-6202 ftn: VECTOR File = cgca_m3clvg.F90, Line = 937 
+  A loop starting at line 937 was replaced by a library call.
+
+  938.    
+  939.      ! Reset the gcupd_arr counter
+  940.      gcucnt = 1
+  941.    
+  942.      ! halo exchange after deactivation step
+  943.      call cgca_hxi( coarray )
+                 ^                   
+ftn-3095 ftn: IPA CGCA_CLVGP, File = cgca_m3clvg.F90, Line = 943, Column = 8 
+  "cgca_hxi" (called from "cgca_clvgp") was not inlined because the containing loop does I/O.
+
+  944.      if ( periodicbc ) call cgca_hxg( coarray )
+                                   ^                   
+ftn-3095 ftn: IPA CGCA_CLVGP, File = cgca_m3clvg.F90, Line = 944, Column = 26 
+  "cgca_hxg" (called from "cgca_clvgp") was not inlined because the containing loop does I/O.
+
+  945.    
+  946.      sync all
+  947.    
+  948.      ! send heartbeat signal to terminal
+  949.      if (thisimage .eq. 1 .and. heartbeat .gt. 0) then
+  950.        if ( mod( iteration, heartbeat ) .eq. 0) write (*,'(a,i0)')        &
+  951.            "INFO: cgca_clvgp: iterations completed: ", iteration
+  952.      end if
+  953.    
+  954.      if ( iteration .ge. iter ) exit main
+  955.    
+  956.      ! increment the iteration counter
+  957.      iteration = iteration + 1
+  958.    
+  959.    end do main
+  960.    
+  961.    deallocate( array, stat=errstat )
+  962.    if ( errstat .ne. 0 ) then
+  963.      write (*,"(2(a,i0))") "ERROR: cgca_clvgp: image ",thisimage,         & 
+  964.       " : cannot deallocate array, errcode: ", errstat
+  965.      error stop
+  966.    end if
+  967.    
+  968.    ! sync before leaving
+  969.    sync all
+  970.    
+  971.    end subroutine cgca_clvgp
+ftn-5001 ftn: NOTE File = cgca_m3clvg.F90, Line = 971 
+  Local variable "NIMAGES" is assigned a value but never used.
+
+  972.    
+  973.    #endif
+  974.    !*roboend*
+  975.    
+  976.    
+  977.    !*robodoc*s* cgca_m3clvg/cgca_clvgp_nocosum
+  978.    !  NAME
+  979.    !    cgca_clvgp_nocosum
+  980.    !  NOTES
+  981.    !    For use with ifort, no CO_SUM here
+  982.    !  SYNOPSIS
+  983.    
+  984.    subroutine cgca_clvgp_nocosum( coarray, rt, t, scrit, sub, periodicbc, &
+  985.      iter, heartbeat, debug )
+  986.    
+  987.    !  INPUTS
+  988.    
+  989.    integer( kind=iarr ), allocatable, intent(inout) ::                    &
+  990.     coarray(:,:,:,:)[:,:,:]
+  991.    real(    kind=rdef ), allocatable, intent(inout) :: rt(:,:,:)[:,:,:]
+  992.    real(    kind=rdef ), intent(in) :: t(3,3), scrit(3)
+  993.    procedure( cgca_clvgs_abstract ) :: sub
+  994.    logical( kind=ldef ), intent(in) :: periodicbc
+  995.    integer( kind=idef ), intent(in) :: iter, heartbeat
+  996.    logical( kind=ldef ), intent(in) :: debug
+  997.    
+  998.    !  SIDE EFFECTS
+  999.    !    Many:
+ 1000.    !    - change state of coarray
+ 1001.    !    - change state of gc array
+ 1002.    !  DESCRIPTION
+ 1003.    !    This is a cleavage propagation routine.
+ 1004.    !
+ 1005.    !    Inputs:
+ 1006.    !    - coarray - cellular array
+ 1007.    !    - rt - rotation tensor coarray
+ 1008.    !    - t - stress tensor in spatial CS
+ 1009.    !    - scrit - critical values of cleavage stress on 100,
+ 1010.    !      110 and 111 planes
+ 1011.    !    - sub - name of the cleavage state calculation routine,
+ 1012.    !      either cgca_clvgsd, or cgca_clvgsp.
+ 1013.    !    - periodicbc - if .true. periodic boundary conditions are used,
+ 1014.    !      i.e. global halo exchange is called before every iteration
+ 1015.    !    - iter - number of cleavage iterations, if <=0 then error
+ 1016.    !    - heartbeat - if >0 then dump a simple message every
+ 1017.    !      heartbeat iterations
+ 1018.    !    - debug - if .true. then will call cgca_dacf with debug
+ 1019.    !
+ 1020.    !    We copy the model (coarray) into the local array.
+ 1021.    !    We then analyse the local array, but update the coarray.
+ 1022.    !
+ 1023.    !    For each real cell (we do not analyse halo cells) we look only
+ 1024.    !    at undamaged cells in the fracture layer, i.e. cells of state
+ 1025.    !    cgca_intact_state or cgca_gb_state_intact. At present two
+ 1026.    !    routines can be called, a deterministic cgca_clvgsd, or
+ 1027.    !    a probabilistic cgca_clvgsp.
+ 1028.    !
+ 1029.    !    All images must call this routine
+ 1030.    !  USES
+ 1031.    !    cgca_clvgs_abstract, cgca_clvgsd, cgca_clvgsp, cgca_clvgn,
+ 1032.    !    cgca_hxi, cgca_hxg, cgca_dacf
+ 1033.    !  USED BY
+ 1034.    !    none, end user
+ 1035.    !  SOURCE
+ 1036.    
+ 1037.    real( kind=rdef ) :: n(3)
+ 1038.    integer( kind=iarr ), allocatable :: array(:,:,:)
+ 1039.    integer( kind=iarr ) :: grold, grnew, cstate
+ 1040.    
+ 1041.    integer( kind=idef ) :: i,                                             &
+ 1042.      lbv(4) ,& ! lower bounds of the complete (plus virtual) coarray
+ 1043.      ubv(4) ,& ! upper bounds of the complete (plus virtual) coarray
+ 1044.      lbr(4) ,& ! lower bounds of the "real" coarray, lower virtual+1
+ 1045.      ubr(4) ,& ! upper bounds of the "real" coarray, upper virtual-1
+ 1046.      x1     ,& ! local coordinates in an array, which are also
+ 1047.      x2     ,& ! do loop counters
+ 1048.      x3     ,& !
+ 1049.      iteration ! iteration counter
+ 1050.    
+ 1051.    integer :: thisimage, errstat=0, nimages
+ 1052.    integer, save :: clvgglob[*]
+ 1053.    
+ 1054.    logical(kind=ldef) :: clvgflag
+ 1055.    
+ 1056.    ! Make sure to allocate gcupd_arr!
+ 1057.    if ( .not. allocated( gcupd_arr ) ) call gcupd_alloc
+                                                   ^           
+ftn-3171 ftn: IPA CGCA_CLVGP_NOCOSUM, File = cgca_m3clvg.F90, Line = 1057, Column = 42 
+  "gcupd_alloc" (called from "cgca_clvgp_nocosum") was not inlined because it is not in the body of a loop.
+
+ 1058.    
+ 1059.    ! Set the global cleavage flag initially to zero on all images,
+ 1060.    ! i.e. no cleavage
+ 1061.    clvgglob = 0
+ 1062.    
+ 1063.    ! Set the local cleavage flag to .false.
+ 1064.    clvgflag = .false. 
+ 1065.    
+ 1066.    ! use local vars to save time
+ 1067.    thisimage = this_image()
+ 1068.      nimages = num_images()
+ 1069.    
+ 1070.    ! determine the extents
+ 1071.    lbv = lbound(coarray)
+ftn-6205 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1071 
+  A loop starting at line 1071 was vectorized with a single vector iteration.
+
+ 1072.    ubv = ubound(coarray)
+ftn-6004 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1072 
+  A loop starting at line 1072 was fused with the loop starting at line 1071.
+
+ 1073.    lbr = lbv+1
+ftn-6004 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1073 
+  A loop starting at line 1073 was fused with the loop starting at line 1071.
+
+ 1074.    ubr = ubv-1
+ftn-6004 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1074 
+  A loop starting at line 1074 was fused with the loop starting at line 1071.
+
+ 1075.    
+ 1076.    !*************************************************
+ 1077.    ! Sanity checks
+ 1078.    !*************************************************
+ 1079.    
+ 1080.    ! check for allocated
+ 1081.    if ( .not. allocated( coarray ) ) then
+ 1082.      write (*,'(a,i0)') "ERROR: cgca_clvgp: image ",thisimage
+ 1083.      write (*,'(a)')    "ERROR: cgca_clvgp: coarray is not allocated"
+ 1084.      error stop
+ 1085.    end if
+ 1086.    if ( .not. allocated( rt ) ) then
+ 1087.      write (*,'(a,i0)') "ERROR: cgca_clvgp: image ",thisimage
+ 1088.      write (*,'(a)')    "ERROR: cgca_clvgp: rt is not allocated"
+ 1089.      error stop
+ 1090.    end if
+ 1091.    
+ 1092.    ! check there are no liquid cells in the grain array
+ 1093.    if ( any( coarray(lbr(1):ubr(1),lbr(2):ubr(2),lbr(3):ubr(3),           &
+ftn-6334 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1093 
+  A loop starting at line 1093 was not vectorized because it contains multiple potential exits.
+
+ 1094.      cgca_state_type_grain) .eq. cgca_liquid_state)) then
+ 1095.      write (*,'(a,i0,a)') "ERROR: cgca_clvgp: image ",thisimage,          &
+ 1096.       ": liquid phase in the model"
+ 1097.      error stop
+ 1098.    end if
+ 1099.    
+ 1100.    if ( iter .le. 0 ) then
+ 1101.      write (*,'(a,i0,a)') "ERROR: cgca_clvgp: image ",thisimage,          &
+ 1102.       ": negative number of iterations given"
+ 1103.      error stop
+ 1104.    end if
+ 1105.    
+ 1106.    !*************************************************
+ 1107.    ! End of sanity checks
+ 1108.    !*************************************************
+ 1109.    
+ 1110.    ! allocate the temp array
+ 1111.    allocate( array(lbv(1):ubv(1),lbv(2):ubv(2),lbv(3):ubv(3) ),           &
+ftn-7418 ftn: CAUTION File = cgca_m3clvg.F90, Line = 1111 
+  Fortran allocatable variable "array" may be used before being allocated.
+
+ 1112.              stat=errstat )
+ 1113.    if ( errstat .ne. 0 ) then
+ 1114.      write (*,"(2(a,i0))") "ERROR: cgca_clvgp: image ", thisimage,        &
+ 1115.       " : cannot allocate array, errcode: ", errstat
+ 1116.      error stop
+ 1117.    end if
+ 1118.    
+ 1119.    ! initialise the iteration counter
+ 1120.    iteration = 1
+ 1121.    
+ 1122.    ! initialise the old grain to liquid
+ 1123.    grold = cgca_liquid_state
+ 1124.    
+ 1125.    ! initial halo exchange, to make sure the coarray is in a correct state
+ 1126.    call cgca_hxi( coarray )
+               ^                   
+ftn-3022 ftn: IPA CGCA_CLVGP_NOCOSUM, File = cgca_m3clvg.F90, Line = 1126, Column = 6 
+  "cgca_hxi" (called from "cgca_clvgp_nocosum") was not inlined because too much text will get expanded inline. 
+
+ 1127.    if ( periodicbc ) call cgca_hxg( coarray )
+                                 ^                   
+ftn-3022 ftn: IPA CGCA_CLVGP_NOCOSUM, File = cgca_m3clvg.F90, Line = 1127, Column = 24 
+  "cgca_hxg" (called from "cgca_clvgp_nocosum") was not inlined because too much text will get expanded inline. 
+
+ 1128.    sync all
+ 1129.    
+ 1130.    ! start the main loop for cleavage iterations
+ 1131.    main: do
+ftn-6262 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1131 
+  A loop starting at line 1131 was not vectorized because it contains a call to a subroutine or function on line 1134.
+
+ 1132.    
+ 1133.      ! copy coarray fracture state type into a local array
+ 1134.      array = coarray(:,:,:,cgca_state_type_frac)
+ftn-6066 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1134 
+   A loop nest at line 1134 collapsed to a single loop.
+
+ftn-6231 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1134 
+  A statement was replaced by a library call.
+
+ 1135.    
+ 1136.      ! propagate cleavage
+ 1137.      do x3 = lbr(3),ubr(3)
+ftn-6263 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1137 
+  A loop starting at line 1137 was not vectorized because it contains a reference to a non-vector intrinsic on line 1154.
+
+ 1138.      do x2 = lbr(2),ubr(2)
+ftn-6263 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1138 
+  A loop starting at line 1138 was not vectorized because it contains a reference to a non-vector intrinsic on line 1154.
+
+ 1139.      do x1 = lbr(1),ubr(1)
+ftn-6263 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1139 
+  A loop starting at line 1139 was not vectorized because it contains a reference to a non-vector intrinsic on line 1154.
+
+ 1140.    
+ 1141.        ! scan only through undamaged cells
+ 1142.        live: if ( array(x1,x2,x3) .eq. cgca_intact_state .or.             &
+ 1143.                   array(x1,x2,x3) .eq. cgca_gb_state_intact) then
+ 1144.    
+ 1145.          ! what grain are we in?
+ 1146.          grnew = coarray( x1, x2, x3, cgca_state_type_grain )
+ 1147.    
+ 1148.          ! If the new grain differs from the old, then
+ 1149.          ! we have crossed the grain boundary, and need
+ 1150.          ! to calculate the cleavage plane again.
+ 1151.          !
+ 1152.          ! If clvgflag=.true., it stays .true. until another GB is crossed.
+ 1153.          if ( grnew .ne. grold ) then
+ 1154.            call cgca_clvgn( t, rt(grnew,:,:), scrit, clvgflag, n, cstate )
+                       ^                                                          
+ftn-3095 ftn: IPA CGCA_CLVGP_NOCOSUM, File = cgca_m3clvg.F90, Line = 1154, Column = 14 
+  "cgca_clvgn" (called from "cgca_clvgp_nocosum") was not inlined because the containing loop does I/O.
+
+                                        ^                                         
+ftn-1438 ftn: CAUTION CGCA_CLVGP_NOCOSUM, File = cgca_m3clvg.F90, Line = 1154, Column = 31 
+  This argument produces a copy in to a temporary variable.
+
+ 1155.            grold = grnew
+ 1156.          end if
+ 1157.    
+ 1158.          ! debug
+ 1159.          !   if (debug) write (*,"(a,i0,a,l1)")      &
+ 1160.          !    "DEBUG: cgca_clvgp: img ", thisimage,  &
+ 1161.          !    " clvgflag=", clvgflag
+ 1162.    
+ 1163.          ! If cleavage conditions are met, propagate cleavage into
+ 1164.          ! this cell. Note that we pass the local array, but return
+ 1165.          ! the new state of the central cell into the coarray.
+ 1166.          ! The sub name is provided as an input to cgca_clvgp.
+ 1167.          ! It can be either the deterministic routine cgca_clvgsd,
+ 1168.          ! or the probabilistic routine cgca_clvgsp.
+ 1169.          if ( clvgflag ) then
+ 1170.    
+ 1171.            ! mark that cleavage has occurred. The value is not important,
+ 1172.            ! any non-zero integer will do, but the same on all images.
+ 1173.            clvgglob = 1
+ 1174.            call sub(   array(x1-1:x1+1, x2-1:x2+1, x3-1:x3+1),            &
+                       ^                                                           
+ftn-3021 ftn: IPA CGCA_CLVGP_NOCOSUM, File = cgca_m3clvg.F90, Line = 1174, Column = 14 
+  "sub" (called from "cgca_clvgp_nocosum") was not inlined because the compiler was unable to locate the routine.
+
+                                   ^                                               
+ftn-1438 ftn: CAUTION CGCA_CLVGP_NOCOSUM, File = cgca_m3clvg.F90, Line = 1174, Column = 26 
+  This argument produces a copy in to a temporary variable.
+
+ 1175.                      coarray(x1-1:x1+1, x2-1:x2+1, x3-1:x3+1,             &
+                                   ^                                               
+ftn-1438 ftn: CAUTION CGCA_CLVGP_NOCOSUM, File = cgca_m3clvg.F90, Line = 1175, Column = 26 
+  This argument produces a copy in to a temporary variable.
+
+ 1176.                                           cgca_state_type_grain),         &
+ 1177.                     n, cstate, debug,                                     &
+ 1178.                        coarray(x1,x2,x3,cgca_state_type_frac) )
+ 1179.          end if
+ 1180.        end if live
+ 1181.    
+ 1182.      end do
+ 1183.      end do
+ 1184.      end do
+ 1185.    
+ 1186.      ! Add together all cleavage identifiers from all images
+ 1187.      ! image 1 does all the work, other images wait
+ 1188.      ! need to make a new executing segment for this.
+ 1189.    
+ 1190.      sync all
+ 1191.    
+ 1192.      if ( thisimage .eq. 1 ) then
+ 1193.        do i=2, nimages
+ftn-6254 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1193 
+  A loop starting at line 1193 was not vectorized because a recurrence was found on "clvgglob" at line 1194.
+
+ 1194.          clvgglob = clvgglob + clvgglob[i]
+ 1195.        end do
+ 1196.      end if
+ 1197.    
+ 1198.      ! distibute clvgglob[1] to all images
+ 1199.      ! need to make a new executing segment for this.
+ 1200.    
+ 1201.      sync all
+ 1202.    
+ 1203.      clvgglob = clvgglob[1]
+ 1204.    
+ 1205.      sync all
+ 1206.    
+ 1207.      ! Check if cleavage happened anywhere in the model.
+ 1208.      if ( clvgglob .eq. 0 ) then
+ 1209.        if ( thisimage .eq. 1 ) write (*,*)                                &
+ 1210.          "INFO: cgca_clvgp_nocosum: no cleavage anywhere, leaving"
+ 1211.        exit main
+ 1212.      end if
+ 1213.    
+ 1214.      sync all
+ 1215.       
+ 1216.      ! Udate all local GC arrays using data from the nearest
+ 1217.      ! neigbouring images
+ 1218.      call cgca_gcupdn( periodicbc )
+                 ^                         
+ftn-3021 ftn: IPA CGCA_CLVGP_NOCOSUM, File = cgca_m3clvg.F90, Line = 1218, Column = 8 
+  "cgca_gcupdn" (called from "cgca_clvgp_nocosum") was not inlined because the compiler was unable to locate the routine.
+
+ 1219.    
+ 1220.      ! halo exchange after a cleavage propagation step
+ 1221.      call cgca_hxi( coarray )
+                 ^                   
+ftn-3095 ftn: IPA CGCA_CLVGP_NOCOSUM, File = cgca_m3clvg.F90, Line = 1221, Column = 8 
+  "cgca_hxi" (called from "cgca_clvgp_nocosum") was not inlined because the containing loop does I/O.
+
+ 1222.      if ( periodicbc ) call cgca_hxg( coarray )
+                                   ^                   
+ftn-3095 ftn: IPA CGCA_CLVGP_NOCOSUM, File = cgca_m3clvg.F90, Line = 1222, Column = 26 
+  "cgca_hxg" (called from "cgca_clvgp_nocosum") was not inlined because the containing loop does I/O.
+
+ 1223.    
+ 1224.      sync all
+ 1225.    
+ 1226.      ! Reset all gcupd_arr
+ 1227.      gcupd_arr = cgca_gb_state_intact
+ftn-6066 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1227 
+   A loop nest at line 1227 collapsed to a single loop.
+
+ftn-6202 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1227 
+  A loop starting at line 1227 was replaced by a library call.
+
+ 1228.    
+ 1229.      ! Reset the gcupd_arr counter
+ 1230.      gcucnt = 1
+ 1231.    
+ 1232.      ! deactivate crack flanks, ignore grain boundaries
+ 1233.      call cgca_dacf( coarray, debug=.false. )
+ftn-6067 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1233 
+  A loop nest at line 1233 was partially collapsed.
+
+ftn-6231 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1233 
+  A statement was replaced by a library call.
+
+ftn-6231 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1233 
+  A statement was replaced by a library call.
+
+ftn-6214 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1233 
+  A loop starting at line 1233 was conditionally vectorized with a single vector iteration.
+
+                 ^                                   
+ftn-3001 ftn: IPA CGCA_CLVGP_NOCOSUM, File = cgca_m3clvg.F90, Line = 1233, Column = 8 
+  The call to leaf routine "cgca_dacf" was textually inlined.
+
+ 1234.    
+ 1235.      sync all
+ 1236.     
+ 1237.      ! halo exchange after deactivation step
+ 1238.      call cgca_hxi( coarray )
+                 ^                   
+ftn-3095 ftn: IPA CGCA_CLVGP_NOCOSUM, File = cgca_m3clvg.F90, Line = 1238, Column = 8 
+  "cgca_hxi" (called from "cgca_clvgp_nocosum") was not inlined because the containing loop does I/O.
+
+ 1239.      if ( periodicbc ) call cgca_hxg( coarray )
+                                   ^                   
+ftn-3095 ftn: IPA CGCA_CLVGP_NOCOSUM, File = cgca_m3clvg.F90, Line = 1239, Column = 26 
+  "cgca_hxg" (called from "cgca_clvgp_nocosum") was not inlined because the containing loop does I/O.
+
+ 1240.    
+ 1241.      sync all
+ 1242.    
+ 1243.      ! send heartbeat signal to terminal
+ 1244.      if (thisimage .eq. 1 .and. heartbeat .gt. 0) then
+ 1245.        if ( mod( iteration, heartbeat ) .eq. 0) write (*,'(a,i0)')        &
+ 1246.            "INFO: cgca_clvgp_nocosum: iterations completed: ", iteration
+ 1247.      end if
+ 1248.    
+ 1249.      if ( iteration .ge. iter ) exit main
+ 1250.    
+ 1251.      ! increment the iteration counter
+ 1252.      iteration = iteration + 1
+ 1253.    
+ 1254.    end do main
+ 1255.    
+ 1256.    deallocate( array, stat=errstat )
+ 1257.    if ( errstat .ne. 0 ) then
+ 1258.      write (*,"(2(a,i0))") "ERROR: cgca_clvgp_nocosum: image ",thisimage, & 
+ 1259.       " : cannot deallocate array, errcode: ", errstat
+ 1260.      error stop
+ 1261.    end if
+ 1262.    
+ 1263.    ! sync before leaving
+ 1264.    sync all
+ 1265.    
+ 1266.    end subroutine cgca_clvgp_nocosum
+ 1267.    
+ 1268.    !*roboend*
+ 1269.    
+ 1270.    
+ 1271.    !*robodoc*s* cgca_m3clvg/cgca_clvgp1
+ 1272.    !  NAME
+ 1273.    !    cgca_clvgp1
+ 1274.    !  SYNOPSIS
+ 1275.    
+ 1276.    subroutine cgca_clvgp1( coarray, rt, t, scrit, sub, debug )
+ 1277.    
+ 1278.    !  INPUTS
+ 1279.    
+ 1280.    integer( kind=iarr ), allocatable, intent( inout ) ::                  &
+ 1281.     coarray(:,:,:,:)[:,:,:]
+ 1282.    real( kind=rdef ), allocatable, intent( inout ) :: rt(:,:,:)[:,:,:]
+ 1283.    real( kind=rdef ), intent( in ) :: t(3,3), scrit(3)
+ 1284.    procedure(cgca_clvgs_abstract) :: sub
+ 1285.    logical(kind=ldef),intent(in) :: debug
+ 1286.    
+ 1287.    !  SIDE EFFECTS
+ 1288.    !    Many:
+ 1289.    !    - change state of coarray
+ 1290.    !    - change state of gc array
+ 1291.    !  DESCRIPTION
+ 1292.    !    This is a cleavage propagation routine.
+ 1293.    !
+ 1294.    !    Inputs:
+ 1295.    !    - coarray - cellular array
+ 1296.    !    - rt - rotation tensor coarray
+ 1297.    !    - s1 - max. principal stress vector (3)
+ 1298.    !    - scrit - critical values of cleavage stress on 100,
+ 1299.    !      110 and 111 planes
+ 1300.    !    - sub - name of the cleavage state calculation routine,
+ 1301.    !      either cgca_clvgsd, or cgca_clvgsp.
+ 1302.    !    - debug - if .true. then will call cgca_dacf with debug
+ 1303.    !
+ 1304.    !    We copy the model (coarray) into the local array. We then analyse
+ 1305.    !    the local array, but update the coarray.
+ 1306.    !  NOTES
+ 1307.    !    All images must call this routine
+ 1308.    !  USES
+ 1309.    !    cgca_clvgsd, cgca_clvgsp, cgca_clvgn, cgca_hxi, cgca_hxg, cgca_dacf
+ 1310.    !  USED BY
+ 1311.    !    none, end user
+ 1312.    !  SOURCE
+ 1313.    
+ 1314.    real(kind=rdef) :: n(3)
+ 1315.    integer(kind=iarr),allocatable,save :: array(:,:,:)
+ 1316.    integer(kind=iarr) :: grold, grnew, cstate
+ 1317.    
+ 1318.    integer(kind=idef) :: &
+ 1319.      lbv(4) ,& ! lower bounds of the complete (plus virtual) coarray
+ 1320.      ubv(4) ,& ! upper bounds of the complete (plus virtual) coarray
+ 1321.      lbr(4) ,& ! lower bounds of the "real" coarray, lower virtual+1
+ 1322.      ubr(4) ,& ! upper bounds of the "real" coarray, upper virtual-1
+ 1323.      x1     ,& ! local coordinates in an array, which are also
+ 1324.      x2     ,& ! do loop counters
+ 1325.      x3
+ 1326.    
+ 1327.    integer :: thisimage, errstat=0, nimages
+ 1328.    
+ 1329.    logical(kind=ldef) :: clvgflag
+ 1330.    
+ 1331.    ! use local vars to save time
+ 1332.    thisimage = this_image()
+ 1333.    nimages = num_images()
+ 1334.    
+ 1335.    ! determine the extents
+ 1336.    lbv = lbound(coarray)
+ftn-6205 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1336 
+  A loop starting at line 1336 was vectorized with a single vector iteration.
+
+ 1337.    ubv = ubound(coarray)
+ftn-6004 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1337 
+  A loop starting at line 1337 was fused with the loop starting at line 1336.
+
+ 1338.    lbr = lbv+1
+ftn-6004 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1338 
+  A loop starting at line 1338 was fused with the loop starting at line 1336.
+
+ 1339.    ubr = ubv-1
+ftn-6004 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1339 
+  A loop starting at line 1339 was fused with the loop starting at line 1336.
+
+ 1340.    
+ 1341.    ! no sanity checks in this routine!
+ 1342.    
+ 1343.    ! allocate the temp array on first call
+ 1344.    if (.not. allocated(array))                                      &
+ 1345.      allocate( array( lbv(1):ubv(1),                                &
+ 1346.                       lbv(2):ubv(2),                                &
+ 1347.                       lbv(3):ubv(3) ), stat=errstat )
+ 1348.    if (errstat.ne.0) then
+ 1349.      write (*,"(2(a,i0))") "ERROR: cgca_clvgp: image ",thisimage,   &
+ 1350.            " : cannot allocate array, errcode: ", errstat
+ 1351.      error stop
+ 1352.    end if
+ 1353.    
+ 1354.    ! initialise the old grain to liquid
+ 1355.    grold = cgca_liquid_state
+ 1356.    
+ 1357.    sync all
+ 1358.    
+ 1359.    ! copy coarray fracture state type into a local array
+ 1360.    array = coarray(:,:,:,cgca_state_type_frac)
+ftn-6066 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1360 
+   A loop nest at line 1360 collapsed to a single loop.
+
+ftn-6231 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1360 
+  A statement was replaced by a library call.
+
+ 1361.    
+ 1362.    ! propagate cleavage
+ 1363.    do x3 = lbr(3),ubr(3)
+ftn-6263 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1363 
+  A loop starting at line 1363 was not vectorized because it contains a reference to a non-vector intrinsic on line 1380.
+
+ 1364.    do x2 = lbr(2),ubr(2)
+ftn-6263 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1364 
+  A loop starting at line 1364 was not vectorized because it contains a reference to a non-vector intrinsic on line 1380.
+
+ 1365.    do x1 = lbr(1),ubr(1)
+ftn-6263 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1365 
+  A loop starting at line 1365 was not vectorized because it contains a reference to a non-vector intrinsic on line 1380.
+
+ 1366.    
+ 1367.      ! scan only through undamaged cells
+ 1368.      live: if ( array(x1,x2,x3) .eq. cgca_intact_state ) then
+ 1369.    
+ 1370.       ! what grain are we in?
+ 1371.       grnew = coarray(x1,x2,x3,cgca_state_type_grain)
+ 1372.    
+ 1373.       ! If the new grain differs from the old, then we have crossed the
+ 1374.       ! grain boundary, and need to calculate the cleavage plane again.
+ 1375.    
+ 1376.       ! not needed, but Crays issues caution otherwise
+ 1377.       clvgflag = .false.
+ 1378.    
+ 1379.       if ( grnew .ne. grold ) then
+ 1380.        call cgca_clvgn( t, rt(grnew,:,:), scrit, clvgflag, n, cstate )
+                   ^                                                          
+ftn-3095 ftn: IPA CGCA_CLVGP1, File = cgca_m3clvg.F90, Line = 1380, Column = 10 
+  "cgca_clvgn" (called from "cgca_clvgp1") was not inlined because the containing loop does I/O.
+
+                                    ^                                         
+ftn-1438 ftn: CAUTION CGCA_CLVGP1, File = cgca_m3clvg.F90, Line = 1380, Column = 27 
+  This argument produces a copy in to a temporary variable.
+
+ 1381.        grold = grnew
+ 1382.       end if
+ 1383.    
+ 1384.       ! If cleavage conditions are met, propagate cleavage into this cell.
+ 1385.       ! Note that we pass the local array, but return the new state
+ 1386.       ! of the central cell into the coarray. The sub name is provided as
+ 1387.       ! an input to _clvgp. It can be either the deterministic routine
+ 1388.       ! _clvgsd, or the probabilistic routine _clvgsp.
+ 1389.       if ( clvgflag ) call sub( array(x1-1:x1+1, x2-1:x2+1, x3-1:x3+1),   &
+                                  ^                                                
+ftn-3021 ftn: IPA CGCA_CLVGP1, File = cgca_m3clvg.F90, Line = 1389, Column = 25 
+  "sub" (called from "cgca_clvgp1") was not inlined because the compiler was unable to locate the routine.
+
+                                            ^                                      
+ftn-1438 ftn: CAUTION CGCA_CLVGP1, File = cgca_m3clvg.F90, Line = 1389, Column = 35 
+  This argument produces a copy in to a temporary variable.
+
+ 1390.        coarray(x1-1:x1+1, x2-1:x2+1, x3-1:x3+1, cgca_state_type_grain),   &
+                     ^                                                             
+ftn-1438 ftn: CAUTION CGCA_CLVGP1, File = cgca_m3clvg.F90, Line = 1390, Column = 12 
+  This argument produces a copy in to a temporary variable.
+
+ 1391.                n, cstate, debug, coarray(x1,x2,x3,cgca_state_type_frac) )
+ 1392.      end if live
+ 1393.    
+ 1394.    end do
+ 1395.    end do
+ 1396.    end do
+ 1397.    
+ 1398.    ! no sync in this routine, leave this to the calling routine
+ 1399.    
+ 1400.    end subroutine cgca_clvgp1
+ftn-5001 ftn: NOTE File = cgca_m3clvg.F90, Line = 1400 
+  Local variable "NIMAGES" is assigned a value but never used.
+
+ 1401.    
+ 1402.    !*roboend*
+ 1403.    
+ 1404.    
+ 1405.    !*robodoc*s* cgca_m3clvg/cgca_dacf
+ 1406.    !  NAME
+ 1407.    !    cgca_dacf
+ 1408.    !  SYNOPSIS
+ 1409.    
+ 1410.    subroutine cgca_dacf( coarray , debug )
+ 1411.    
+ 1412.    !  INPUTS
+ 1413.    
+ 1414.    integer( kind=iarr ), allocatable,intent(inout) ::                     &
+ 1415.     coarray(:,:,:,:)[:,:,:]
+ 1416.    logical( kind=ldef ), intent(in) :: debug
+ 1417.    
+ 1418.    !  SIDE EFFECTS
+ 1419.    !    Changed state of coarray
+ 1420.    !  DESCRIPTION
+ 1421.    !    This routine DeActivates Crack Flanks, hence the name DACF.
+ 1422.    !    The idea is that we must distinguish crack edge cells, which
+ 1423.    !    can attract new cracked (cleaved) cells, and crack flanks, which
+ 1424.    !    are inactive, i.e. cells representing crack flanks have very low
+ 1425.    !    SIF (stress intensity factor), and maybe low stresses too.
+ 1426.    !    Crack flank cells cannot attract new cleaved cells.
+ 1427.    !    The cell states are defined in module cgca_m1co.
+ 1428.    !
+ 1429.    !    The distinction is made based on the number of cleaved
+ 1430.    !    neighbours. If there are too many cleaved neighbours, then
+ 1431.    !    the central cell is a crack flank.
+ 1432.    !
+ 1433.    !    The intention is that this routine is called after every cleavage
+ 1434.    !    propagation increment, to prevent cracks becoming large 3D bodies.
+ 1435.    !
+ 1436.    !    This routines runs only once over the coarray. So we don't put the
+ 1437.    !    sync here. But a sync all probably should be used before and after
+ 1438.    !    a call to this routine. Also, the halo exchange probably should
+ 1439.    !    be done after running this routine.
+ 1440.    !
+ 1441.    !    If debug=.true. then will dump *lots* of debug output
+ 1442.    !  USES
+ 1443.    !  USED BY
+ 1444.    !    cgca_clvgp
+ 1445.    !  SOURCE
+ 1446.    
+ 1447.    integer, parameter ::                                                  &
+ 1448.     lclvg_states = lbound( cgca_clvg_states , dim=1 ),                    &
+ 1449.     uclvg_states = ubound( cgca_clvg_states , dim=1 ),                    &
+ 1450.     l=-1, centre=l+1, u=centre+1
+ 1451.    
+ 1452.    integer( kind=idef ) :: &
+ 1453.     lbv(4) ,& ! lower bounds of the complete (plus virtual) coarray
+ 1454.     ubv(4) ,& ! upper bounds of the complete (plus virtual) coarray
+ 1455.     lbr(4) ,& ! lower bounds of the "real" coarray, lower virtual+1
+ 1456.     ubr(4) ,& ! upper bounds of the "real" coarray, upper virtual-1
+ 1457.     x1     ,& ! local coordinates in an array, which are also
+ 1458.     x2     ,& ! do loop counters
+ 1459.     x3
+ 1460.    integer( kind=iarr ), allocatable, save :: array(:,:,:)
+ 1461.    integer( kind=iarr ) :: neiarr(l:u,l:u,l:u)
+ 1462.    integer :: thisimage, errstat=0, ncount, i
+ 1463.    logical( kind=ldef ) :: clvnei(l:u,l:u,l:u), &
+ 1464.     samegrain(l:u,l:u,l:u), csg(l:u,l:u,l:u)
+ 1465.    
+ 1466.    ! get image number
+ 1467.    thisimage = this_image()
+ 1468.    
+ 1469.    ! no sanity checks for speed
+ 1470.    
+ 1471.    ! determine the extents
+ 1472.    lbv = lbound(coarray)
+ftn-6205 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1472 
+  A loop starting at line 1472 was vectorized with a single vector iteration.
+
+ 1473.    ubv = ubound(coarray)
+ftn-6004 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1473 
+  A loop starting at line 1473 was fused with the loop starting at line 1472.
+
+ 1474.    lbr = lbv+1
+ftn-6004 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1474 
+  A loop starting at line 1474 was fused with the loop starting at line 1472.
+
+ 1475.    ubr = ubv-1
+ftn-6004 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1475 
+  A loop starting at line 1475 was fused with the loop starting at line 1472.
+
+ 1476.    
+ 1477.    ! allocate the temp array
+ 1478.    if (.not. allocated(array)) allocate( &
+ 1479.      array(lbv(1):ubv(1), lbv(2):ubv(2), lbv(3):ubv(3)), stat=errstat)
+ 1480.    if (errstat.ne.0) then
+ 1481.      write (*,'(a,i0)') "ERROR: cgca_dacf: image ",thisimage
+ 1482.      write (*,'(a)') "ERROR: cgca_dacf: cannot allocate array"
+ 1483.      error stop
+ 1484.    end if
+ 1485.    
+ 1486.    ! copy coarray state type 2, fracture states, to temp array
+ 1487.    array = coarray(:,:,:,cgca_state_type_frac)
+ftn-6066 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1487 
+   A loop nest at line 1487 collapsed to a single loop.
+
+ftn-6231 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1487 
+  A statement was replaced by a library call.
+
+ 1488.    
+ 1489.    ! loop over all cells
+ 1490.    do x3 = lbr(3), ubr(3)
+ftn-6286 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1490 
+  A loop starting at line 1490 was not vectorized because it contains input/output operations at line 1515.
+
+ 1491.    do x2 = lbr(2), ubr(2)
+ftn-6286 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1491 
+  A loop starting at line 1491 was not vectorized because it contains input/output operations at line 1515.
+
+ 1492.    do x1 = lbr(1), ubr(1)
+ftn-6286 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1492 
+  A loop starting at line 1492 was not vectorized because it contains input/output operations at line 1515.
+
+ 1493.    
+ 1494.     ! analyse only crack edge cells
+ 1495.     cleav: if ( any (coarray(x1,x2,x3,cgca_state_type_frac) .eq.        &
+ftn-6334 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1495 
+  A loop starting at line 1495 was not vectorized because it contains multiple potential exits.
+
+ 1496.              cgca_clvg_states_edge )) then
+ 1497.    
+ 1498.       ! count the number of cleaved neighbours of the same grain
+ 1499.       neiarr = coarray( x1-1:x1+1, x2-1:x2+1, x3-1:x3+1,                &
+ftn-6271 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1499 
+  A loop starting at line 1499 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1499 
+  A loop starting at line 1499 was unwound.
+
+ 1500.                         cgca_state_type_frac )
+ 1501.    
+ 1502.       ! Do not count the central cell, so set its state to some
+ 1503.       ! value that is not in the cgca_clvg_states. I use the intact
+ 1504.       ! state here.
+ 1505.       neiarr(centre,centre,centre) = cgca_intact_state
+ 1506.    
+ 1507.       ! logical array: .true. if the values are identical,
+ 1508.       ! .false. otherwise. samegrain is a (3,3,3) neighbourhood
+ 1509.       ! array around the central cell in question.
+ 1510.       samegrain = coarray( x1, x2, x3, cgca_state_type_grain ) .eq.     &
+ftn-6004 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1510 
+  A loop starting at line 1510 was fused with the loop starting at line 1499.
+
+ftn-6271 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1510 
+  A loop starting at line 1510 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1510 
+  A loop starting at line 1510 was unwound.
+
+ 1511.                   coarray( x1-1:x1+1, x2-1:x2+1, x3-1:x3+1,             &
+ 1512.                              cgca_state_type_grain )
+ 1513.    
+ 1514.       ! debug
+ 1515.       if (debug) write (*,'(a,i0,a,27(tr1,i0),a,27(tr1,l1))')           &
+ 1516.        "DEBUG: cgca_dacf: image ", thisimage, ": neiarr=", neiarr,      &
+ 1517.        ", samegrain=", samegrain
+ 1518.    
+ 1519.       ncount = 0
+ 1520.    
+ 1521.       ! for all cleavage states
+ 1522.       do i = lclvg_states, uclvg_states
+ftn-6286 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1522 
+  A loop starting at line 1522 was not vectorized because it contains input/output operations at line 1528.
+
+ 1523.         clvnei = cgca_clvg_states(i) .eq. neiarr
+ftn-6067 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1523 
+  A loop nest at line 1523 was partially collapsed.
+
+ftn-6271 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1523 
+  A loop starting at line 1523 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1523 
+  A loop starting at line 1523 was unwound.
+
+ 1524.            csg = clvnei .and. samegrain
+ftn-6004 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1524 
+  A loop starting at line 1524 was fused with the loop starting at line 1523.
+
+ 1525.         ncount = ncount + count(csg)
+ftn-6004 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1525 
+  A loop starting at line 1525 was fused with the loop starting at line 1523.
+
+ftn-6271 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1525 
+  A loop starting at line 1525 was not vectorized because its trip count is too small.
+
+ 1526.    
+ 1527.         ! debug
+ 1528.         if (debug) write (*,'(4(a,i0),2(a,27(tr1,l1)),a,i0)')           &
+ 1529.           "DEBUG: cgca_dacf: image ", thisimage, ": i=", i,             &
+ 1530.           ", cgca_clvg_states(",i,")=", cgca_clvg_states(i),            &
+ 1531.           ", clvnei=", clvnei, ", csg=", csg, ", ncount=", ncount
+ 1532.    
+ 1533.       end do
+ 1534.    
+ 1535.       ! if a cell has 6 cleaved neighbours or more,
+ 1536.       ! then mark it as crack flank. 
+ 1537.       nei: if ( ncount .ge. 6) then
+ 1538.       
+ 1539.         ! debug
+ 1540.         if (debug) write (*,'(3(a,i0),2(tr1,i0),a)')                    &
+ 1541.           "DEBUG: cgca_dacf: image ", thisimage,                        &
+ 1542.           ": grain=", coarray(x1,x2,x3,cgca_state_type_grain),          &
+ 1543.           ", crack front cell x1,x2,x3=", x1, x2, x3, " deactivated."
+ 1544.    
+ 1545.         ! change the state preserving the cleavage plane family
+ 1546.         ! Note: we are reading from "coarray" but writing into
+ 1547.         ! the temp "array"
+ 1548.         if ( coarray( x1, x2 ,x3, cgca_state_type_frac ) .eq.           &
+ 1549.                          cgca_clvg_state_100_edge ) then
+ 1550.           array(x1,x2,x3) = cgca_clvg_state_100_flank
+ 1551.         else if ( coarray( x1, x2, x3, cgca_state_type_frac ) .eq.      &
+ 1552.                          cgca_clvg_state_110_edge ) then
+ 1553.           array(x1,x2,x3) = cgca_clvg_state_110_flank
+ 1554.         else 
+ 1555.           array(x1,x2,x3) = cgca_clvg_state_111_flank
+ 1556.         end if
+ 1557.    
+ 1558.       end if nei
+ 1559.     end if cleav
+ 1560.    end do
+ 1561.    end do
+ 1562.    end do
+ 1563.    
+ 1564.    ! write array to coarray
+ 1565.    coarray(:,:,:,cgca_state_type_frac) = array
+ftn-6066 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1565 
+   A loop nest at line 1565 collapsed to a single loop.
+
+ftn-6202 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1565 
+  A loop starting at line 1565 was replaced by a library call.
+
+ 1566.    
+ 1567.    ! do not deallocate array. Let it exist until the program
+ 1568.    ! terminates.
+ 1569.    
+ 1570.    end subroutine cgca_dacf
+ 1571.    
+ 1572.    !*roboend*
+ 1573.    
+ 1574.    
+ 1575.    !*robodoc*s* cgca_m3clvg/cgca_dacf1
+ 1576.    !  NAME
+ 1577.    !    cgca_dacf1
+ 1578.    !  SYNOPSIS
+ 1579.    
+ 1580.    subroutine cgca_dacf1(coarray,debug)
+ 1581.    
+ 1582.    !  INPUTS
+ 1583.    
+ 1584.    integer( kind=iarr ), allocatable, intent(inout) ::                    &
+ 1585.     coarray(:,:,:,:)[:,:,:]
+ 1586.    logical( kind=ldef ), intent(in) :: debug
+ 1587.    
+ 1588.    !  SIDE EFFECTS
+ 1589.    !    Changed state of coarray
+ 1590.    !  DESCRIPTION
+ 1591.    !    Same as cgca_dacf, but no attention is paid to which
+ 1592.    !    grain a cell belongs to. So when we count the number
+ 1593.    !    of fractured neighbours, these can be from any grain.
+ 1594.    !    What this means is that, when a crack propagates
+ 1595.    !    from one grain to another, and the crack planes
+ 1596.    !    IN THE MODEL coinside, this routine will deactivate
+ 1597.    !    the fractured cells on the interface. This helps the
+ 1598.    !    grain boundary fracture analysis. Since there are no
+ 1599.    !    crack fronts at the boundary, there is no bondary to
+ 1600.    !    fracture! In other words, if a crack really slices
+ 1601.    !    from one grain to another with no deviation, then
+ 1602.    !    the grain boundary fracture does not happen, the
+ 1603.    !    two grain system in question is already fully separated
+ 1604.    !    into two different bodies.
+ 1605.    !  USES
+ 1606.    !  USED BY
+ 1607.    !    cgca_clvgp
+ 1608.    !  SOURCE
+ 1609.    
+ 1610.    integer,parameter :: lclvg_states = lbound(cgca_clvg_states,dim=1), &
+ 1611.     uclvg_states = ubound(cgca_clvg_states,dim=1),                     &
+ 1612.     l=-1, centre=l+1, u=centre+1
+ 1613.    
+ 1614.    integer(kind=idef) :: &
+ 1615.      lbv(4) ,& ! lower bounds of the complete (plus virtual) coarray
+ 1616.      ubv(4) ,& ! upper bounds of the complete (plus virtual) coarray
+ 1617.      lbr(4) ,& ! lower bounds of the "real" coarray, lower virtual+1
+ 1618.      ubr(4) ,& ! upper bounds of the "real" coarray, upper virtual-1
+ 1619.      x1     ,& ! local coordinates in an array, which are also
+ 1620.      x2     ,& ! do loop counters
+ 1621.      x3        !
+ 1622.    integer(kind=iarr),allocatable,save :: array(:,:,:)
+ 1623.    integer(kind=iarr) :: neiarr(l:u,l:u,l:u)
+ 1624.    integer :: thisimage, errstat=0, ncount, i
+ 1625.    logical(kind=ldef) :: clvnei(l:u,l:u,l:u)
+ 1626.    
+ 1627.    ! get image number
+ 1628.    thisimage=this_image()
+ 1629.    
+ 1630.    ! no sanity checks for speed
+ 1631.    
+ 1632.    ! determine the extents
+ 1633.    lbv = lbound(coarray)
+ftn-6205 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1633 
+  A loop starting at line 1633 was vectorized with a single vector iteration.
+
+ 1634.    ubv = ubound(coarray)
+ftn-6004 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1634 
+  A loop starting at line 1634 was fused with the loop starting at line 1633.
+
+ 1635.    lbr = lbv + 1
+ftn-6004 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1635 
+  A loop starting at line 1635 was fused with the loop starting at line 1633.
+
+ 1636.    ubr = ubv - 1
+ftn-6004 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1636 
+  A loop starting at line 1636 was fused with the loop starting at line 1633.
+
+ 1637.    
+ 1638.    ! allocate the temp array
+ 1639.    
+ 1640.    if ( .not. allocated( array ) )                                                &
+ 1641.     allocate( array( lbv(1):ubv(1), lbv(2):ubv(2), lbv(3):ubv(3) ), stat=errstat )
+ 1642.    if (errstat.ne.0) then
+ 1643.      write (*,'(2(a,i0))') "****** ERROR: cgca_dacf1: image ",thisimage,          &
+ 1644.         ": cannot allocate array, error code ", errstat
+ 1645.      error stop
+ 1646.    end if
+ 1647.    
+ 1648.    ! copy coarray state type 2, fracture states, to temp array
+ 1649.    array = coarray(:,:,:,cgca_state_type_frac)
+ftn-6066 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1649 
+   A loop nest at line 1649 collapsed to a single loop.
+
+ftn-6231 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1649 
+  A statement was replaced by a library call.
+
+ 1650.    
+ 1651.    ! loop over all cells
+ 1652.    do x3 = lbr(3),ubr(3)
+ftn-6286 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1652 
+  A loop starting at line 1652 was not vectorized because it contains input/output operations at line 1684.
+
+ 1653.    do x2 = lbr(2),ubr(2)
+ftn-6286 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1653 
+  A loop starting at line 1653 was not vectorized because it contains input/output operations at line 1684.
+
+ 1654.    do x1 = lbr(1),ubr(1)
+ftn-6286 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1654 
+  A loop starting at line 1654 was not vectorized because it contains input/output operations at line 1684.
+
+ 1655.    
+ 1656.     ! analyse only crack edge cells
+ 1657.     cleav: if ( any (coarray(x1,x2,x3,cgca_state_type_frac) .eq.      &
+ftn-6334 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1657 
+  A loop starting at line 1657 was not vectorized because it contains multiple potential exits.
+
+ 1658.              cgca_clvg_states_edge )) then
+ 1659.    
+ 1660.      ! Count the number of cleaved neighbours. Do not count the central
+ 1661.      ! cell, so set its state to some value that is not in the
+ 1662.      ! cgca_clvg_states. I use the intact state here.
+ 1663.      neiarr = coarray(x1-1:x1+1, x2-1:x2+1, x3-1:x3+1, cgca_state_type_frac)
+ftn-6271 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1663 
+  A loop starting at line 1663 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1663 
+  A loop starting at line 1663 was unwound.
+
+ 1664.      neiarr(centre,centre,centre) = cgca_intact_state
+ 1665.    
+ 1666.      ncount = 0
+ 1667.      do i=lclvg_states,uclvg_states
+ftn-6286 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1667 
+  A loop starting at line 1667 was not vectorized because it contains input/output operations at line 1672.
+
+ 1668.       clvnei = cgca_clvg_states(i) .eq. neiarr
+ftn-6067 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1668 
+  A loop nest at line 1668 was partially collapsed.
+
+ftn-6271 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1668 
+  A loop starting at line 1668 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1668 
+  A loop starting at line 1668 was unwound.
+
+ 1669.       ncount = ncount + count(clvnei)
+ftn-6004 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1669 
+  A loop starting at line 1669 was fused with the loop starting at line 1668.
+
+ftn-6271 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1669 
+  A loop starting at line 1669 was not vectorized because its trip count is too small.
+
+ 1670.    
+ 1671.       ! debug
+ 1672.       if (debug) write (*,'(4(a,i0),a,27(tr1,l1),a,i0)')              &
+ 1673.        "DEBUG: cgca_dacf: image ", thisimage, ": i=", i,              &
+ 1674.        ", cgca_clvg_states(",i,")=", cgca_clvg_states(i),             &
+ 1675.        ", clvnei=", clvnei, ", ncount=", ncount
+ 1676.    
+ 1677.      end do
+ 1678.    
+ 1679.      ! if a cell has 5 cleaved neighbours or more,
+ 1680.      ! then mark it as crack flank. 
+ 1681.      nei: if ( ncount .ge. 5) then
+ 1682.       
+ 1683.       ! debug
+ 1684.       if (debug) write (*,'(3(a,i0),2(tr1,i0),a)')                    &
+ 1685.        "DEBUG: cgca_dacf1: image ", thisimage,                        &
+ 1686.        ": grain=", coarray(x1,x2,x3,cgca_state_type_grain),           &
+ 1687.        ", crack front cell x1,x2,x3=", x1, x2, x3, " deactivated."
+ 1688.    
+ 1689.       ! change the state preserving the cleavage plane family
+ 1690.       ! Note: we are reading from "coarray" but writing into the temp
+ 1691.       ! "array"
+ 1692.       if ( coarray(x1,x2,x3,cgca_state_type_frac) .eq.                &
+ 1693.             cgca_clvg_state_100_edge ) then
+ 1694.         array(x1,x2,x3) = cgca_clvg_state_100_flank
+ 1695.       else if ( coarray(x1,x2,x3,cgca_state_type_frac) .eq.           &
+ 1696.              cgca_clvg_state_110_edge ) then
+ 1697.         array(x1,x2,x3) = cgca_clvg_state_110_flank
+ 1698.       else 
+ 1699.         array(x1,x2,x3) = cgca_clvg_state_111_flank
+ 1700.       end if
+ 1701.    
+ 1702.      end if nei
+ 1703.     end if cleav
+ 1704.    end do
+ 1705.    end do
+ 1706.    end do
+ 1707.    
+ 1708.    ! write array to coarray
+ 1709.    coarray(:,:,:,cgca_state_type_frac) = array
+ftn-6066 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1709 
+   A loop nest at line 1709 collapsed to a single loop.
+
+ftn-6202 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1709 
+  A loop starting at line 1709 was replaced by a library call.
+
+ 1710.    
+ 1711.    ! do not deallocate array. Let it exist until the program
+ 1712.    ! terminates.
+ 1713.    
+ 1714.    end subroutine cgca_dacf1
+ 1715.    
+ 1716.    !*roboend*
+ 1717.    
+ 1718.    
+ 1719.    !*robodoc*s* cgca_m3clvg/cgca_tchk
+ 1720.    !  NAME
+ 1721.    !    cgca_tchk
+ 1722.    !  SYNOPSIS  
+ 1723.    
+ 1724.    subroutine cgca_tchk( num, maxmin, minmax )
+ 1725.    
+ 1726.    !  INPUTS
+ 1727.    
+ 1728.    integer( kind=ilrg ), intent(in) :: num
+ 1729.    
+ 1730.    !  OUTPUTS
+ 1731.    
+ 1732.    real( kind=rlrg ), intent(out) :: maxmin, minmax
+ 1733.    
+ 1734.    !  DESCRIPTION
+ 1735.    !    Generate num random unit normal vectors.
+ 1736.    !    Calculate the MAX of the MIN for all 26 cell
+ 1737.    !    neighbourhood unit vectors.
+ 1738.    !    Find the maximum value of all num normal vectors
+ 1739.    !    and return it as maxmin.
+ 1740.    !    And the opposite - calculate the MIN of the MAX for
+ 1741.    !    all 26 cell neighbourhood unit vectors.
+ 1742.    !    Find the min value of all num normal vectors
+ 1743.    !    and return as minmax.
+ 1744.    !  NOTE
+ 1745.    !    Any image can call this routine
+ 1746.    !  SOURCE
+ 1747.    
+ 1748.    real(    kind=rlrg ) :: n(3), mag, prod, prodmax, prodmin
+ 1749.    integer( kind=ilrg ) :: i, x1, x2, x3 
+ 1750.    
+ 1751.    maxmin = 0.0_rlrg
+ 1752.    minmax = 1.0_rlrg
+ 1753.    
+ 1754.    do i=1,num
+ftn-6315 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1754 
+  A loop starting at line 1754 was not vectorized because the target array (n) would require rank expansion.
+
+ 1755.      prodmin = 1.0_rlrg
+ 1756.      prodmax = 0.0_rlrg
+ 1757.      call random_number(n)
+ftn-6332 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1757 
+  A loop starting at line 1757 was not vectorized because it does not map well onto the target architecture.
+
+ 1758.      mag = sqrt( sum( n**2 ) )
+ftn-6004 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1758 
+  A loop starting at line 1758 was fused with the loop starting at line 1757.
+
+ 1759.      n = n / mag
+ftn-6010 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1759 
+  A divide was turned into a multiply by a reciprocal
+
+ftn-6204 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1759 
+  A loop starting at line 1759 was vectorized.
+
+ 1760.      do x3 = -1, 1
+ftn-6294 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1760 
+  A loop starting at line 1760 was not vectorized because a better candidate was found at line 1764.
+
+ 1761.      do x2 = -1, 1
+ftn-6294 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1761 
+  A loop starting at line 1761 was not vectorized because a better candidate was found at line 1764.
+
+ 1762.      do x1 = -1, 1
+ftn-6008 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1762 
+  A loop starting at line 1762 was unwound.
+
+ftn-6294 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1762 
+  A loop starting at line 1762 was not vectorized because a better candidate was found at line 1764.
+
+ 1763.        if ( x1 .eq. 0 .and. x2 .eq. 0 .and. x3 .eq. 0) cycle
+ 1764.        prod = abs( dot_product( e(:,x1,x2,x3), n ) )
+ftn-6271 ftn: VECTOR File = cgca_m3clvg.F90, Line = 1764 
+  A loop starting at line 1764 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3clvg.F90, Line = 1764 
+  A loop starting at line 1764 was unwound.
+
+ 1765.        if ( prod .lt. prodmin ) prodmin = prod
+ 1766.        if ( prod .gt. prodmax ) prodmax = prod
+ 1767.      end do
+ 1768.      end do
+ 1769.      end do
+ 1770.    
+ 1771.      if ( prodmin .gt. maxmin) maxmin = prodmin
+ 1772.      if ( prodmax .lt. minmax) minmax = prodmax
+ 1773.    
+ 1774.    end do
+ 1775.    
+ 1776.    end subroutine cgca_tchk
+ 1777.    
+ 1778.    !*roboend*
+ 1779.    
+ 1780.    end module cgca_m3clvg
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                         E x t e r n a l   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Name  Messages
+----  --------
+ABORT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ABORT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ABS(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_CLVGSD in CGCA_M3CLVG (Line 492, file cgca_m3clvg.F90)
+                   CGCA_CLVGSD in CGCA_M3CLVG (Line 511, file cgca_m3clvg.F90)
+                   CGCA_CLVGSP in CGCA_M3CLVG (Line 638, file cgca_m3clvg.F90)
+                   CGCA_TCHK in CGCA_M3CLVG (Line 1764, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+ALLOCATED(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   GCUPD_ALLOC in CGCA_M3CLVG (Line 202, file cgca_m3clvg.F90)
+                   CGCA_CLVGP in CGCA_M3CLVG (Line 784, file cgca_m3clvg.F90)
+                   CGCA_CLVGP in CGCA_M3CLVG (Line 808, file cgca_m3clvg.F90)
+                   CGCA_CLVGP in CGCA_M3CLVG (Line 813, file cgca_m3clvg.F90)
+                   CGCA_CLVGP_NOCOSUM in CGCA_M3CLVG (Line 1057, file cgca_m3clvg.F90)
+                   CGCA_CLVGP_NOCOSUM in CGCA_M3CLVG (Line 1081, file cgca_m3clvg.F90)
+                   CGCA_CLVGP_NOCOSUM in CGCA_M3CLVG (Line 1086, file cgca_m3clvg.F90)
+                   CGCA_CLVGP1 in CGCA_M3CLVG (Line 1344, file cgca_m3clvg.F90)
+                   CGCA_DACF in CGCA_M3CLVG (Line 1478, file cgca_m3clvg.F90)
+                   CGCA_DACF1 in CGCA_M3CLVG (Line 1640, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+ANY(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_CLVGSD in CGCA_M3CLVG (Line 473, file cgca_m3clvg.F90)
+                   CGCA_CLVGSP in CGCA_M3CLVG (Line 636, file cgca_m3clvg.F90)
+                   CGCA_CLVGP in CGCA_M3CLVG (Line 820, file cgca_m3clvg.F90)
+                   CGCA_CLVGP_NOCOSUM in CGCA_M3CLVG (Line 1093, file cgca_m3clvg.F90)
+                   CGCA_DACF in CGCA_M3CLVG (Line 1495, file cgca_m3clvg.F90)
+                   CGCA_DACF1 in CGCA_M3CLVG (Line 1657, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+CGCA_CLVGN in CGCA_M3CLVG
+      Defined as:  Subroutine (line 231, file cgca_m3clvg.F90)
+
+      Interface:   None
+
+      Called By:   CGCA_CLVGP in CGCA_M3CLVG (Line 879, file cgca_m3clvg.F90)
+                   CGCA_CLVGP_NOCOSUM in CGCA_M3CLVG (Line 1154, file cgca_m3clvg.F90)
+                   CGCA_CLVGP1 in CGCA_M3CLVG (Line 1380, file cgca_m3clvg.F90)
+
+      Calls:       CGCA_CSYM in CGCA_M2ROT (Line 313, file cgca_m3clvg.F90)
+                   TRANSPOSE(Intrinsic) (Line 307, file cgca_m3clvg.F90)
+                   MATMUL(Intrinsic) (Line 307, file cgca_m3clvg.F90)
+                   MATMUL(Intrinsic) (Line 307, file cgca_m3clvg.F90)
+                   MATMUL(Intrinsic) (Line 316, file cgca_m3clvg.F90)
+                   MATMUL(Intrinsic) (Line 317, file cgca_m3clvg.F90)
+                   MATMUL(Intrinsic) (Line 318, file cgca_m3clvg.F90)
+                   MATMUL(Intrinsic) (Line 323, file cgca_m3clvg.F90)
+                   MATMUL(Intrinsic) (Line 324, file cgca_m3clvg.F90)
+                   MATMUL(Intrinsic) (Line 325, file cgca_m3clvg.F90)
+                   MATMUL(Intrinsic) (Line 372, file cgca_m3clvg.F90)
+                   DOT_PRODUCT(Intrinsic) (Line 323, file cgca_m3clvg.F90)
+                   DOT_PRODUCT(Intrinsic) (Line 324, file cgca_m3clvg.F90)
+                   DOT_PRODUCT(Intrinsic) (Line 325, file cgca_m3clvg.F90)
+                   MAXVAL(Intrinsic) (Line 349, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+CGCA_CLVGP in CGCA_M3CLVG
+      Defined as:  Subroutine (line 41, file cgca_m3clvg.F90)
+
+      Interface:   None
+
+      Calls:       CGCA_DACF in CGCA_M3CLVG (Line 932, file cgca_m3clvg.F90)
+                   CGCA_GCUPDN in CGCA_M3CLVG (Line 925, file cgca_m3clvg.F90)
+                   GCUPD_ALLOC in CGCA_M3CLVG (Line 784, file cgca_m3clvg.F90)
+                   CGCA_CLVGN in CGCA_M3CLVG (Line 879, file cgca_m3clvg.F90)
+                   SUB (Line 899, file cgca_m3clvg.F90)
+                   CGCA_HXG in CGCA_M2HX (Line 854, file cgca_m3clvg.F90)
+                   CGCA_HXG in CGCA_M2HX (Line 929, file cgca_m3clvg.F90)
+                   CGCA_HXG in CGCA_M2HX (Line 944, file cgca_m3clvg.F90)
+                   CGCA_HXI in CGCA_M2HX (Line 853, file cgca_m3clvg.F90)
+                   CGCA_HXI in CGCA_M2HX (Line 928, file cgca_m3clvg.F90)
+                   CGCA_HXI in CGCA_M2HX (Line 943, file cgca_m3clvg.F90)
+                   ALLOCATED(Intrinsic) (Line 784, file cgca_m3clvg.F90)
+                   ALLOCATED(Intrinsic) (Line 808, file cgca_m3clvg.F90)
+                   ALLOCATED(Intrinsic) (Line 813, file cgca_m3clvg.F90)
+                   THIS_IMAGE(Intrinsic) (Line 794, file cgca_m3clvg.F90)
+                   shmem_n_pes(Intrinsic) (Line 795, file cgca_m3clvg.F90)
+                   LBOUND(Intrinsic) (Line 798, file cgca_m3clvg.F90)
+                   UBOUND(Intrinsic) (Line 799, file cgca_m3clvg.F90)
+                   ANY(Intrinsic) (Line 820, file cgca_m3clvg.F90)
+                   CO_SUM(Intrinsic) (Line 913, file cgca_m3clvg.F90)
+                   MOD(Intrinsic) (Line 950, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+CGCA_CLVGP1 in CGCA_M3CLVG
+      Defined as:  Subroutine (line 38, file cgca_m3clvg.F90)
+
+      Interface:   None
+
+      Calls:       CGCA_CLVGN in CGCA_M3CLVG (Line 1380, file cgca_m3clvg.F90)
+                   SUB (Line 1389, file cgca_m3clvg.F90)
+                   THIS_IMAGE(Intrinsic) (Line 1332, file cgca_m3clvg.F90)
+                   shmem_n_pes(Intrinsic) (Line 1333, file cgca_m3clvg.F90)
+                   LBOUND(Intrinsic) (Line 1336, file cgca_m3clvg.F90)
+                   UBOUND(Intrinsic) (Line 1337, file cgca_m3clvg.F90)
+                   ALLOCATED(Intrinsic) (Line 1344, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+CGCA_CLVGP_NOCOSUM in CGCA_M3CLVG
+      Defined as:  Subroutine (line 38, file cgca_m3clvg.F90)
+
+      Interface:   None
+
+      Calls:       CGCA_DACF in CGCA_M3CLVG (Line 1233, file cgca_m3clvg.F90)
+                   CGCA_GCUPDN in CGCA_M3CLVG (Line 1218, file cgca_m3clvg.F90)
+                   GCUPD_ALLOC in CGCA_M3CLVG (Line 1057, file cgca_m3clvg.F90)
+                   CGCA_CLVGN in CGCA_M3CLVG (Line 1154, file cgca_m3clvg.F90)
+                   SUB (Line 1174, file cgca_m3clvg.F90)
+                   CGCA_HXG in CGCA_M2HX (Line 1127, file cgca_m3clvg.F90)
+                   CGCA_HXG in CGCA_M2HX (Line 1222, file cgca_m3clvg.F90)
+                   CGCA_HXG in CGCA_M2HX (Line 1239, file cgca_m3clvg.F90)
+                   CGCA_HXI in CGCA_M2HX (Line 1126, file cgca_m3clvg.F90)
+                   CGCA_HXI in CGCA_M2HX (Line 1221, file cgca_m3clvg.F90)
+                   CGCA_HXI in CGCA_M2HX (Line 1238, file cgca_m3clvg.F90)
+                   ALLOCATED(Intrinsic) (Line 1057, file cgca_m3clvg.F90)
+                   ALLOCATED(Intrinsic) (Line 1081, file cgca_m3clvg.F90)
+                   ALLOCATED(Intrinsic) (Line 1086, file cgca_m3clvg.F90)
+                   THIS_IMAGE(Intrinsic) (Line 1067, file cgca_m3clvg.F90)
+                   shmem_n_pes(Intrinsic) (Line 1068, file cgca_m3clvg.F90)
+                   LBOUND(Intrinsic) (Line 1071, file cgca_m3clvg.F90)
+                   UBOUND(Intrinsic) (Line 1072, file cgca_m3clvg.F90)
+                   ANY(Intrinsic) (Line 1093, file cgca_m3clvg.F90)
+                   MOD(Intrinsic) (Line 1245, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+CGCA_CLVGSD in CGCA_M3CLVG
+      Defined as:  Subroutine (line 38, file cgca_m3clvg.F90)
+
+      Interface:   None
+
+      Calls:       CGCA_GCF in CGCA_M2GB (Line 517, file cgca_m3clvg.F90)
+                   CGCA_GCR in CGCA_M2GB (Line 506, file cgca_m3clvg.F90)
+                   THIS_IMAGE(Intrinsic) (Line 460, file cgca_m3clvg.F90)
+                   shmem_n_pes(Intrinsic) (Line 461, file cgca_m3clvg.F90)
+                   ANY(Intrinsic) (Line 473, file cgca_m3clvg.F90)
+                   DOT_PRODUCT(Intrinsic) (Line 492, file cgca_m3clvg.F90)
+                   DOT_PRODUCT(Intrinsic) (Line 511, file cgca_m3clvg.F90)
+                   ABS(Intrinsic) (Line 492, file cgca_m3clvg.F90)
+                   ABS(Intrinsic) (Line 511, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+CGCA_CLVGSP in CGCA_M3CLVG
+      Defined as:  Subroutine (line 38, file cgca_m3clvg.F90)
+
+      Interface:   None
+
+      Calls:       CGCA_GCF in CGCA_M2GB (Line 674, file cgca_m3clvg.F90)
+                   CGCA_GCF in CGCA_M2GB (Line 688, file cgca_m3clvg.F90)
+                   CGCA_GCR in CGCA_M2GB (Line 668, file cgca_m3clvg.F90)
+                   ANY(Intrinsic) (Line 636, file cgca_m3clvg.F90)
+                   DOT_PRODUCT(Intrinsic) (Line 638, file cgca_m3clvg.F90)
+                   ABS(Intrinsic) (Line 638, file cgca_m3clvg.F90)
+                   RANDOM_NUMBER(Intrinsic) (Line 658, file cgca_m3clvg.F90)
+                   RANDOM_NUMBER(Intrinsic) (Line 684, file cgca_m3clvg.F90)
+                   THIS_IMAGE(Intrinsic) (Line 678, file cgca_m3clvg.F90)
+                   THIS_IMAGE(Intrinsic) (Line 691, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+CGCA_CLVGS_ABSTRACT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   CGCA_M3CLVG (Line 160, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+CGCA_CSYM in CGCA_M2ROT
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_CLVGN in CGCA_M3CLVG (Line 313, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+CGCA_DACF in CGCA_M3CLVG
+      Defined as:  Subroutine (line 39, file cgca_m3clvg.F90)
+
+      Interface:   None
+
+      Called By:   CGCA_CLVGP in CGCA_M3CLVG (Line 932, file cgca_m3clvg.F90)
+                   CGCA_CLVGP_NOCOSUM in CGCA_M3CLVG (Line 1233, file cgca_m3clvg.F90)
+
+      Calls:       LBOUND(Intrinsic) (Line 1448, file cgca_m3clvg.F90)
+                   LBOUND(Intrinsic) (Line 1472, file cgca_m3clvg.F90)
+                   UBOUND(Intrinsic) (Line 1449, file cgca_m3clvg.F90)
+                   UBOUND(Intrinsic) (Line 1473, file cgca_m3clvg.F90)
+                   THIS_IMAGE(Intrinsic) (Line 1467, file cgca_m3clvg.F90)
+                   ALLOCATED(Intrinsic) (Line 1478, file cgca_m3clvg.F90)
+                   ANY(Intrinsic) (Line 1495, file cgca_m3clvg.F90)
+                   COUNT(Intrinsic) (Line 1525, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+CGCA_DACF1 in CGCA_M3CLVG
+      Defined as:  Subroutine (line 39, file cgca_m3clvg.F90)
+
+      Interface:   None
+
+      Calls:       LBOUND(Intrinsic) (Line 1610, file cgca_m3clvg.F90)
+                   LBOUND(Intrinsic) (Line 1633, file cgca_m3clvg.F90)
+                   UBOUND(Intrinsic) (Line 1611, file cgca_m3clvg.F90)
+                   UBOUND(Intrinsic) (Line 1634, file cgca_m3clvg.F90)
+                   THIS_IMAGE(Intrinsic) (Line 1628, file cgca_m3clvg.F90)
+                   ALLOCATED(Intrinsic) (Line 1640, file cgca_m3clvg.F90)
+                   ANY(Intrinsic) (Line 1657, file cgca_m3clvg.F90)
+                   COUNT(Intrinsic) (Line 1669, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+CGCA_GCF in CGCA_M2GB
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_CLVGSD in CGCA_M3CLVG (Line 517, file cgca_m3clvg.F90)
+                   CGCA_CLVGSP in CGCA_M3CLVG (Line 674, file cgca_m3clvg.F90)
+                   CGCA_CLVGSP in CGCA_M3CLVG (Line 688, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+CGCA_GCR in CGCA_M2GB
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_CLVGSD in CGCA_M3CLVG (Line 506, file cgca_m3clvg.F90)
+                   CGCA_CLVGSP in CGCA_M3CLVG (Line 668, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+CGCA_GCUPD in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:    (Line 127, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+CGCA_GCUPDN in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+      Interface:   CGCA_M3CLVG (Line 129, file cgca_m3clvg.F90)
+
+      Called By:   CGCA_CLVGP in CGCA_M3CLVG (Line 925, file cgca_m3clvg.F90)
+                   CGCA_CLVGP_NOCOSUM in CGCA_M3CLVG (Line 1218, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+CGCA_HXG in CGCA_M2HX
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_CLVGP in CGCA_M3CLVG (Line 854, file cgca_m3clvg.F90)
+                   CGCA_CLVGP in CGCA_M3CLVG (Line 929, file cgca_m3clvg.F90)
+                   CGCA_CLVGP in CGCA_M3CLVG (Line 944, file cgca_m3clvg.F90)
+                   CGCA_CLVGP_NOCOSUM in CGCA_M3CLVG (Line 1127, file cgca_m3clvg.F90)
+                   CGCA_CLVGP_NOCOSUM in CGCA_M3CLVG (Line 1222, file cgca_m3clvg.F90)
+                   CGCA_CLVGP_NOCOSUM in CGCA_M3CLVG (Line 1239, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+CGCA_HXI in CGCA_M2HX
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_CLVGP in CGCA_M3CLVG (Line 853, file cgca_m3clvg.F90)
+                   CGCA_CLVGP in CGCA_M3CLVG (Line 928, file cgca_m3clvg.F90)
+                   CGCA_CLVGP in CGCA_M3CLVG (Line 943, file cgca_m3clvg.F90)
+                   CGCA_CLVGP_NOCOSUM in CGCA_M3CLVG (Line 1126, file cgca_m3clvg.F90)
+                   CGCA_CLVGP_NOCOSUM in CGCA_M3CLVG (Line 1221, file cgca_m3clvg.F90)
+                   CGCA_CLVGP_NOCOSUM in CGCA_M3CLVG (Line 1238, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+CGCA_IRS in CGCA_M2RND
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_M1CO
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M3CLVG
+                   CGCA_M3CLVG
+
+Name  Messages
+----  --------
+CGCA_M2GB
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M3CLVG
+
+Name  Messages
+----  --------
+CGCA_M2HX
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M3CLVG
+
+Name  Messages
+----  --------
+CGCA_M2RND
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M3CLVG
+
+Name  Messages
+----  --------
+CGCA_M2ROT
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M3CLVG
+
+Name  Messages
+----  --------
+CGCA_M3CLVG
+      Defined as:  Module (line 10, file cgca_m3clvg.F90)
+
+      Calls:       SQRT(Intrinsic) (Line 80, file cgca_m3clvg.F90)
+                   SQRT(Intrinsic) (Line 82, file cgca_m3clvg.F90)
+                   RESHAPE(Intrinsic) (Line 88, file cgca_m3clvg.F90)
+
+        Uses:      CGCA_M1CO
+                   ISO_FORTRAN_ENV  (indirectly)
+                   CGCA_M2GB
+                   CGCA_M2HX
+                   CGCA_M2ROT
+                   CGCA_M2RND
+                   CGCA_M1CO
+                   ISO_FORTRAN_ENV  (indirectly)
+                   FTN_LIB_DEFINITIONS  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_TCHK in CGCA_M3CLVG
+      Defined as:  Subroutine (line 39, file cgca_m3clvg.F90)
+
+      Interface:   None
+
+      Calls:       SQRT(Intrinsic) (Line 1758, file cgca_m3clvg.F90)
+                   RANDOM_NUMBER(Intrinsic) (Line 1757, file cgca_m3clvg.F90)
+                   SUM(Intrinsic) (Line 1758, file cgca_m3clvg.F90)
+                   DOT_PRODUCT(Intrinsic) (Line 1764, file cgca_m3clvg.F90)
+                   ABS(Intrinsic) (Line 1764, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+COUNT(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_DACF in CGCA_M3CLVG (Line 1525, file cgca_m3clvg.F90)
+                   CGCA_DACF1 in CGCA_M3CLVG (Line 1669, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+CO_SUM(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_CLVGP in CGCA_M3CLVG (Line 913, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+DOT_PRODUCT(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_CLVGN in CGCA_M3CLVG (Line 323, file cgca_m3clvg.F90)
+                   CGCA_CLVGN in CGCA_M3CLVG (Line 324, file cgca_m3clvg.F90)
+                   CGCA_CLVGN in CGCA_M3CLVG (Line 325, file cgca_m3clvg.F90)
+                   CGCA_CLVGSD in CGCA_M3CLVG (Line 492, file cgca_m3clvg.F90)
+                   CGCA_CLVGSD in CGCA_M3CLVG (Line 511, file cgca_m3clvg.F90)
+                   CGCA_CLVGSP in CGCA_M3CLVG (Line 638, file cgca_m3clvg.F90)
+                   CGCA_TCHK in CGCA_M3CLVG (Line 1764, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+EXIT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH_8
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FTN_LIB_DEFINITIONS
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M3CLVG  (indirectly)
+
+Name  Messages
+----  --------
+GCUPD_ALLOC in CGCA_M3CLVG
+      Defined as:  Subroutine (line 183, file cgca_m3clvg.F90)
+
+      Interface:   None
+
+      Called By:   CGCA_CLVGP in CGCA_M3CLVG (Line 784, file cgca_m3clvg.F90)
+                   CGCA_CLVGP_NOCOSUM in CGCA_M3CLVG (Line 1057, file cgca_m3clvg.F90)
+
+      Calls:       ALLOCATED(Intrinsic) (Line 202, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+HUGE(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL_J
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ISO_FORTRAN_ENV
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M3CLVG  (indirectly)
+                   CGCA_M3CLVG  (indirectly)
+
+Name  Messages
+----  --------
+KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+LBOUND(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_DACF in CGCA_M3CLVG (Line 1448, file cgca_m3clvg.F90)
+                   CGCA_DACF in CGCA_M3CLVG (Line 1472, file cgca_m3clvg.F90)
+                   CGCA_DACF1 in CGCA_M3CLVG (Line 1610, file cgca_m3clvg.F90)
+                   CGCA_DACF1 in CGCA_M3CLVG (Line 1633, file cgca_m3clvg.F90)
+                   CGCA_CLVGP in CGCA_M3CLVG (Line 798, file cgca_m3clvg.F90)
+                   CGCA_CLVGP_NOCOSUM in CGCA_M3CLVG (Line 1071, file cgca_m3clvg.F90)
+                   CGCA_CLVGP1 in CGCA_M3CLVG (Line 1336, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+MATMUL(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_CLVGN in CGCA_M3CLVG (Line 307, file cgca_m3clvg.F90)
+                   CGCA_CLVGN in CGCA_M3CLVG (Line 307, file cgca_m3clvg.F90)
+                   CGCA_CLVGN in CGCA_M3CLVG (Line 316, file cgca_m3clvg.F90)
+                   CGCA_CLVGN in CGCA_M3CLVG (Line 317, file cgca_m3clvg.F90)
+                   CGCA_CLVGN in CGCA_M3CLVG (Line 318, file cgca_m3clvg.F90)
+                   CGCA_CLVGN in CGCA_M3CLVG (Line 323, file cgca_m3clvg.F90)
+                   CGCA_CLVGN in CGCA_M3CLVG (Line 324, file cgca_m3clvg.F90)
+                   CGCA_CLVGN in CGCA_M3CLVG (Line 325, file cgca_m3clvg.F90)
+                   CGCA_CLVGN in CGCA_M3CLVG (Line 372, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+MAXVAL(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_CLVGN in CGCA_M3CLVG (Line 349, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+MOD(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_CLVGP in CGCA_M3CLVG (Line 950, file cgca_m3clvg.F90)
+                   CGCA_CLVGP_NOCOSUM in CGCA_M3CLVG (Line 1245, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+RANDOM_NUMBER(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_CLVGSP in CGCA_M3CLVG (Line 658, file cgca_m3clvg.F90)
+                   CGCA_CLVGSP in CGCA_M3CLVG (Line 684, file cgca_m3clvg.F90)
+                   CGCA_TCHK in CGCA_M3CLVG (Line 1757, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+RESHAPE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_M3CLVG (Line 88, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+SELECTED_INT_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SELECTED_REAL_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SIZE(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SQRT(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_M3CLVG (Line 80, file cgca_m3clvg.F90)
+                   CGCA_M3CLVG (Line 82, file cgca_m3clvg.F90)
+                   CGCA_TCHK in CGCA_M3CLVG (Line 1758, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+SUB
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_CLVGP in CGCA_M3CLVG (Line 899, file cgca_m3clvg.F90)
+                   CGCA_CLVGP_NOCOSUM in CGCA_M3CLVG (Line 1174, file cgca_m3clvg.F90)
+                   CGCA_CLVGP1 in CGCA_M3CLVG (Line 1389, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+SUM(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_TCHK in CGCA_M3CLVG (Line 1758, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+THIS_IMAGE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_CLVGSD in CGCA_M3CLVG (Line 460, file cgca_m3clvg.F90)
+                   CGCA_CLVGSP in CGCA_M3CLVG (Line 678, file cgca_m3clvg.F90)
+                   CGCA_CLVGSP in CGCA_M3CLVG (Line 691, file cgca_m3clvg.F90)
+                   CGCA_CLVGP in CGCA_M3CLVG (Line 794, file cgca_m3clvg.F90)
+                   CGCA_CLVGP_NOCOSUM in CGCA_M3CLVG (Line 1067, file cgca_m3clvg.F90)
+                   CGCA_CLVGP1 in CGCA_M3CLVG (Line 1332, file cgca_m3clvg.F90)
+                   CGCA_DACF in CGCA_M3CLVG (Line 1467, file cgca_m3clvg.F90)
+                   CGCA_DACF1 in CGCA_M3CLVG (Line 1628, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+TRANSPOSE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_CLVGN in CGCA_M3CLVG (Line 307, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+UBOUND(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_DACF in CGCA_M3CLVG (Line 1449, file cgca_m3clvg.F90)
+                   CGCA_DACF in CGCA_M3CLVG (Line 1473, file cgca_m3clvg.F90)
+                   CGCA_DACF1 in CGCA_M3CLVG (Line 1611, file cgca_m3clvg.F90)
+                   CGCA_DACF1 in CGCA_M3CLVG (Line 1634, file cgca_m3clvg.F90)
+                   CGCA_CLVGP in CGCA_M3CLVG (Line 799, file cgca_m3clvg.F90)
+                   CGCA_CLVGP_NOCOSUM in CGCA_M3CLVG (Line 1072, file cgca_m3clvg.F90)
+                   CGCA_CLVGP1 in CGCA_M3CLVG (Line 1337, file cgca_m3clvg.F90)
+
+Name  Messages
+----  --------
+shmem_n_pes(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_CLVGSD in CGCA_M3CLVG (Line 461, file cgca_m3clvg.F90)
+                   CGCA_CLVGP in CGCA_M3CLVG (Line 795, file cgca_m3clvg.F90)
+                   CGCA_CLVGP_NOCOSUM in CGCA_M3CLVG (Line 1068, file cgca_m3clvg.F90)
+                   CGCA_CLVGP1 in CGCA_M3CLVG (Line 1333, file cgca_m3clvg.F90)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

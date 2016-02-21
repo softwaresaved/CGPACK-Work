@@ -1,0 +1,543 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S u m m a r y   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Compilation
+-----------
+File     : /home3/y14/y14/di1c13/cgpack/head/cgca_m1co.f90
+Compiled : 02/18/16  16:36:31
+Compiler : Version 8.3.7
+Ftnlx    : Version 8318 (libcif 83016)
+Target   : x86-64
+Command  : ftn_driver.exe -hcpu=ivybridge -hstatic -D__CRAYXC
+           -D__CRAY_IVYBRIDGE -D__CRAYXT_COMPUTE_LINUX_TARGET -hnetwork=aries
+           -c -eacFn -dm -m2 -rl -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/mpt/7.1.1/gni/mpich2-cray/83/include
+           -I/opt/cray/libsci/13.0.1/CRAY/83/sandybridge/include
+           -I/opt/cray/rca/1.0.0-2.0502.57212.2.56.ari/include
+           -I/opt/cray/alps/5.2.3-2.0502.9295.14.14.ari/include
+           -I/opt/cray/xpmem/0.1-2.0502.57015.1.15.ari/include
+           -I/opt/cray/gni-headers/4.0-1.0502.10317.9.2.ari/include
+           -I/opt/cray/dmapp/7.0.1-1.0502.10246.8.47.ari/include
+           -I/opt/cray/pmi/5.0.6-1.0000.10439.140.2.ari/include
+           -I/opt/cray/ugni/6.0-1.0502.10245.9.9.ari/include
+           -I/opt/cray/udreg/2.3.2-1.0502.9889.2.20.ari/include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/pkgconfig/../include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/wlm_detect/1.0-1.0502.57063.1.1.ari/include
+           -I/opt/cray/krca/1.0.0-2.0502.57202.2.45.ari/include
+           -I/opt/cray-hss-devel/7.2.0/include cgca_m1co.f90
+
+ftnlx report
+------------
+Source   : /home3/y14/y14/di1c13/cgpack/head/cgca_m1co.f90
+Date     : 02/18/2016  16:36:31
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S o u r c e   L i s t i n g
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    1.    !$Id: cgca_m1co.f90 207 2016-02-02 19:06:14Z mexas $
+    2.    
+    3.    !*robodoc*m* CGPACK/cgca_m1co
+    4.    !  NAME
+    5.    !    cgca_m1co
+    6.    !  SYNOPSIS
+    7.    
+    8.    module cgca_m1co
+    9.    
+   10.    !  DESCRIPTION
+   11.    !    Lowest level module, contains named global parameters and variables.
+   12.    !    Contains routines which do not use modules (level 1 routines).
+   13.    !  AUTHOR
+   14.    !    Anton Shterenlikht
+   15.    !  COPYRIGHT
+   16.    !    See CGPACK_Copyright
+   17.    !  CONTAINS
+   18.    !    Various global parameters and variables
+   19.    !  USED BY
+   20.    !    Probably all higher level modules:
+   21.    !    cgca_m2alloc, cgca_m2gb, cgca_m2out, cgca_m2rot
+   22.    !  SOURCE
+   23.    
+   24.    use iso_fortran_env
+   25.    implicit none
+   26.    
+   27.    !*roboend*
+   28.    
+   29.    !*********************************************************************72
+   30.    ! parameters
+   31.    !*********************************************************************72
+   32.    
+   33.    !*robodoc*p* cgca_m1co/rdef
+   34.    !  PARAMETER
+   35.    integer, parameter :: rdef = selected_real_kind( 6, 30 )
+   36.    !  DESCRIPTION
+   37.    !    Default real kind
+   38.    !*roboend*
+   39.    
+   40.    
+   41.    !*robodoc*p* cgca_m1co/rlrg
+   42.    !  PARAMETER
+   43.    
+   44.    integer, parameter :: rlrg = selected_real_kind( 15, 300 )
+   45.    
+   46.    !  DESCRIPTION
+   47.    !    High precision real kind, most likely will be double
+   48.    !    precision
+   49.    !*roboend*
+   50.    
+   51.    !*robodoc*p* cgca_m1co/idef
+   52.    !  PARAMETER
+   53.    
+   54.    integer, parameter :: idef = selected_int_kind( 8 )
+   55.    
+   56.    !  DESCRIPTION
+   57.    !    Default integer kind
+   58.    !*roboend*
+   59.    
+   60.    !*robodoc*p* cgca_m1co/iarr
+   61.    !  PARAMETER
+   62.    
+   63.    integer, parameter :: iarr = selected_int_kind( 8 )
+   64.    
+   65.    !  DESCRIPTION
+   66.    !    Integer kind for cellular arrays
+   67.    !*roboend*
+   68.    
+   69.    !*robodoc*p* cgca_m1co/ilrg
+   70.    !  PARAMETER
+   71.    
+   72.    integer, parameter :: ilrg = selected_int_kind( 10 )
+   73.    
+   74.    ! DESCRIPTION
+   75.    !   Integer kind for large numbers, e.g. volumes, total
+   76.    !   number of cells, etc.
+   77.    !*roboend*
+   78.    
+   79.    !*robodoc*p* cgca_m1co/ldef
+   80.    !  PARAMETER
+   81.    
+   82.    integer, parameter :: ldef = kind( .true. )
+   83.    
+   84.    !  DESCRIPTION
+   85.    !    Default logical kind
+   86.    !*roboend*
+   87.    
+   88.    !*robodoc*p* cgca_m1co/pi
+   89.    !  PARAMETER
+   90.    
+   91.    real( kind=rdef ), parameter :: cgca_pi = 3.14159265358979323846264338_rdef
+   92.    
+   93.    !  DESCRIPTION
+   94.    !    pi
+   95.    !*roboend*
+   96.    
+   97.    !*robodoc*p* cgca_m1co/cgca_state_type_grain
+   98.    !  PARAMETER
+   99.    
+  100.    integer( kind=idef ), parameter :: cgca_state_type_grain = 1_idef
+  101.    
+  102.    ! DESCRIPTION
+  103.    !   Cell state type for grains
+  104.    !*roboend*
+  105.    
+  106.    !*robodoc*p* cgca_m1co/cgca_state_type_frac
+  107.    !  PARAMETER
+  108.    
+  109.    integer( kind=idef ), parameter :: cgca_state_type_frac = 2_idef
+  110.    
+  111.    ! DESCRIPTION
+  112.    !   Cell state type for fractures
+  113.    !*roboend*
+  114.    
+  115.    !*robodoc*p* cgca_m1co/cgca_liquid_state
+  116.    !  PARAMETER
+  117.    
+  118.    integer( kind=iarr ), parameter :: cgca_liquid_state = 0_iarr
+  119.    
+  120.    !  DESCRIPTION
+  121.    !    Liquid phase, cell state of type cgca_state_type_grain.
+  122.    !    All states of the same type must be unique.
+  123.    !*roboend*
+  124.    
+  125.    !*********************************************************************72
+  126.    ! Fracture layer states in decreasing value.
+  127.    ! All states in a layer must be unique.
+  128.    !*********************************************************************72
+  129.    
+  130.    !*robodoc*p* cgca_m1co/cgca_state_null
+  131.    !  PARAMETER
+  132.    integer( kind=iarr ), parameter :: cgca_state_null = huge( 0_iarr )
+  133.    !  DESCRIPTION
+  134.    !    An inactive (null, void, nonexistent) state of a cell in the
+  135.    !    fracture layer, cell state of type cgca_state_type_frac.
+  136.    !    This state is given to cells which are outside of the FE model.
+  137.    !    These cells are not analysed at all in any fracture routines.
+  138.    !*roboend*
+  139.    
+  140.    
+  141.    !*robodoc*p* cgca_m1co/cgca_gb_state_intact
+  142.    !  PARAMETER
+  143.    integer( kind=iarr ), parameter :: cgca_gb_state_intact = 2_iarr
+  144.    !  DESCRIPTION
+  145.    !    Intact grain boundary, cell state of type cgca_state_type_frac.
+  146.    !*roboend*
+  147.    
+  148.    
+  149.    !*robodoc*p* cgca_m1co/cgca_gb_state_fractured
+  150.    !  PARAMETER
+  151.    integer( kind=iarr ), parameter :: cgca_gb_state_fractured = 1_iarr
+  152.    !  DESCRIPTION
+  153.    !    Fractured grain boundary, cell state of type cgca_state_type_frac.
+  154.    !*roboend*
+  155.    
+  156.    
+  157.    !*robodoc*p* cgca_m1co/cgca_intact_state
+  158.    !  PARAMETER
+  159.    integer( kind=iarr ), parameter :: cgca_intact_state = 0_iarr
+  160.    !  DESCRIPTION
+  161.    !    Intact state for fracture array, cell state of type
+  162.    !    cgca_state_type_frac.
+  163.    !*roboend*
+  164.    
+  165.    
+  166.    !*robodoc*p* cgca_m1co/cgca_clvg_state_100_flank
+  167.    !  PARAMETER
+  168.    integer( kind=iarr ), parameter :: cgca_clvg_state_100_flank = -1_iarr
+  169.    !  DESCRIPTION
+  170.    !    Flanks of a cleavage crack of {100} family.
+  171.    !    Cell state of type cgca_state_type_frac.
+  172.    !*roboend*
+  173.    
+  174.    
+  175.    !*robodoc*p* cgca_m1co/cgca_clvg_state_100_edge
+  176.    !  PARAMETER
+  177.    integer( kind=iarr ), parameter :: cgca_clvg_state_100_edge = -2_iarr
+  178.    !  DESCRIPTION
+  179.    !    Edges of a cleavage crack of {100} family.
+  180.    !    Cell state of type cgca_state_type_frac.
+  181.    !*roboend*
+  182.    
+  183.    
+  184.    !*robodoc*p* cgca_m1co/cgca_clvg_state_110_flank
+  185.    !  PARAMETER
+  186.    integer( kind=iarr ), parameter :: cgca_clvg_state_110_flank = -3_iarr
+  187.    !  DESCRIPTION
+  188.    !    Flanks of a cleavage crack of {110} family.
+  189.    !    Cell state of type cgca_state_type_frac.
+  190.    !*roboend*
+  191.    
+  192.    
+  193.    !*robodoc*p* cgca_m1co/cgca_clvg_state_110_edge
+  194.    !  PARAMETER
+  195.    integer( kind=iarr ), parameter :: cgca_clvg_state_110_edge = -4_iarr
+  196.    !  DESCRIPTION
+  197.    !    Edges of a cleavage crack of {110} family.
+  198.    !    Cell state of type cgca_state_type_frac.
+  199.    !*roboend*
+  200.    
+  201.    
+  202.    !*robodoc*p* cgca_m1co/cgca_clvg_state_111_flank
+  203.    !  PARAMETER
+  204.    integer( kind=iarr ), parameter :: cgca_clvg_state_111_flank = -5_iarr
+  205.    !  DESCRIPTION
+  206.    !    Flanks of a cleavage crack of {111} family.
+  207.    !    Cell state of type cgca_state_type_frac.
+  208.    !*roboend*
+  209.    
+  210.    
+  211.    !*robodoc*p* cgca_m1co/cgca_clvg_state_111_edge
+  212.    !  PARAMETER
+  213.    integer( kind=iarr ), parameter :: cgca_clvg_state_111_edge = -6_iarr
+  214.    !  DESCRIPTION
+  215.    !    Edges of a cleavage crack of {111} family.
+  216.    !    Cell state of type cgca_state_type_frac.
+  217.    !*roboend*
+  218.    
+  219.    
+  220.    !*robodoc*p* cgca_m1co/cgca_clvg_lowest_state
+  221.    !  PARAMETER
+  222.    integer( kind=iarr ), parameter ::                                     &
+  223.     cgca_clvg_lowest_state = cgca_clvg_state_111_edge
+  224.    !  DESCRIPTION
+  225.    !    The the lowest cleavage state, used for sizing the lower
+  226.    !    bound of e.g. the grain volume array.
+  227.    !    Cell state of type cgca_state_type_frac.
+  228.    !*roboend*
+  229.    
+  230.    
+  231.    !*robodoc*p* cgca_m1co/cgca_clvg_states_flank
+  232.    !  PARAMETER
+  233.    integer(kind=iarr), parameter :: cgca_clvg_states_flank(3) =           &
+  234.      (/ cgca_clvg_state_100_flank,                                        & 
+  235.         cgca_clvg_state_110_flank,                                        &
+  236.         cgca_clvg_state_111_flank /)
+  237.    !  DESCRIPTION
+  238.    !    Array to store all flank cleavage states.
+  239.    !    Cell state of type cgca_state_type_frac.
+  240.    !*roboend*
+  241.    
+  242.    
+  243.    !*robodoc*p* cgca_m1co/cgca_clvg_states_edge
+  244.    !  PARAMETER
+  245.    integer(kind=iarr), parameter :: cgca_clvg_states_edge(3)  =           &
+  246.      (/ cgca_clvg_state_100_edge,                                         &
+  247.         cgca_clvg_state_110_edge,                                         &
+  248.         cgca_clvg_state_111_edge /)
+  249.    !  DESCRIPTION
+  250.    !    Array to store all edge cleavage states.
+  251.    !    Cell state of type cgca_state_type_frac.
+  252.    !*roboend*
+  253.    
+  254.    
+  255.    !*robodoc*p* cgca_m1co/cgca_clvg_states
+  256.    !  PARAMETER
+  257.    integer(kind=iarr), parameter ::                                       &
+  258.     cgca_clvg_states( size(cgca_clvg_states_flank) +                      &
+  259.                       size(cgca_clvg_states_edge) ) =                     &
+  260.      (/ cgca_clvg_states_flank, cgca_clvg_states_edge /)
+  261.    !  DESCRIPTION
+  262.    !    Array to store all cleavage states, flanks and edges.
+  263.    !    Cell state of type cgca_state_type_frac.
+  264.    !*roboend*
+  265.    
+  266.    
+  267.    !*robodoc*p* cgca_m1co/cgca_frac_states
+  268.    !  PARAMETER
+  269.    integer( kind=iarr ), parameter ::                                     &
+  270.     cgca_frac_states( size(cgca_clvg_states) + 1 ) =                      &
+  271.      (/ cgca_gb_state_fractured, cgca_clvg_states /)
+  272.    !  DESCRIPTION
+  273.    !    Array to store all fracture states: cleavage, fractured GB, etc.
+  274.    !    Cell state of type cgca_state_type_frac.
+  275.    !*roboend*
+  276.    
+  277.    
+  278.    !*robodoc*p* cgca_m1co/cgca_lowest_state
+  279.    !  PARAMETER
+  280.    integer(kind=iarr), parameter :: cgca_lowest_state = -huge(0_iarr)
+  281.    !  DESCRIPTION
+  282.    !    Lowest possible state in the model
+  283.    !*roboend*
+  284.    
+  285.    
+  286.    !*robodoc*p* cgca_m1co/cgca_gcupd_size1
+  287.    !  PARAMETER
+  288.    integer( kind=idef ), parameter :: cgca_gcupd_size1 = 100_idef
+  289.    !  DESCRIPTION
+  290.    !    This is size1 for the allocatable array coarray gcupd_arr
+  291.    !    in module cgca_m3clvg. The value is the maximum number
+  292.    !    of fractured grain boundaries on an image in a single
+  293.    !    CA iteration. 100 is probably an overkill. Perhaps 2-3
+  294.    !    will be enough, but it's not too big a waste.
+  295.    !*roboend*
+  296.    
+  297.    
+  298.    !*robodoc*p* cgca_m1co/cgca_gcupd_size2
+  299.    !  PARAMETER
+  300.    integer( kind=idef ), parameter :: cgca_gcupd_size2 = 3_idef
+  301.    !  DESCRIPTION
+  302.    !    This is size2 for the allocatable array coarray gcupd_arr
+  303.    !    in module cgca_m3clvg. The value is the number of useful
+  304.    !    fields for each entry. At present only 3 entries planned:
+  305.    !    (1) grain 1, (2) grain 2, (3) state of grain boundary
+  306.    !    between grains 1 and 2.
+  307.    !*roboend*
+  308.    
+  309.    
+  310.    !*robodoc*p* cgca_m1co/cgca_scodim
+  311.    !  PARAMETER
+  312.    integer( kind=idef ), parameter :: cgca_scodim = 3
+  313.    !  DESCRIPTION
+  314.    !    Number of spatial codimensions for the main space coarray
+  315.    !    and other coarrays with more that 1 codimensions.
+  316.    !*roboend*
+  317.    
+  318.    !*********************************************************************72
+  319.    ! variables
+  320.    !*********************************************************************72
+  321.    
+  322.    !*robodoc*v* cgca_m1co/cgca_slcob
+  323.    !  PARAMETER
+  324.    integer( kind=idef ) :: cgca_slcob( cgca_scodim )
+  325.    !  DESCRIPTION
+  326.    !    Lower cobounds of the space coarray and other coarrays with
+  327.    !    more that 1 codimensions.
+  328.    !*roboend*
+  329.    
+  330.    !*robodoc*v* cgca_m1co/cgca_sucob
+  331.    !  PARAMETER
+  332.    integer( kind=idef ) :: cgca_sucob( cgca_scodim )
+  333.    !  DESCRIPTION
+  334.    !    Upper cobounds of the space coarray and other coarrays with
+  335.    !    more that 1 codimensions.
+  336.    !*roboend*
+  337.    
+  338.    end module cgca_m1co
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                         E x t e r n a l   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Name  Messages
+----  --------
+ABORT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ABORT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_M1CO
+      Defined as:  Module (line 8, file cgca_m1co.f90)
+
+      Calls:       SELECTED_REAL_KIND(Intrinsic) (Line 35, file cgca_m1co.f90)
+                   SELECTED_REAL_KIND(Intrinsic) (Line 44, file cgca_m1co.f90)
+                   SELECTED_INT_KIND(Intrinsic) (Line 54, file cgca_m1co.f90)
+                   SELECTED_INT_KIND(Intrinsic) (Line 63, file cgca_m1co.f90)
+                   SELECTED_INT_KIND(Intrinsic) (Line 72, file cgca_m1co.f90)
+                   KIND(Intrinsic) (Line 82, file cgca_m1co.f90)
+                   HUGE(Intrinsic) (Line 132, file cgca_m1co.f90)
+                   HUGE(Intrinsic) (Line 280, file cgca_m1co.f90)
+                   SIZE(Intrinsic) (Line 258, file cgca_m1co.f90)
+                   SIZE(Intrinsic) (Line 259, file cgca_m1co.f90)
+                   SIZE(Intrinsic) (Line 270, file cgca_m1co.f90)
+
+        Uses:      ISO_FORTRAN_ENV
+
+Name  Messages
+----  --------
+EXIT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH_8
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FTN_LIB_DEFINITIONS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+Name  Messages
+----  --------
+HUGE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_M1CO (Line 132, file cgca_m1co.f90)
+                   CGCA_M1CO (Line 280, file cgca_m1co.f90)
+
+Name  Messages
+----  --------
+ICEIL
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL_J
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ISO_FORTRAN_ENV
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M1CO
+
+Name  Messages
+----  --------
+KIND(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_M1CO (Line 82, file cgca_m1co.f90)
+
+Name  Messages
+----  --------
+SELECTED_INT_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_M1CO (Line 54, file cgca_m1co.f90)
+                   CGCA_M1CO (Line 63, file cgca_m1co.f90)
+                   CGCA_M1CO (Line 72, file cgca_m1co.f90)
+
+Name  Messages
+----  --------
+SELECTED_REAL_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_M1CO (Line 35, file cgca_m1co.f90)
+                   CGCA_M1CO (Line 44, file cgca_m1co.f90)
+
+Name  Messages
+----  --------
+SIZE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_M1CO (Line 258, file cgca_m1co.f90)
+                   CGCA_M1CO (Line 259, file cgca_m1co.f90)
+                   CGCA_M1CO (Line 270, file cgca_m1co.f90)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

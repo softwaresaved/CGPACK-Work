@@ -1,0 +1,14 @@
+#PBS -N cgpack_testAAA
+#PBS -A y14
+#PBS -l select=1
+#PBS -l walltime=00:20:0
+#PBS -N testAAA
+
+# resolve all symlinks to absolute paths
+export PBS_O_WORKDIR=$(readlink -f $PBS_O_WORKDIR)
+
+# Switch to current working directory
+cd $PBS_O_WORKDIR
+
+# Run the parallel program
+aprun -n 24 -N 24 -S 12 -d 1 -T ../../../../home/y14/y14/di1c13/cgpack/head/tests/testAAA.x 2 2

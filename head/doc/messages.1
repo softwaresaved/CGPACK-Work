@@ -1,0 +1,213 @@
+.\"$Id: messages.1 203 2016-01-29 12:46:59Z mexas $
+.NH 1
+.XN -N AAAE -- Messages
+.PP
+CGPACK design assumes that routines might need
+to pass messages to the user.
+There are four levels of user messages:
+.IP 1.
+.pdfhref L -D AAAF -- information
+.IP 2.
+.pdfhref L -D AAAG -- warning 
+.IP 3.
+.pdfhref L -D AAAH -- error 
+.IP 4.
+.pdfhref L -D AAAI -- debugging 
+.PP
+Each message is written to stdout as a single line of text.
+Some messages can be long, so they might wrap when
+viewed in some editors.
+The decision not to break a message into multiple
+one-line chunks was taken to simplify searching for
+messages, e.g. with
+.CW grep .
+Having a message written as a single line makes
+searching for the complete message easier.
+.PP
+The first field in all messages is a label showing
+the level of the message, followed by a colon,
+.CW : ,
+exactly one of:
+.CW INFO: ,
+.CW WARN: ,
+.CW ERROR: or
+.CW DEBUG: .
+The standard labels are used to search for a particular
+type of messages.
+For example to check if there are any warnings issued
+by the program the user can use this command:
+.DS L
+\fCgrep WARN \fP<\fIoutfile\fP>.
+.DE
+or
+.DS L
+\fCgrep "^WARN:" \fP<\fIoutfile\fP>
+.DE
+or to see all debugging output, the user can issue this
+command:
+.DS L
+\fCgrep DEBUG: \fP<\fIoutfile\fP>
+.DE
+or
+.DS L
+\fCgrep "^DEBUG" \fP<\fIoutfile\fP>
+.DE
+.PP
+The second field in all messages is the name of the
+routine that issued that message, followed by a colon,
+.CW : ,
+e.g.
+.CW cgca_clvgsd: ,
+.CW cgca_nr: ,
+etc.
+.PP
+Colons are used to help separate the messages into
+fields, with tools such as
+.CW awk .
+.PP
+The third field is the content of the message.
+This field is not standardised and will
+differ from one routine to another, hopefully
+giving the user some helpful information.
+.PP
+Some messages will contain the number of
+the image that issued the message.
+.NH 2
+.XN -N AAAF -- Information messages
+.PP
+Information messages start with
+.CW INFO: .
+These messages are intended to give the user
+progress information, where it is expected
+that routines might take a while to complete.
+Examples:
+.DS L
+.CW
+INFO: cgca_sld: iterations completed: 140
+INFO: cgca_sld: iterations completed: 150
+INFO: cgca_clvgp: iterations completed: 10
+INFO: cgca_clvgp: iterations completed: 20
+.DE
+.PP
+Accordingly the routines which provide the information
+messages allow the user to specify the frequency of
+messaging.
+For example input argument
+.CW heartbeat
+in routine
+.DS L
+.CW
+subroutine cgca_clvgp( coarray, rt, t, scrit, sub, periodicbc, iter,  &
+                       heartbeat, debug )
+.DE
+gives the frequency of the information messages,
+in this case given in the number of CA iterations.
+.NH 2
+.XN -N AAAG -- Warning messages
+.PP
+Warning messages start with
+.CW WARN: .
+These messages are intended to warn the user
+of unexpected input, undesirable settings,
+unexpected, but not fatal, runtime conditions, etc.
+Example:
+.DS L
+.CW
+WARN: cgca_gcr: image 1144: No match found for given pair: 3904 2126.
+WARN: cgca_nr: too many nuclei - no physical sense! nuclei/model size:  0.683E+06
+.DE
+The user generally does not have the control
+over warning messages.
+These are issued based on the logic of the
+CGPACK library.
+It is up to the user what action to take
+on encountering one of the warning messages.
+Some warnings might safely be ignored.
+Other warnings, such as the second warning above,
+might indicate that the
+results have no physical sense.
+The user can then decide to terminate the analysis
+early, change the input values and rerun.
+Yet other warnings might indicate unexpected
+conditions demanding further investigation,
+e.g. the first warning above.
+.NH 2
+.XN -N AAAH -- Error messages
+.PP
+Error messages start with
+.CW ERROR: .
+.PP
+CGPACK was designed to treat all
+errors as fatal.
+In fact all error conditions are implemented with
+.CW ERROR
+.CW STOP
+Fortran 2008 intrinsic which initiates error
+termination.
+The program is expected to exit as soon as possible.
+Therefore it is expected that there will not be
+more than a single error message issued by any
+CGPACK program.
+This means that searching for error messages might
+not be needed.
+.PP
+Typical conditions resulting in the issuing of
+error messages, e.g. in error termination, are
+insufficient memory when
+allocating arrays or conditions which violate
+the model logic, e.g. passing non-existent
+grain numbers or image numbers.
+Examples:
+.DS L
+.CW
+ERROR: cgca_dv: cannot deallocate coarray
+ERROR: cgca_gc: coarray not allocated, img: 17
+.DE
+.NH 2
+.XN -N AAAI -- Debugging messages
+.PP
+Debugging messages start with
+.CW DEBUG: .
+.PP
+Some routines provide a capability to print
+debugging output on request.
+For example, input argument
+.CW debug
+in routine 
+.DS L
+.CW
+subroutine cgca_clvgp( coarray, rt, t, scrit, sub, periodicbc, iter,  &
+                       heartbeat, debug )
+.DE
+is a logical variable.
+If
+.CW
+debug = .true.
+.R
+then some debugging information will be dumpted to stdout
+by that routine, and by all routines invoked by this routine,
+if any of them provide debugging capability.
+For example, routine
+.CW cgca_clvgp
+above calls routine
+.CW cgca_clvgsd
+which prints debug ouput when
+.CW
+debug = .true.
+.R
+is passed to cgca_clvgp:
+.DS L
+.CW
+DEBUG: cgca_clvgsd: img: 6: newstate=-3, calling cgca_gcf, gcupd=(34 9 1),
+marr=(9 9 27 9 27 27 9 27 27 9 9 27 9 34 34 34 34 34 9 34 34 34 34 34 34
+ 34 34 ).
+DEBUG: cgca_clvgsd: img: 2: newstate=-4, calling cgca_gcf, gcupd=(27 34 1),
+marr=(27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 34 27 27 9 9 9 34 34 34
+ 34 34 34 ).
+.DE
+Note that the long lines of debugging output have been wrapped here.
+.PP
+The volume of debugging output can be very large.
+The user is advised to use caution when asking
+for debugging output, particularly on large core counts.
+In some cased debugging output can exceed several GB.

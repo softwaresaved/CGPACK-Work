@@ -1,0 +1,447 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S u m m a r y   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Compilation
+-----------
+File     : /home3/y14/y14/di1c13/cgpack/head/m3clvg_sm1.f90
+Compiled : 02/18/16  16:36:42
+Compiler : Version 8.3.7
+Ftnlx    : Version 8318 (libcif 83016)
+Target   : x86-64
+Command  : ftn_driver.exe -hcpu=ivybridge -hstatic -D__CRAYXC
+           -D__CRAY_IVYBRIDGE -D__CRAYXT_COMPUTE_LINUX_TARGET -hnetwork=aries
+           -c -eacFn -dm -m2 -rl -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/mpt/7.1.1/gni/mpich2-cray/83/include
+           -I/opt/cray/libsci/13.0.1/CRAY/83/sandybridge/include
+           -I/opt/cray/rca/1.0.0-2.0502.57212.2.56.ari/include
+           -I/opt/cray/alps/5.2.3-2.0502.9295.14.14.ari/include
+           -I/opt/cray/xpmem/0.1-2.0502.57015.1.15.ari/include
+           -I/opt/cray/gni-headers/4.0-1.0502.10317.9.2.ari/include
+           -I/opt/cray/dmapp/7.0.1-1.0502.10246.8.47.ari/include
+           -I/opt/cray/pmi/5.0.6-1.0000.10439.140.2.ari/include
+           -I/opt/cray/ugni/6.0-1.0502.10245.9.9.ari/include
+           -I/opt/cray/udreg/2.3.2-1.0502.9889.2.20.ari/include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/pkgconfig/../include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/wlm_detect/1.0-1.0502.57063.1.1.ari/include
+           -I/opt/cray/krca/1.0.0-2.0502.57202.2.45.ari/include
+           -I/opt/cray-hss-devel/7.2.0/include m3clvg_sm1.f90
+
+ftnlx report
+------------
+Source   : /home3/y14/y14/di1c13/cgpack/head/m3clvg_sm1.f90
+Date     : 02/18/2016  16:36:42
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S o u r c e   L i s t i n g
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    1.    !$Id: m3clvg_sm1.f90 213 2016-02-18 09:54:41Z mexas $
+    2.    
+    3.    !*********************************************************************72
+    4.    
+    5.    !*robodoc*f* CGPACK/m3clvg_sm1
+    6.    !  NAME
+    7.    !    m3clvg_sm1
+    8.    !  SYNOPSIS
+    9.    
+   10.    submodule ( cgca_m3clvg ) m3clvg_sm1
+   11.    
+   12.    !  DESCRIPTION
+   13.    !    Submodule of module cgca_m3clvg. It contains subroutines dealing
+   14.    !    with updating the grain connectivity array.
+   15.    !  AUTHOR
+   16.    !    Anton Shterenlikht
+   17.    !  COPYRIGHT
+   18.    !    See LICENSE
+   19.    !  CONTAINS
+   20.    !    cgca_gcupd, cgca_gcupdn
+   21.    !  USES
+   22.    !    all variables and parameters of module cgca_m3clvg by host
+   23.    !    association
+   24.    !  USED BY
+   25.    !    cgca_m3clvg
+   26.    !  SOURCE
+   27.    
+   28.    contains
+   29.    
+   30.    !*roboend*
+   31.    
+   32.    
+   33.    !*robodoc*s* m3clvg_sm1/cgca_gcupd
+   34.    !  NAME
+   35.    !    cgca_gcupd
+   36.    !  SYNOPSIS  
+   37.    
+   38.    module procedure cgca_gcupd
+   39.    
+   40.    !  SIDE EFFECTS
+   41.    !    State of GB array in module cgca_m2gb is updated
+   42.    !  DESCRIPTION
+   43.    !    This routine reads gcupd from *all* images and
+   44.    !    adds the pairs to the local GB array on this image.
+   45.    !    If you want to use just the nearest neighbouring images,
+   46.    !    use cgca_gcupdn instead.
+   47.    !    Synchronisation must be used before and after
+   48.    !    calling this routine, to comply with the standard.
+   49.    !  USES
+   50.    !    cgca_gcf
+   51.    !  SOURCE
+   52.    
+   53.    integer( kind=idef ) :: i, j, img, nimgs, img_curr, rndint
+   54.    integer( kind=kind(gcupd) ) :: gcupd_local( gculen, 3 )
+   55.    real :: rnd
+   56.    
+   57.      img = this_image()
+   58.    nimgs = num_images()
+   59.    
+   60.    ! choose the first image at random
+   61.    call random_number( rnd )   ! [ 0 .. 1 )
+   62.    rndint = int( rnd*nimgs )+1 ! [ 1 .. nimgs ]
+   63.    
+   64.    ! loop over all images, starting at a randomly chosen image
+   65.    images: do j = rndint, rndint+nimgs-1
+ftn-6288 ftn: VECTOR File = m3clvg_sm1.f90, Line = 65 
+  A loop starting at line 65 was not vectorized because it contains a call to subroutine "cgca_gcf" on line 89.
+
+   66.    
+   67.      ! Get the current image number.
+   68.      ! If it's > nimgs, subtract nimgs
+   69.      img_curr = j
+   70.      if ( img_curr .gt. nimgs ) img_curr = img_curr - nimgs
+   71.    
+   72.      ! Skip this image, because the GC array has already been updated
+   73.      ! in cgca_clvgsd.
+   74.      if ( img_curr .eq. img ) cycle images
+   75.    
+   76.      ! copy gcupd from image j into a local var
+   77.      gcupd_local( : , : ) = gcupd( : , : ) [img_curr]
+ftn-6066 ftn: SCALAR File = m3clvg_sm1.f90, Line = 77 
+   A loop nest at line 77 collapsed to a single loop.
+
+ftn-6202 ftn: VECTOR File = m3clvg_sm1.f90, Line = 77 
+  A loop starting at line 77 was replaced by a library call.
+
+   78.    
+   79.      gcarray: do i = 1, gculen
+ftn-6288 ftn: VECTOR File = m3clvg_sm1.f90, Line = 79 
+  A loop starting at line 79 was not vectorized because it contains a call to subroutine "cgca_gcf" on line 89.
+
+   80.    
+   81.        ! The gcupd array is filled with fractured pairs from the beginning
+   82.        ! so exit as soon as the GB state is intact.
+   83.        if ( gcupd_local( i , 3 ) .eq. cgca_gb_state_intact ) exit gcarray
+   84.    
+   85.    !write (*,*) "DEBUG: cgca_gcupd: img:", img, &
+   86.    !            "gcupd_local(i,:):", gcupd_local( i , : )
+   87.    
+   88.        ! add the pair to the GC array on this image
+   89.        call cgca_gcf( gcupd_local( i , 1 ), gcupd_local( i , 2 ) )
+                   ^                                                      
+ftn-3095 ftn: IPA CGCA_GCUPD, File = m3clvg_sm1.f90, Line = 89, Column = 10 
+  "cgca_gcf" (called from "cgca_gcupd") was not inlined because the containing loop does I/O.
+
+   90.    
+   91.     end do gcarray
+   92.    end do images
+   93.    
+   94.    end procedure cgca_gcupd
+   95.    
+   96.    !*roboend*
+   97.    
+   98.    
+   99.    !*robodoc*s* m3clvg_sm1/cgca_gcupdn
+  100.    !  NAME
+  101.    !    cgca_gcupdn
+  102.    !  SYNOPSIS  
+  103.    
+  104.    module procedure cgca_gcupdn
+  105.    
+  106.    !  INPUT
+  107.    !    periodicbc - logical, .true. if the CA space has periodic BC,
+  108.    !    and .false. otherwise.
+  109.    !  SIDE EFFECTS
+  110.    !    State of GB array in module cgca_m2gb is updated
+  111.    !  DESCRIPTION
+  112.    !    This routine reads gcupd_arr from the *nearest neighbouring*
+  113.    !    images only, and adds the pairs to the local GB array on this
+  114.    !    image. If you want to read from all images, use
+  115.    !    cgca_gcupd.
+  116.    !    Synchronisation must be used before and after
+  117.    !    calling this routine, to comply with the standard.
+  118.    !  NOTES
+  119.    !    This routine must be used only after gcupd_arr has been
+  120.    !    allocated. A runtime error will result if gcupd_arr has not
+  121.    !    been allocated yet. 
+  122.    !  USES
+  123.    !    cgca_gcf
+  124.    !  SOURCE
+  125.    
+  126.    integer( kind=idef ) :: i, j, k, s, mycod( cgca_scodim ),              &
+  127.     neicod( cgca_scodim )
+  128.    integer( kind=kind(gcupd_arr) ) ::                                     &
+  129.     gcupd_local( cgca_gcupd_size1, cgca_gcupd_size2 )
+  130.    
+  131.    ! Get my coindex set
+  132.    if ( .not. allocated( gcupd_arr ) ) then
+  133.      write (*,'(a)')                                                      &
+  134.         "ERROR: cgca_m3clvg/cgca_gcupdn: gcupd_arr not allocated"
+  135.      error stop
+  136.    end if
+  137.    mycod = this_image( gcupd_arr )
+ftn-6271 ftn: VECTOR File = m3clvg_sm1.f90, Line = 137 
+  A loop starting at line 137 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = m3clvg_sm1.f90, Line = 137 
+  A loop starting at line 137 was unwound.
+
+  138.    
+  139.    ! Loop over all nearest neighbours, taking special attention of
+  140.    ! the images at the edges of the model
+  141.    do i = -1 , 1
+ftn-6288 ftn: VECTOR File = m3clvg_sm1.f90, Line = 141 
+  A loop starting at line 141 was not vectorized because it contains a call to subroutine "cgca_gcf" on line 202.
+
+  142.    do j = -1 , 1
+ftn-6288 ftn: VECTOR File = m3clvg_sm1.f90, Line = 142 
+  A loop starting at line 142 was not vectorized because it contains a call to subroutine "cgca_gcf" on line 202.
+
+  143.    inner: do k = -1 , 1
+ftn-6288 ftn: VECTOR File = m3clvg_sm1.f90, Line = 143 
+  A loop starting at line 143 was not vectorized because it contains a call to subroutine "cgca_gcf" on line 202.
+
+  144.    
+  145.      ! Get the coindex set of the neighbour
+  146.      neicod = mycod + (/ i, j, k /)
+ftn-6271 ftn: VECTOR File = m3clvg_sm1.f90, Line = 146 
+  A loop starting at line 146 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = m3clvg_sm1.f90, Line = 146 
+  A loop starting at line 146 was unwound.
+
+  147.    
+  148.      ! Skip this image
+  149.      if ( all( neicod .eq. mycod ) ) cycle inner
+ftn-6334 ftn: VECTOR File = m3clvg_sm1.f90, Line = 149 
+  A loop starting at line 149 was not vectorized because it contains multiple potential exits.
+
+  150.    
+  151.      ! Dealing with edges
+  152.      ! Loop over all codimensions
+  153.      edges: do s = 1 , cgca_scodim
+ftn-6334 ftn: VECTOR File = m3clvg_sm1.f90, Line = 153 
+  A loop starting at line 153 was not vectorized because it contains multiple potential exits.
+
+  154.    
+  155.        ! If the neighbour is below the lower edge
+  156.        if ( neicod( s ) .lt. cgca_slcob( s ) ) then
+  157.          if ( periodicbc ) then
+  158.            ! If periodic BC are in use, take the data from the opposite
+  159.            ! edge.
+  160.            neicod( s ) = cgca_sucob( s )       
+  161.          else
+  162.            ! Otherwise, do not pull data from this neighbour, move to
+  163.            ! the next one.
+  164.            cycle inner
+  165.          end if
+  166.        end if     
+  167.    
+  168.        ! If the neighbour is above the upper edge
+  169.        if ( neicod( s ) .gt. cgca_sucob( s ) ) then
+  170.          if ( periodicbc ) then
+  171.            ! If periodic BC are in use, take the data from the opposite
+  172.            ! edge.
+  173.            neicod( s ) = cgca_slcob( s )       
+  174.          else
+  175.            ! Otherwise, do not pull data from this neighbour, move to
+  176.            ! the next one.
+  177.            cycle inner
+  178.          end if
+  179.        end if     
+  180.    
+  181.      end do edges
+  182.    
+  183.      ! Now the coindex set of the neighbour has been obtained.
+  184.      ! Pull its data
+  185.    
+  186.      ! Copy gcupd_arr from the neighbouring image into a local var.
+  187.      ! Remote read.
+  188.      gcupd_local( : , : ) =                                               &
+ftn-6066 ftn: SCALAR File = m3clvg_sm1.f90, Line = 188 
+   A loop nest at line 188 collapsed to a single loop.
+
+ftn-6202 ftn: VECTOR File = m3clvg_sm1.f90, Line = 188 
+  A loop starting at line 188 was replaced by a library call.
+
+  189.        gcupd_arr( : , : ) [ neicod(1), neicod(2), neicod(3) ]
+  190.    
+  191.      ! Scan all values in gcupd. Can reuse loop index s.
+  192.      gcarray: do s = 1, cgca_gcupd_size1
+ftn-6288 ftn: VECTOR File = m3clvg_sm1.f90, Line = 192 
+  A loop starting at line 192 was not vectorized because it contains a call to subroutine "cgca_gcf" on line 202.
+
+  193.    
+  194.        ! The gcupd array is filled with fractured pairs from the beginning
+  195.        ! so exit as soon as the GB state is intact.
+  196.        if ( gcupd_local( s , 3 ) .eq. cgca_gb_state_intact ) exit gcarray
+  197.    
+  198.        !write (*,*) "DEBUG: cgca_gcupd: img:", img, &
+  199.        !            "gcupd_local(i,:):", gcupd_local( i , : )
+  200.    
+  201.        ! add the pair to the GC array on this image
+  202.        call cgca_gcf( gcupd_local( s , 1 ), gcupd_local( s , 2 ) )
+                   ^                                                      
+ftn-3095 ftn: IPA CGCA_GCUPDN, File = m3clvg_sm1.f90, Line = 202, Column = 10 
+  "cgca_gcf" (called from "cgca_gcupdn") was not inlined because the containing loop does I/O.
+
+  203.    
+  204.      end do gcarray
+  205.    
+  206.    end do inner
+  207.    end do
+  208.    end do
+  209.    
+  210.    end procedure cgca_gcupdn
+  211.    
+  212.    !*roboend*
+  213.    
+  214.    end submodule m3clvg_sm1
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                         E x t e r n a l   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Name  Messages
+----  --------
+ALL(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   shmem_n_pes(Intrinsic) (Line 149, file m3clvg_sm1.f90)
+
+Name  Messages
+----  --------
+ALLOCATED(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   shmem_n_pes(Intrinsic) (Line 132, file m3clvg_sm1.f90)
+
+Name  Messages
+----  --------
+CGCA_GCF in CGCA_M2GB
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   THIS_IMAGE(Intrinsic) (Line 89, file m3clvg_sm1.f90)
+                   shmem_n_pes(Intrinsic) (Line 202, file m3clvg_sm1.f90)
+
+Name  Messages
+----  --------
+CGCA_GCUPD
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GCUPDN
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_M1CO
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+Name  Messages
+----  --------
+CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+Name  Messages
+----  --------
+CGCA_M3CLVG
+      Defined as:  No definitions.
+
+      Used By:     M3CLVG_SM1
+
+Name  Messages
+----  --------
+INT(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   THIS_IMAGE(Intrinsic) (Line 62, file m3clvg_sm1.f90)
+
+Name  Messages
+----  --------
+ISO_FORTRAN_ENV
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+Name  Messages
+----  --------
+KIND(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   THIS_IMAGE(Intrinsic) (Line 54, file m3clvg_sm1.f90)
+                   shmem_n_pes(Intrinsic) (Line 128, file m3clvg_sm1.f90)
+
+Name  Messages
+----  --------
+M3CLVG_SM1
+      Defined as:  Module (line 10, file m3clvg_sm1.f90)
+
+        Uses:      CGCA_M3CLVG
+
+Name  Messages
+----  --------
+RANDOM_NUMBER(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   THIS_IMAGE(Intrinsic) (Line 61, file m3clvg_sm1.f90)
+
+Name  Messages
+----  --------
+THIS_IMAGE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   THIS_IMAGE(Intrinsic) (Line 57, file m3clvg_sm1.f90)
+                   shmem_n_pes(Intrinsic) (Line 137, file m3clvg_sm1.f90)
+
+Name  Messages
+----  --------
+shmem_n_pes(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   THIS_IMAGE(Intrinsic) (Line 58, file m3clvg_sm1.f90)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

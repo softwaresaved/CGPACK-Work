@@ -1,0 +1,572 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S u m m a r y   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Compilation
+-----------
+File     : /home3/y14/y14/di1c13/cgpack/head/cgca_m2lnklst.f90
+Compiled : 02/18/16  16:36:35
+Compiler : Version 8.3.7
+Ftnlx    : Version 8318 (libcif 83016)
+Target   : x86-64
+Command  : ftn_driver.exe -hcpu=ivybridge -hstatic -D__CRAYXC
+           -D__CRAY_IVYBRIDGE -D__CRAYXT_COMPUTE_LINUX_TARGET -hnetwork=aries
+           -c -eacFn -dm -m2 -rl -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/mpt/7.1.1/gni/mpich2-cray/83/include
+           -I/opt/cray/libsci/13.0.1/CRAY/83/sandybridge/include
+           -I/opt/cray/rca/1.0.0-2.0502.57212.2.56.ari/include
+           -I/opt/cray/alps/5.2.3-2.0502.9295.14.14.ari/include
+           -I/opt/cray/xpmem/0.1-2.0502.57015.1.15.ari/include
+           -I/opt/cray/gni-headers/4.0-1.0502.10317.9.2.ari/include
+           -I/opt/cray/dmapp/7.0.1-1.0502.10246.8.47.ari/include
+           -I/opt/cray/pmi/5.0.6-1.0000.10439.140.2.ari/include
+           -I/opt/cray/ugni/6.0-1.0502.10245.9.9.ari/include
+           -I/opt/cray/udreg/2.3.2-1.0502.9889.2.20.ari/include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/pkgconfig/../include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/wlm_detect/1.0-1.0502.57063.1.1.ari/include
+           -I/opt/cray/krca/1.0.0-2.0502.57202.2.45.ari/include
+           -I/opt/cray-hss-devel/7.2.0/include cgca_m2lnklst.f90
+
+ftnlx report
+------------
+Source   : /home3/y14/y14/di1c13/cgpack/head/cgca_m2lnklst.f90
+Date     : 02/18/2016  16:36:35
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S o u r c e   L i s t i n g
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    1.    !$Id: cgca_m2lnklst.f90 172 2015-11-04 11:59:43Z mexas $
+    2.    
+    3.    !*robodoc*m* CGPACK/cgca_m2lnklst
+    4.    !  NAME
+    5.    !    cgca_m2lnklst
+    6.    !  SYNOPSIS
+    7.    
+    8.    module cgca_m2lnklst
+    9.    
+   10.    !  DESCRIPTION
+   11.    !    Module with link list types and routines.
+   12.    !    The module is mainly useful for linking CGPAK to FE.
+   13.    !    In case the CA box is sticking outside of the FE model.
+   14.    !    Routines of this module help effectively find all cells
+   15.    !    which are inside and outside of the FE model.
+   16.    !  AUTHOR 
+   17.    !    Anton Shterenlikht
+   18.    !  COPYRIGHT
+   19.    !    See CGPACK_Copyright
+   20.    !  CONTAINS
+   21.    !    All public. Derived types cgca_lnklst_tpayld, cgca_lnklst_node.
+   22.    !    Routines
+   23.    !    cgca_inithead, cgca_addhead, cgca_addmiddle, cgca_rmhead,
+   24.    !    cgca_rmmiddle, cgca_lstdmp.
+   25.    !  USES
+   26.    !    cgca_m1co
+   27.    !  USED BY
+   28.    !    cgca_m3pfem
+   29.    !  SOURCE
+   30.    
+   31.    use cgca_m1co, only : idef
+   32.    implicit none
+   33.    
+   34.    private
+   35.    public ::                                                              &
+   36.    ! derived types
+   37.              cgca_lnklst_tpayld, cgca_lnklst_node, &
+   38.    ! routines
+   39.              cgca_inithead, &
+   40.              cgca_addhead, &
+   41.              cgca_addmiddle, cgca_rmhead, cgca_rmmiddle, cgca_lstdmp
+   42.    
+   43.    !*roboend*
+   44.    
+   45.    
+   46.    !*robodoc*d* cgca_m2lnklst/cgca_lnklst_tpayld
+   47.    !  NAME
+   48.    !    cgca_lnklst_tpayld
+   49.    !  SYNOPSIS
+   50.    
+   51.    type cgca_lnklst_tpayld
+   52.      integer :: lwr(3), upr(3)
+   53.    end type cgca_lnklst_tpayld
+   54.    
+   55.    ! DESCRIPTION
+   56.    !   Payload type for all link list routines.
+   57.    !   The payload consists of two integer arrays of length 3.
+   58.    !   The arrays contain lower and upper corner coordinates of a CA box
+   59.    !   in local CA coord. system. 
+   60.    ! USED BY
+   61.    !   All routines of module cgca_m2lnklst.
+   62.    !*roboend*
+   63.    
+   64.    
+   65.    !*robodoc*d* cgca_m2lnklst/cgca_lnklst_node
+   66.    !  NAME
+   67.    !    cgca_lnklst_node
+   68.    !  SYNOPSIS
+   69.    
+   70.    type cgca_lnklst_node
+   71.      type( cgca_lnklst_tpayld ) :: value
+   72.      type( cgca_lnklst_node ), pointer :: next
+   73.    end type cgca_lnklst_node
+   74.    
+   75.    ! DESCRIPTION
+   76.    !   A derived type for a node in the linked list. A very traditional
+   77.    !   type. The payload is of derived type cgca_lnklst_tpayld.
+   78.    ! USED BY
+   79.    !   All routines of module cgca_m2lnklst.
+   80.    !*roboend*
+   81.    
+   82.    
+   83.    contains
+   84.    
+   85.    
+   86.    !*robodoc*s* cgca_m2lnklst/cgca_inithead
+   87.    !  NAME
+   88.    !    cgca_inithead
+   89.    !  SYNOPSIS
+   90.    
+   91.    subroutine cgca_inithead( head, payload )
+   92.    
+   93.    !  OUTPUT
+   94.    
+   95.    type( cgca_lnklst_node ), pointer, intent( out ) :: head
+   96.    
+   97.    !  INPUT
+   98.    
+   99.    type( cgca_lnklst_tpayld ), intent( in ) :: payload
+  100.    
+  101.    !  SIDE EFFECTS
+  102.    !    Memory for one entity of type "node" is allocated.
+  103.    !    The pointer to this memory is returned as "head".
+  104.    !    The value of that memory is set to "payload".
+  105.    !  DESCRIPTION
+  106.    !    This routine initialises the head node of the linked list.
+  107.    !    The head node is the node at the very top of the list.
+  108.    !    The head node has nothing higher. This is the only node that
+  109.    !    can be accessed directly. Access to all other nodes is via
+  110.    !    the head node and pointers therein.
+  111.    !  SOURCE
+  112.    
+  113.      allocate( head )
+ftn-7409 ftn: CAUTION File = cgca_m2lnklst.f90, Line = 113 
+  Fortran pointer variable "head" may be used before being pointer assigned or allocated.
+
+  114.      head%value = payload
+  115.      head%next => null()
+  116.    end subroutine cgca_inithead
+  117.    
+  118.    !*roboend*
+  119.    
+  120.    
+  121.    !*robodoc*s* cgca_m2lnklst/cgca_addhead
+  122.    !  NAME
+  123.    !    cgca_addhead
+  124.    !  SYNOPSIS
+  125.    
+  126.    subroutine cgca_addhead( head, payload )
+  127.    
+  128.    !  INPUTS
+  129.    
+  130.    type( cgca_lnklst_node ), pointer, intent( inout ) :: head
+  131.    type( cgca_lnklst_tpayld ), intent( in ) :: payload
+  132.    
+  133.    !  SIDE EFFECTS
+  134.    !    Memory for one entity of type "node" is allocated.
+  135.    !    The value of that memory is set to "payload".
+  136.    !    The pointer to this memory is returned as "head".
+  137.    !    The new head points to the old head.
+  138.    !  DESCRIPTION
+  139.    !    This routine adds another node on top of the head,
+  140.    !    i.e. puts another node higher than current head.
+  141.    !    The new node becomes the new head. It points to the
+  142.    !    old head.
+  143.    !  SOURCE
+  144.    
+  145.      type( cgca_lnklst_node ), pointer :: tmp
+  146.    
+  147.      allocate( tmp )
+ftn-7409 ftn: CAUTION File = cgca_m2lnklst.f90, Line = 147 
+  Fortran pointer variable "tmp" may be used before being pointer assigned or allocated.
+
+  148.      tmp%value = head%value
+  149.      tmp%next => head%next
+  150.      allocate( head )
+  151.      head%value = payload
+  152.      head%next => tmp
+  153.    end subroutine cgca_addhead
+  154.    
+  155.    !*roboend*
+  156.    
+  157.    
+  158.    !*robodoc*s* cgca_m2lnklst/cgca_addmiddle
+  159.    !  NAME
+  160.    !    cgca_addmiddle
+  161.    !  SYNOPSIS
+  162.    
+  163.    subroutine cgca_addmiddle( node, payload )
+  164.    
+  165.    !  INPUTS
+  166.    
+  167.    type( cgca_lnklst_node ), pointer, intent( in ) :: node
+  168.    type( cgca_lnklst_tpayld ), intent( in ) :: payload
+  169.    
+  170.    !  SIDE EFFECTS
+  171.    !    Memory for one entity of type cgca_lnklst_node is allocated.
+  172.    !    The value of that memory is set to "payload".
+  173.    !    The new entity points to where "node" pointed before.
+  174.    !    Node now points to the new entity.
+  175.    !    A schematic diagram:
+  176.    !
+  177.    !      Before                         After
+  178.    !
+  179.    !      node   (next,value)     node     (next,value)
+  180.    !               \                         |_____
+  181.    !                 \                             v 
+  182.    !                   \          new node (next,value)
+  183.    !                    \                    |_____ 
+  184.    !                     v                         v
+  185.    !      node X (next,value)     node X   (next,value)
+  186.    !
+  187.    !  DESCRIPTION
+  188.    !    This routine adds another node *lower* than the given node.
+  189.    !    Lower here means further from the head and closer to NULL.
+  190.    !    The new node points to where the old node pointed.
+  191.    !    The old node points to the new node.
+  192.    !    So the list length is +1.
+  193.    !  SOURCE
+  194.    
+  195.      type( cgca_lnklst_node ), pointer :: tmp
+  196.    
+  197.      allocate( tmp )
+ftn-7409 ftn: CAUTION File = cgca_m2lnklst.f90, Line = 197 
+  Fortran pointer variable "tmp" may be used before being pointer assigned or allocated.
+
+  198.      tmp%value = payload
+  199.       tmp%next => node%next
+  200.      node%next => tmp
+  201.    end subroutine cgca_addmiddle
+  202.    
+  203.    !*roboend*
+  204.    
+  205.    
+  206.    !*robodoc*s* cgca_m2lnklst/cgca_rmhead
+  207.    !  NAME
+  208.    !    cgca_rmhead
+  209.    !  SYNOPSIS
+  210.    
+  211.    subroutine cgca_rmhead( head, stat )
+  212.    
+  213.    !  INPUT
+  214.    
+  215.    type( cgca_lnklst_node ), pointer, intent( inout ) :: head
+  216.    
+  217.    !  OUTPUT
+  218.    !    stat - integer, 0 if no problem, 1 if the head node is NULL.
+  219.    
+  220.    integer( kind=idef ), intent( out ) :: stat
+  221.    
+  222.    !  SIDE EFFECTS
+  223.    !    Memory for one entity of type "node" is freed.
+  224.    !    The pointer to the old head now points to where the old head was
+  225.    !    pointing. This pointer is returned as "head".
+  226.    !  DESCRIPTION
+  227.    !    This routine removes the head node. The list length decreases by 1.
+  228.    !    The pointer to the old head is given on entry. On exit this pointer
+  229.    !    points to where the old head was pointing, i.e. one node closer to
+  230.    !    NULL. If there was only a single node on top of head, then the
+  231.    !    head will return null (unassociated) and stat will be 1.
+  232.    !    If there is no head node already, i.g. head is not associated
+  233.    !    already, head will not be changed and stat of 1 will be returned.
+  234.    !  SOURCE
+  235.    
+  236.    type( cgca_lnklst_node ), pointer :: tmp
+  237.    stat = 0
+  238.    
+  239.    if ( associated( head ) ) then
+  240.      tmp => head
+  241.      head => head%next
+  242.      deallocate( tmp )
+  243.    end if
+  244.    
+  245.    ! This pointer is not associated only if NULL has been reached. 
+  246.    ! Do nothing and set the output flag accordingly.
+  247.    if ( .not. associated( head ) ) stat = 1
+  248.    
+  249.    end subroutine cgca_rmhead
+  250.    
+  251.    !*roboend*
+  252.    
+  253.    
+  254.    !*robodoc*s* cgca_m2lnklst/cgca_rmmiddle
+  255.    !  NAME
+  256.    !    cgca_rmmiddle
+  257.    !  SYNOPSIS
+  258.    
+  259.    subroutine cgca_rmmiddle( node, stat )
+  260.    
+  261.    !  INPUT
+  262.    
+  263.    type( cgca_lnklst_node ), pointer, intent( in ) :: node
+  264.    
+  265.    !  OUTPUT
+  266.    
+  267.    integer( kind=idef), intent( out ) :: stat
+  268.    
+  269.    !  SIDE EFFECTS
+  270.    !    Memory for one entity of type cgca_lnklst_node is freed.
+  271.    !
+  272.    !      Before                            After
+  273.    !
+  274.    !      node           (next,value)       node   (next,value)    
+  275.    !                       |_____                    \       
+  276.    !                             v                     \       
+  277.    !      node to remove (next,value)                    \    
+  278.    !                       |_____                         \           
+  279.    !                             v                         v
+  280.    !      node X         (next,value)       node X (next,value)
+  281.    !
+  282.    !  DESCRIPTION
+  283.    !    The node below the given node is removed. Below here means
+  284.    !    further from the head and closer to NULL. The node that
+  285.    !    pointed to the node to remove before, now points to where
+  286.    !    the node to remove was pointing.
+  287.    !  NOTES
+  288.    !    On output stat=0 means no problem.
+  289.    !    If stat=1, then an attempt has been made to remove NULL.
+  290.    !  SOURCE
+  291.    
+  292.      type( cgca_lnklst_node ), pointer :: tmp
+  293.    
+  294.      stat = 0
+  295.      tmp => node%next
+  296.      if ( associated( tmp ) ) then
+  297.        node%next => tmp%next
+  298.        deallocate( tmp )
+  299.      else
+  300.        ! This pointer is not associated only if NULL has been reached. 
+  301.        ! Do nothing but set the output flag accordingly.
+  302.        stat = 1
+  303.      end if
+  304.    end subroutine cgca_rmmiddle
+  305.    
+  306.    !*roboend*
+  307.    
+  308.    
+  309.    !*robodoc*s* cgca_m2lnklst/cgca_lstdmp
+  310.    !  NAME
+  311.    !    cgca_lstdmp
+  312.    !  SYNOPSIS
+  313.    
+  314.    subroutine cgca_lstdmp( head )
+  315.    
+  316.    !  INPUT
+  317.    
+  318.    type( cgca_lnklst_node ), pointer, intent( in ) :: head
+  319.    
+  320.    !  SIDE EFFECTS
+  321.    !    Values of all nodes are dumped to stdout.
+  322.    !  DESCRIPTION
+  323.    !    This routine dumps all nodes, one per line, starting from HEAD,
+  324.    !    till it reaches NULL.
+  325.    !  SOURCE
+  326.    
+  327.      type( cgca_lnklst_node ), pointer :: tmp
+  328.    
+  329.      if ( .not. associated( head ) ) return
+  330.      tmp => head
+  331.      do
+ftn-6286 ftn: VECTOR File = cgca_m2lnklst.f90, Line = 331 
+  A loop starting at line 331 was not vectorized because it contains input/output operations at line 332.
+
+  332.        write (*,*) tmp%value
+  333.        tmp => tmp%next
+  334.        if ( .not. associated( tmp ) ) exit
+  335.      end do
+  336.    end subroutine cgca_lstdmp
+  337.    
+  338.    !*roboend*
+  339.    
+  340.    end module cgca_m2lnklst
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                         E x t e r n a l   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Name  Messages
+----  --------
+ABORT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ABORT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ASSOCIATED(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_RMHEAD in CGCA_M2LNKLST (Line 239, file cgca_m2lnklst.f90)
+                   CGCA_RMHEAD in CGCA_M2LNKLST (Line 247, file cgca_m2lnklst.f90)
+                   CGCA_RMMIDDLE in CGCA_M2LNKLST (Line 296, file cgca_m2lnklst.f90)
+                   CGCA_LSTDMP in CGCA_M2LNKLST (Line 329, file cgca_m2lnklst.f90)
+                   CGCA_LSTDMP in CGCA_M2LNKLST (Line 334, file cgca_m2lnklst.f90)
+
+Name  Messages
+----  --------
+CGCA_ADDHEAD in CGCA_M2LNKLST
+      Defined as:  Subroutine (line 40, file cgca_m2lnklst.f90)
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_ADDMIDDLE in CGCA_M2LNKLST
+      Defined as:  Subroutine (line 41, file cgca_m2lnklst.f90)
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_INITHEAD in CGCA_M2LNKLST
+      Defined as:  Subroutine (line 39, file cgca_m2lnklst.f90)
+
+      Interface:   None
+
+      Calls:       NULL(Intrinsic) (Line 115, file cgca_m2lnklst.f90)
+
+Name  Messages
+----  --------
+CGCA_LSTDMP in CGCA_M2LNKLST
+      Defined as:  Subroutine (line 41, file cgca_m2lnklst.f90)
+
+      Interface:   None
+
+      Calls:       ASSOCIATED(Intrinsic) (Line 329, file cgca_m2lnklst.f90)
+                   ASSOCIATED(Intrinsic) (Line 334, file cgca_m2lnklst.f90)
+
+Name  Messages
+----  --------
+CGCA_M1CO
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M2LNKLST
+
+Name  Messages
+----  --------
+CGCA_M2LNKLST
+      Defined as:  Module (line 8, file cgca_m2lnklst.f90)
+
+        Uses:      CGCA_M1CO
+
+Name  Messages
+----  --------
+CGCA_RMHEAD in CGCA_M2LNKLST
+      Defined as:  Subroutine (line 41, file cgca_m2lnklst.f90)
+
+      Interface:   None
+
+      Calls:       ASSOCIATED(Intrinsic) (Line 239, file cgca_m2lnklst.f90)
+                   ASSOCIATED(Intrinsic) (Line 247, file cgca_m2lnklst.f90)
+
+Name  Messages
+----  --------
+CGCA_RMMIDDLE in CGCA_M2LNKLST
+      Defined as:  Subroutine (line 41, file cgca_m2lnklst.f90)
+
+      Interface:   None
+
+      Calls:       ASSOCIATED(Intrinsic) (Line 296, file cgca_m2lnklst.f90)
+
+Name  Messages
+----  --------
+EXIT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH_8
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FTN_LIB_DEFINITIONS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+Name  Messages
+----  --------
+ICEIL
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL_J
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+NULL(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_INITHEAD in CGCA_M2LNKLST (Line 115, file cgca_m2lnklst.f90)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

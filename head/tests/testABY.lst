@@ -1,0 +1,1644 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S u m m a r y   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Compilation
+-----------
+File     : /home3/y14/y14/di1c13/cgpack/head/tests/testABY.f90
+Compiled : 02/18/16  16:38:56
+Compiler : Version 8.3.7
+Ftnlx    : Version 8318 (libcif 83016)
+Target   : x86-64
+Command  : ftn_driver.exe -hcpu=ivybridge -hstatic -D__CRAYXC
+           -D__CRAY_IVYBRIDGE -D__CRAYXT_COMPUTE_LINUX_TARGET -hnetwork=aries
+           -c -c -eacFn -dm -m1 -rl -I. -I/home/y14/y14/di1c13/lib
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/mpt/7.1.1/gni/mpich2-cray/83/include
+           -I/opt/cray/libsci/13.0.1/CRAY/83/sandybridge/include
+           -I/opt/cray/rca/1.0.0-2.0502.57212.2.56.ari/include
+           -I/opt/cray/alps/5.2.3-2.0502.9295.14.14.ari/include
+           -I/opt/cray/xpmem/0.1-2.0502.57015.1.15.ari/include
+           -I/opt/cray/gni-headers/4.0-1.0502.10317.9.2.ari/include
+           -I/opt/cray/dmapp/7.0.1-1.0502.10246.8.47.ari/include
+           -I/opt/cray/pmi/5.0.6-1.0000.10439.140.2.ari/include
+           -I/opt/cray/ugni/6.0-1.0502.10245.9.9.ari/include
+           -I/opt/cray/udreg/2.3.2-1.0502.9889.2.20.ari/include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/pkgconfig/../include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/wlm_detect/1.0-1.0502.57063.1.1.ari/include
+           -I/opt/cray/krca/1.0.0-2.0502.57202.2.45.ari/include
+           -I/opt/cray-hss-devel/7.2.0/include testABY.f90
+
+ftnlx report
+------------
+Source   : /home3/y14/y14/di1c13/cgpack/head/tests/testABY.f90
+Date     : 02/18/2016  16:38:56
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S o u r c e   L i s t i n g
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    1.    !$Id: testABY.f90 141 2015-10-19 15:42:23Z mexas $
+    2.    
+    3.    !*robodoc*u* tests/testABY
+    4.    !  NAME
+    5.    !    testABY
+    6.    !  SYNOPSIS
+    7.    
+    8.    program testABY
+    9.    
+   10.    !  PURPOSE
+   11.    !    Testing routines from the linked list module, cgca_m2lnklst.
+   12.    !  NOTE
+   13.    !    All routines are serial, so no need to use multiple images.
+   14.    !    A single image will do.
+   15.    !  DESCRIPTION
+   16.    !    Verify data integrity and compare timings of
+   17.    !    cgca_swci and cgca_pc - i.e. a serial writer from image 1
+   18.    !    and a parallel direct access shared writer. The latter is
+   19.    !    a non standard Cray extension. So don't try to run this
+   20.    !    on non-Cray machines.
+   21.    !  AUTHOR
+   22.    !    Anton Shterenlikht
+   23.    !  COPYRIGHT
+   24.    !    See CGPACK_Copyright
+   25.    !  USES
+   26.    !    cgca testaux
+   27.    !  USED BY
+   28.    !    Part of CGPACK test suite
+   29.    !  SOURCE
+   30.    
+   31.    use testaux
+              ^       
+ftn-1193 ftn: CAUTION TESTABY, File = testABY.f90, Line = 31, Column = 5 
+  Module "CGCA_M4FR" is indirectly used in module "TESTAUX" and is from file "./cgca_m4fr.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABY, File = testABY.f90, Line = 31, Column = 5 
+  Module "CGCA_M3SLD" is indirectly used in module "TESTAUX" and is from file "./cgca_m3sld.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABY, File = testABY.f90, Line = 31, Column = 5 
+  Module "CGCA_M3PFEM" is indirectly used in module "TESTAUX" and is from file "./cgca_m3pfem.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABY, File = testABY.f90, Line = 31, Column = 5 
+  Module "CGCA_M3NUCL" is indirectly used in module "TESTAUX" and is from file "./cgca_m3nucl.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABY, File = testABY.f90, Line = 31, Column = 5 
+  Module "CGCA_M3GBF" is indirectly used in module "TESTAUX" and is from file "./cgca_m3gbf.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABY, File = testABY.f90, Line = 31, Column = 5 
+  Module "CGCA_M3CLVG" is indirectly used in module "TESTAUX" and is from file "./cgca_m3clvg.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABY, File = testABY.f90, Line = 31, Column = 5 
+  Module "CGCA_M2STAT" is indirectly used in module "TESTAUX" and is from file "./cgca_m2stat.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABY, File = testABY.f90, Line = 31, Column = 5 
+  Module "CGCA_M2ROT" is indirectly used in module "TESTAUX" and is from file "./cgca_m2rot.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABY, File = testABY.f90, Line = 31, Column = 5 
+  Module "CGCA_M2RND" is indirectly used in module "TESTAUX" and is from file "./cgca_m2rnd.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABY, File = testABY.f90, Line = 31, Column = 5 
+  Module "CGCA_M2RED" is indirectly used in module "TESTAUX" and is from file "./cgca_m2red.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABY, File = testABY.f90, Line = 31, Column = 5 
+  Module "CGCA_M2PHYS" is indirectly used in module "TESTAUX" and is from file "./cgca_m2phys.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABY, File = testABY.f90, Line = 31, Column = 5 
+  Module "CGCA_M2PCK" is indirectly used in module "TESTAUX" and is from file "./cgca_m2pck.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABY, File = testABY.f90, Line = 31, Column = 5 
+  Module "CGCA_M2OUT" is indirectly used in module "TESTAUX" and is from file "./cgca_m2out.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABY, File = testABY.f90, Line = 31, Column = 5 
+  Module "CGCA_M2MPIIO" is indirectly used in module "TESTAUX" and is from file "./cgca_m2mpiio.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABY, File = testABY.f90, Line = 31, Column = 5 
+  Module "CGCA_M2LNKLST" is indirectly used in module "TESTAUX" and is from file "./cgca_m2lnklst.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABY, File = testABY.f90, Line = 31, Column = 5 
+  Module "CGCA_M2HX" is indirectly used in module "TESTAUX" and is from file "./cgca_m2hx.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABY, File = testABY.f90, Line = 31, Column = 5 
+  Module "CGCA_M2GLM" is indirectly used in module "TESTAUX" and is from file "./cgca_m2glm.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABY, File = testABY.f90, Line = 31, Column = 5 
+  Module "CGCA_M2GEOM" is indirectly used in module "TESTAUX" and is from file "./cgca_m2geom.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABY, File = testABY.f90, Line = 31, Column = 5 
+  Module "CGCA_M2GB" is indirectly used in module "TESTAUX" and is from file "./cgca_m2gb.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABY, File = testABY.f90, Line = 31, Column = 5 
+  Module "CGCA_M2ALLOC" is indirectly used in module "TESTAUX" and is from file "./cgca_m2alloc.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABY, File = testABY.f90, Line = 31, Column = 5 
+  Module "CGCA_M1CO" is indirectly used in module "TESTAUX" and is from file "./cgca_m1co.o".  That file no longer exists.
+
+   32.    implicit none
+   33.    
+   34.    type( cgca_lnklst_node ), pointer :: head, tmp
+   35.    type( cgca_lnklst_tpayld ) :: box
+   36.    integer :: img, i, stat
+   37.    
+   38.    ! Only image 1 works
+   39.    img = this_image()
+   40.    main: if ( img .eq. 1 ) then
+   41.    
+   42.    ! print a banner
+   43.    call banner("ABY")
+               ^             
+ftn-3001 ftn: IPA TESTABY, File = testABY.f90, Line = 43, Column = 6 
+  The call to leaf routine "banner" was textually inlined due to constant actual(s).
+
+   44.    
+   45.    ! initialise head
+   46.    box%lwr = (/ 1, 2, 3 /)
+ftn-6271 ftn: VECTOR File = testABY.f90, Line = 46 
+  A loop starting at line 46 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = testABY.f90, Line = 46 
+  A loop starting at line 46 was unwound.
+
+   47.    box%upr = (/ 4, 5, 6 /)
+ftn-6004 ftn: SCALAR File = testABY.f90, Line = 47 
+  A loop starting at line 47 was fused with the loop starting at line 46.
+
+   48.    call cgca_inithead( head, box )
+               ^                          
+ftn-3021 ftn: IPA TESTABY, File = testABY.f90, Line = 48, Column = 6 
+  "cgca_inithead" (called from "testaby") was not inlined because the compiler was unable to locate the routine.
+
+   49.    
+   50.    ! dump the list
+   51.    write (*,*) "The list after initialising head"
+   52.    call cgca_lstdmp( head )
+               ^                   
+ftn-3021 ftn: IPA TESTABY, File = testABY.f90, Line = 52, Column = 6 
+  "cgca_lstdmp" (called from "testaby") was not inlined because the compiler was unable to locate the routine.
+
+   53.    
+   54.    ! add several nodes on top of head
+   55.    box%lwr = (/ 7, 8, 9 /)
+ftn-6271 ftn: VECTOR File = testABY.f90, Line = 55 
+  A loop starting at line 55 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = testABY.f90, Line = 55 
+  A loop starting at line 55 was unwound.
+
+   56.    box%upr = (/ 10, 11, 12 /)
+ftn-6004 ftn: SCALAR File = testABY.f90, Line = 56 
+  A loop starting at line 56 was fused with the loop starting at line 55.
+
+   57.    call cgca_addhead( head, box )
+               ^                         
+ftn-3021 ftn: IPA TESTABY, File = testABY.f90, Line = 57, Column = 6 
+  "cgca_addhead" (called from "testaby") was not inlined because the compiler was unable to locate the routine.
+
+   58.    box%lwr = (/ 13, 14, 15 /)
+ftn-6271 ftn: VECTOR File = testABY.f90, Line = 58 
+  A loop starting at line 58 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = testABY.f90, Line = 58 
+  A loop starting at line 58 was unwound.
+
+   59.    box%upr = (/ 16, 17, 18 /)
+ftn-6004 ftn: SCALAR File = testABY.f90, Line = 59 
+  A loop starting at line 59 was fused with the loop starting at line 58.
+
+   60.    call cgca_addhead( head, box )
+               ^                         
+ftn-3021 ftn: IPA TESTABY, File = testABY.f90, Line = 60, Column = 6 
+  "cgca_addhead" (called from "testaby") was not inlined because the compiler was unable to locate the routine.
+
+   61.    box%lwr = (/ 19, 20, 21 /)
+ftn-6271 ftn: VECTOR File = testABY.f90, Line = 61 
+  A loop starting at line 61 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = testABY.f90, Line = 61 
+  A loop starting at line 61 was unwound.
+
+   62.    box%upr = (/ 22, 23, 24 /)
+ftn-6004 ftn: SCALAR File = testABY.f90, Line = 62 
+  A loop starting at line 62 was fused with the loop starting at line 61.
+
+   63.    call cgca_addhead( head, box )
+               ^                         
+ftn-3021 ftn: IPA TESTABY, File = testABY.f90, Line = 63, Column = 6 
+  "cgca_addhead" (called from "testaby") was not inlined because the compiler was unable to locate the routine.
+
+   64.    box%lwr = (/ 25, 26, 27 /)
+ftn-6271 ftn: VECTOR File = testABY.f90, Line = 64 
+  A loop starting at line 64 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = testABY.f90, Line = 64 
+  A loop starting at line 64 was unwound.
+
+   65.    box%upr = (/ 28, 29, 30 /)
+ftn-6004 ftn: SCALAR File = testABY.f90, Line = 65 
+  A loop starting at line 65 was fused with the loop starting at line 64.
+
+   66.    call cgca_addhead( head, box )
+               ^                         
+ftn-3021 ftn: IPA TESTABY, File = testABY.f90, Line = 66, Column = 6 
+  "cgca_addhead" (called from "testaby") was not inlined because the compiler was unable to locate the routine.
+
+   67.    box%lwr = (/ 31, 32, 33 /)
+ftn-6271 ftn: VECTOR File = testABY.f90, Line = 67 
+  A loop starting at line 67 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = testABY.f90, Line = 67 
+  A loop starting at line 67 was unwound.
+
+   68.    box%upr = (/ 34, 35, 36 /)
+ftn-6004 ftn: SCALAR File = testABY.f90, Line = 68 
+  A loop starting at line 68 was fused with the loop starting at line 67.
+
+   69.    call cgca_addhead( head, box )
+               ^                         
+ftn-3021 ftn: IPA TESTABY, File = testABY.f90, Line = 69, Column = 6 
+  "cgca_addhead" (called from "testaby") was not inlined because the compiler was unable to locate the routine.
+
+   70.    
+   71.    ! dump the list
+   72.    write (*,*) "The list after adding 5 nodes on top of head"
+   73.    call cgca_lstdmp( head )
+               ^                   
+ftn-3021 ftn: IPA TESTABY, File = testABY.f90, Line = 73, Column = 6 
+  "cgca_lstdmp" (called from "testaby") was not inlined because the compiler was unable to locate the routine.
+
+   74.    
+   75.    ! add few nodes 3 levels lower than head
+   76.    tmp => head 
+   77.    do i=1,2
+ftn-6284 ftn: VECTOR File = testABY.f90, Line = 77 
+  A loop starting at line 77 was not vectorized because it is faster in scalar mode.
+
+ftn-6008 ftn: SCALAR File = testABY.f90, Line = 77 
+  A loop starting at line 77 was unwound.
+
+   78.      tmp => tmp%next 
+   79.    end do
+   80.    box%lwr = (/ 101, 102, 103 /)
+ftn-6271 ftn: VECTOR File = testABY.f90, Line = 80 
+  A loop starting at line 80 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = testABY.f90, Line = 80 
+  A loop starting at line 80 was unwound.
+
+   81.    box%upr = (/ 104, 105, 106 /)
+ftn-6004 ftn: SCALAR File = testABY.f90, Line = 81 
+  A loop starting at line 81 was fused with the loop starting at line 80.
+
+   82.    call cgca_addmiddle( tmp, box ) 
+               ^                           
+ftn-3021 ftn: IPA TESTABY, File = testABY.f90, Line = 82, Column = 6 
+  "cgca_addmiddle" (called from "testaby") was not inlined because the compiler was unable to locate the routine.
+
+   83.    box%lwr = (/ 107, 108, 109 /)
+ftn-6271 ftn: VECTOR File = testABY.f90, Line = 83 
+  A loop starting at line 83 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = testABY.f90, Line = 83 
+  A loop starting at line 83 was unwound.
+
+   84.    box%upr = (/ 110, 111, 112 /)
+ftn-6004 ftn: SCALAR File = testABY.f90, Line = 84 
+  A loop starting at line 84 was fused with the loop starting at line 83.
+
+   85.    call cgca_addmiddle( tmp, box ) 
+               ^                           
+ftn-3021 ftn: IPA TESTABY, File = testABY.f90, Line = 85, Column = 6 
+  "cgca_addmiddle" (called from "testaby") was not inlined because the compiler was unable to locate the routine.
+
+   86.    box%lwr = (/ 113, 114, 115 /)
+ftn-6271 ftn: VECTOR File = testABY.f90, Line = 86 
+  A loop starting at line 86 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = testABY.f90, Line = 86 
+  A loop starting at line 86 was unwound.
+
+   87.    box%upr = (/ 116, 117, 118 /)
+ftn-6004 ftn: SCALAR File = testABY.f90, Line = 87 
+  A loop starting at line 87 was fused with the loop starting at line 86.
+
+   88.    call cgca_addmiddle( tmp, box ) 
+               ^                           
+ftn-3021 ftn: IPA TESTABY, File = testABY.f90, Line = 88, Column = 6 
+  "cgca_addmiddle" (called from "testaby") was not inlined because the compiler was unable to locate the routine.
+
+   89.    box%lwr = (/ 119, 120, 121 /)
+ftn-6271 ftn: VECTOR File = testABY.f90, Line = 89 
+  A loop starting at line 89 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = testABY.f90, Line = 89 
+  A loop starting at line 89 was unwound.
+
+   90.    box%upr = (/ 122, 123, 124 /)
+ftn-6004 ftn: SCALAR File = testABY.f90, Line = 90 
+  A loop starting at line 90 was fused with the loop starting at line 89.
+
+   91.    call cgca_addmiddle( tmp, box ) 
+               ^                           
+ftn-3021 ftn: IPA TESTABY, File = testABY.f90, Line = 91, Column = 6 
+  "cgca_addmiddle" (called from "testaby") was not inlined because the compiler was unable to locate the routine.
+
+   92.    
+   93.    ! dump the list
+   94.    write (*,*) "The list after adding 4 nodes 3 levels lower than head"
+   95.    call cgca_lstdmp( head )
+               ^                   
+ftn-3021 ftn: IPA TESTABY, File = testABY.f90, Line = 95, Column = 6 
+  "cgca_lstdmp" (called from "testaby") was not inlined because the compiler was unable to locate the routine.
+
+   96.    
+   97.    ! remove the head node several times
+   98.    do i=1,2
+ftn-6288 ftn: VECTOR File = testABY.f90, Line = 98 
+  A loop starting at line 98 was not vectorized because it contains a call to subroutine "cgca_rmhead" on line 99.
+
+   99.      call cgca_rmhead( head, stat )
+                 ^                         
+ftn-3021 ftn: IPA TESTABY, File = testABY.f90, Line = 99, Column = 8 
+  "cgca_rmhead" (called from "testaby") was not inlined because the compiler was unable to locate the routine.
+
+  100.      if ( stat .eq. 1 ) then
+  101.        write (*,*) "Reached NULL"
+  102.        exit
+  103.      end if
+  104.    end do
+  105.    
+  106.    ! dump the list
+  107.    write (*,*) "Removed two head nodes, now the list is:"
+  108.    call cgca_lstdmp( head )
+               ^                   
+ftn-3021 ftn: IPA TESTABY, File = testABY.f90, Line = 108, Column = 6 
+  "cgca_lstdmp" (called from "testaby") was not inlined because the compiler was unable to locate the routine.
+
+  109.    
+  110.    ! remove few middle nodes 3 levels below head
+  111.    tmp => head 
+  112.    do i=1,2
+ftn-6284 ftn: VECTOR File = testABY.f90, Line = 112 
+  A loop starting at line 112 was not vectorized because it is faster in scalar mode.
+
+ftn-6008 ftn: SCALAR File = testABY.f90, Line = 112 
+  A loop starting at line 112 was unwound.
+
+  113.      tmp => tmp%next 
+  114.    end do
+  115.    do i = 1,3
+ftn-6288 ftn: VECTOR File = testABY.f90, Line = 115 
+  A loop starting at line 115 was not vectorized because it contains a call to subroutine "cgca_rmmiddle" on line 116.
+
+  116.      call cgca_rmmiddle( tmp, stat )
+                 ^                          
+ftn-3021 ftn: IPA TESTABY, File = testABY.f90, Line = 116, Column = 8 
+  "cgca_rmmiddle" (called from "testaby") was not inlined because the compiler was unable to locate the routine.
+
+  117.      if ( stat .eq. 1 ) write (*,*) "WARN: cgca_rmmiddle: Reached NULL"
+  118.    end do
+  119.    
+  120.    ! dump the list
+  121.    write (*,*) "Removed 3 middle nodes 3 levels below head, the new list:"
+  122.    call cgca_lstdmp( head )
+               ^                   
+ftn-3021 ftn: IPA TESTABY, File = testABY.f90, Line = 122, Column = 6 
+  "cgca_lstdmp" (called from "testaby") was not inlined because the compiler was unable to locate the routine.
+
+  123.    
+  124.    ! continue removing till NULL has been reached
+  125.    write (*,*) "Continue removing from that point, till NULL has been reached."
+  126.    remove: do
+ftn-6288 ftn: VECTOR File = testABY.f90, Line = 126 
+  A loop starting at line 126 was not vectorized because it contains a call to subroutine "cgca_rmmiddle" on line 127.
+
+  127.      call cgca_rmmiddle( tmp, stat )
+                 ^                          
+ftn-3021 ftn: IPA TESTABY, File = testABY.f90, Line = 127, Column = 8 
+  "cgca_rmmiddle" (called from "testaby") was not inlined because the compiler was unable to locate the routine.
+
+  128.    !write (*,*) "stat: ", stat
+  129.      if ( stat .eq. 1 ) then
+  130.        write (*,*) "Reached NULL"
+  131.        exit remove
+  132.      end if
+  133.    end do remove
+  134.    
+  135.    ! dump the list
+  136.    write (*,*) "The list after removing all nodes till NULL"
+  137.    call cgca_lstdmp( head )
+               ^                   
+ftn-3021 ftn: IPA TESTABY, File = testABY.f90, Line = 137, Column = 6 
+  "cgca_lstdmp" (called from "testaby") was not inlined because the compiler was unable to locate the routine.
+
+  138.    
+  139.    ! add 3 more nodes on top of head
+  140.    box%lwr = (/ 2201, 2201, 2201 /)
+ftn-6271 ftn: VECTOR File = testABY.f90, Line = 140 
+  A loop starting at line 140 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = testABY.f90, Line = 140 
+  A loop starting at line 140 was unwound.
+
+  141.    box%upr = (/ 2333, 2333, 2333 /)
+ftn-6004 ftn: SCALAR File = testABY.f90, Line = 141 
+  A loop starting at line 141 was fused with the loop starting at line 140.
+
+  142.    call cgca_addhead( head, box )
+               ^                         
+ftn-3021 ftn: IPA TESTABY, File = testABY.f90, Line = 142, Column = 6 
+  "cgca_addhead" (called from "testaby") was not inlined because the compiler was unable to locate the routine.
+
+  143.    box%lwr = (/ 3201, 3201, 3201 /)
+ftn-6271 ftn: VECTOR File = testABY.f90, Line = 143 
+  A loop starting at line 143 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = testABY.f90, Line = 143 
+  A loop starting at line 143 was unwound.
+
+  144.    box%upr = (/ 3333, 3333, 3333 /)
+ftn-6004 ftn: SCALAR File = testABY.f90, Line = 144 
+  A loop starting at line 144 was fused with the loop starting at line 143.
+
+  145.    call cgca_addhead( head, box )
+               ^                         
+ftn-3021 ftn: IPA TESTABY, File = testABY.f90, Line = 145, Column = 6 
+  "cgca_addhead" (called from "testaby") was not inlined because the compiler was unable to locate the routine.
+
+  146.    box%lwr = (/ 4201, 4201, 4201 /)
+ftn-6271 ftn: VECTOR File = testABY.f90, Line = 146 
+  A loop starting at line 146 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = testABY.f90, Line = 146 
+  A loop starting at line 146 was unwound.
+
+  147.    box%upr = (/ 4333, 4333, 4333 /)
+ftn-6004 ftn: SCALAR File = testABY.f90, Line = 147 
+  A loop starting at line 147 was fused with the loop starting at line 146.
+
+  148.    call cgca_addhead( head, box )
+               ^                         
+ftn-3021 ftn: IPA TESTABY, File = testABY.f90, Line = 148, Column = 6 
+  "cgca_addhead" (called from "testaby") was not inlined because the compiler was unable to locate the routine.
+
+  149.    
+  150.    ! dump the list
+  151.    write (*,*) "The list after adding 3 more nodes on top of head"
+  152.    call cgca_lstdmp( head )
+               ^                   
+ftn-3021 ftn: IPA TESTABY, File = testABY.f90, Line = 152, Column = 6 
+  "cgca_lstdmp" (called from "testaby") was not inlined because the compiler was unable to locate the routine.
+
+  153.    
+  154.    ! remove all head nodes till NULL has been reached
+  155.    write (*,*) "Removing all head nodes"
+  156.    do
+ftn-6288 ftn: VECTOR File = testABY.f90, Line = 156 
+  A loop starting at line 156 was not vectorized because it contains a call to subroutine "cgca_rmhead" on line 157.
+
+  157.      call cgca_rmhead( head, stat )
+                 ^                         
+ftn-3021 ftn: IPA TESTABY, File = testABY.f90, Line = 157, Column = 8 
+  "cgca_rmhead" (called from "testaby") was not inlined because the compiler was unable to locate the routine.
+
+  158.      if ( stat .eq. 1 ) then
+  159.        write (*,*) "Reached NULL. associated( head ) = ", associated( head )
+  160.        exit
+  161.      end if
+  162.      if ( .not. associated( head%next ) ) then
+  163.        write (*,*) "The list when head%next is not associated, just a single node left"
+  164.        call cgca_lstdmp( head )
+                   ^                   
+ftn-3021 ftn: IPA TESTABY, File = testABY.f90, Line = 164, Column = 10 
+  "cgca_lstdmp" (called from "testaby") was not inlined because the compiler was unable to locate the routine.
+
+  165.      end if 
+  166.    end do
+  167.    
+  168.    ! dump the list
+  169.    write (*,*) "The list after removing all head nodes"
+  170.    call cgca_lstdmp( head )
+               ^                   
+ftn-3021 ftn: IPA TESTABY, File = testABY.f90, Line = 170, Column = 6 
+  "cgca_lstdmp" (called from "testaby") was not inlined because the compiler was unable to locate the routine.
+
+  171.    
+  172.    end if main
+  173.    
+  174.    end program testABY
+  175.    
+  176.    !*roboend*
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                         E x t e r n a l   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Name  Messages
+----  --------
+ABORT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ABORT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ASSOCIATED(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABY (Line 159, file testABY.f90)
+                   TESTABY (Line 162, file testABY.f90)
+
+Name  Messages
+----  --------
+BANNER in TESTAUX
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABY (Line 43, file testABY.f90)
+
+Name  Messages
+----  --------
+CGCA
+      Defined as:  No definitions.
+
+      Used By:     TESTABY  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_ADDHEAD in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABY (Line 57, file testABY.f90)
+                   TESTABY (Line 60, file testABY.f90)
+                   TESTABY (Line 63, file testABY.f90)
+                   TESTABY (Line 66, file testABY.f90)
+                   TESTABY (Line 69, file testABY.f90)
+                   TESTABY (Line 142, file testABY.f90)
+                   TESTABY (Line 145, file testABY.f90)
+                   TESTABY (Line 148, file testABY.f90)
+
+Name  Messages
+----  --------
+CGCA_ADDMIDDLE in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABY (Line 82, file testABY.f90)
+                   TESTABY (Line 85, file testABY.f90)
+                   TESTABY (Line 88, file testABY.f90)
+                   TESTABY (Line 91, file testABY.f90)
+
+Name  Messages
+----  --------
+CGCA_ART in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_AS in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_AV in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_BOXSPLIT in CGCA_M2GEOM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CADIM in CGCA_M2PHYS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CKRT in CGCA_M2ROT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CLVGP in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CLVGP1 in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CLVGP_NOCOSUM in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CLVGSD in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CLVGSP in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CSYM in CGCA_M2ROT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_DACF in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_DACF1 in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_DGC in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_DRT in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_DS in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_DV in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_FR in CGCA_M4FR
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_FV in CGCA_M2STAT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GBF1F in CGCA_M3GBF
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GBF1P in CGCA_M3GBF
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GBS in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GCF in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GCP in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GCR in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GCU in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GDIM in CGCA_M2PHYS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GL in CGCA_M2GLM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GV in CGCA_M2STAT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GVL in CGCA_M2STAT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_HXG in CGCA_M2HX
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_HXI in CGCA_M2HX
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_IGB in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_IMCO in CGCA_M2PHYS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_INITHEAD in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABY (Line 48, file testABY.f90)
+
+Name  Messages
+----  --------
+CGCA_IRS in CGCA_M2RND
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_LG in CGCA_M2GLM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_LSTDMP in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABY (Line 52, file testABY.f90)
+                   TESTABY (Line 73, file testABY.f90)
+                   TESTABY (Line 95, file testABY.f90)
+                   TESTABY (Line 108, file testABY.f90)
+                   TESTABY (Line 122, file testABY.f90)
+                   TESTABY (Line 137, file testABY.f90)
+                   TESTABY (Line 152, file testABY.f90)
+                   TESTABY (Line 164, file testABY.f90)
+                   TESTABY (Line 170, file testABY.f90)
+
+Name  Messages
+----  --------
+CGCA_M1CO
+      Defined as:  No definitions.
+
+      Used By:     TESTABY  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+      Used By:     TESTABY  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2GB
+      Defined as:  No definitions.
+
+      Used By:     TESTABY  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2GEOM
+      Defined as:  No definitions.
+
+      Used By:     TESTABY  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2GLM
+      Defined as:  No definitions.
+
+      Used By:     TESTABY  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2HX
+      Defined as:  No definitions.
+
+      Used By:     TESTABY  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+      Used By:     TESTABY  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2MPIIO
+      Defined as:  No definitions.
+
+      Used By:     TESTABY  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2OUT
+      Defined as:  No definitions.
+
+      Used By:     TESTABY  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2PCK
+      Defined as:  No definitions.
+
+      Used By:     TESTABY  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2PHYS
+      Defined as:  No definitions.
+
+      Used By:     TESTABY  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2RED
+      Defined as:  No definitions.
+
+      Used By:     TESTABY  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2RND
+      Defined as:  No definitions.
+
+      Used By:     TESTABY  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2ROT
+      Defined as:  No definitions.
+
+      Used By:     TESTABY  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2STAT
+      Defined as:  No definitions.
+
+      Used By:     TESTABY  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M3CLVG
+      Defined as:  No definitions.
+
+      Used By:     TESTABY  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M3GBF
+      Defined as:  No definitions.
+
+      Used By:     TESTABY  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M3NUCL
+      Defined as:  No definitions.
+
+      Used By:     TESTABY  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M3PFEM
+      Defined as:  No definitions.
+
+      Used By:     TESTABY  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M3SLD
+      Defined as:  No definitions.
+
+      Used By:     TESTABY  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M4FR
+      Defined as:  No definitions.
+
+      Used By:     TESTABY  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_MIS in CGCA_M2ROT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_MISCSYM in CGCA_M2ROT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_NR in CGCA_M3NUCL
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PC in CGCA_M2OUT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PDMP in CGCA_M2PCK
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_BOXIN in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_CELLIN in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_CENC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_CENDMP in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_CTALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_CTDALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_EALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_EDALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_INTCALC1 in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_INTEGALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_INTEGDALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_PARTIN in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_SALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_SDALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_SDMP in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_SIMG in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_UYM in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_WHOLEIN in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PSWCI in CGCA_M2MPIIO
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_REDAND in CGCA_M2RED
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_RMHEAD in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABY (Line 99, file testABY.f90)
+                   TESTABY (Line 157, file testABY.f90)
+
+Name  Messages
+----  --------
+CGCA_RMMIDDLE in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABY (Line 116, file testABY.f90)
+                   TESTABY (Line 127, file testABY.f90)
+
+Name  Messages
+----  --------
+CGCA_RT in CGCA_M2ROT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_SLD in CGCA_M3SLD
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_SLD1 in CGCA_M3SLD
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_SLD2 in CGCA_M3SLD
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_SLD3 in CGCA_M3SLD
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_SWCI in CGCA_M2OUT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_TCHK in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+EXIT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH_8
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FTN_LIB_DEFINITIONS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+Name  Messages
+----  --------
+GETCODIM in TESTAUX
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+HUGE(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL_J
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ISO_FORTRAN_ENV
+      Defined as:  No definitions.
+
+      Used By:     TESTABY  (indirectly)
+
+Name  Messages
+----  --------
+KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SELECTED_INT_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SELECTED_REAL_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SIZE(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+TESTABY
+      Defined as:  Program (line 8, file testABY.f90)
+
+      Calls:       THIS_IMAGE(Intrinsic) (Line 39, file testABY.f90)
+                   BANNER in TESTAUX (Line 43, file testABY.f90)
+                   CGCA_INITHEAD in CGCA_M2LNKLST (Line 48, file testABY.f90)
+                   CGCA_LSTDMP in CGCA_M2LNKLST (Line 52, file testABY.f90)
+                   CGCA_LSTDMP in CGCA_M2LNKLST (Line 73, file testABY.f90)
+                   CGCA_LSTDMP in CGCA_M2LNKLST (Line 95, file testABY.f90)
+                   CGCA_LSTDMP in CGCA_M2LNKLST (Line 108, file testABY.f90)
+                   CGCA_LSTDMP in CGCA_M2LNKLST (Line 122, file testABY.f90)
+                   CGCA_LSTDMP in CGCA_M2LNKLST (Line 137, file testABY.f90)
+                   CGCA_LSTDMP in CGCA_M2LNKLST (Line 152, file testABY.f90)
+                   CGCA_LSTDMP in CGCA_M2LNKLST (Line 164, file testABY.f90)
+                   CGCA_LSTDMP in CGCA_M2LNKLST (Line 170, file testABY.f90)
+                   CGCA_ADDHEAD in CGCA_M2LNKLST (Line 57, file testABY.f90)
+                   CGCA_ADDHEAD in CGCA_M2LNKLST (Line 60, file testABY.f90)
+                   CGCA_ADDHEAD in CGCA_M2LNKLST (Line 63, file testABY.f90)
+                   CGCA_ADDHEAD in CGCA_M2LNKLST (Line 66, file testABY.f90)
+                   CGCA_ADDHEAD in CGCA_M2LNKLST (Line 69, file testABY.f90)
+                   CGCA_ADDHEAD in CGCA_M2LNKLST (Line 142, file testABY.f90)
+                   CGCA_ADDHEAD in CGCA_M2LNKLST (Line 145, file testABY.f90)
+                   CGCA_ADDHEAD in CGCA_M2LNKLST (Line 148, file testABY.f90)
+                   CGCA_ADDMIDDLE in CGCA_M2LNKLST (Line 82, file testABY.f90)
+                   CGCA_ADDMIDDLE in CGCA_M2LNKLST (Line 85, file testABY.f90)
+                   CGCA_ADDMIDDLE in CGCA_M2LNKLST (Line 88, file testABY.f90)
+                   CGCA_ADDMIDDLE in CGCA_M2LNKLST (Line 91, file testABY.f90)
+                   CGCA_RMHEAD in CGCA_M2LNKLST (Line 99, file testABY.f90)
+                   CGCA_RMHEAD in CGCA_M2LNKLST (Line 157, file testABY.f90)
+                   CGCA_RMMIDDLE in CGCA_M2LNKLST (Line 116, file testABY.f90)
+                   CGCA_RMMIDDLE in CGCA_M2LNKLST (Line 127, file testABY.f90)
+                   ASSOCIATED(Intrinsic) (Line 159, file testABY.f90)
+                   ASSOCIATED(Intrinsic) (Line 162, file testABY.f90)
+
+        Uses:      TESTAUX
+                   ISO_FORTRAN_ENV  (indirectly)
+                   CGCA_M4FR  (indirectly)
+                   CGCA_M3SLD  (indirectly)
+                   CGCA_M3PFEM  (indirectly)
+                   CGCA_M3NUCL  (indirectly)
+                   CGCA_M3GBF  (indirectly)
+                   CGCA_M3CLVG  (indirectly)
+                   CGCA_M2STAT  (indirectly)
+                   CGCA_M2ROT  (indirectly)
+                   CGCA_M2RND  (indirectly)
+                   CGCA_M2RED  (indirectly)
+                   CGCA_M2PHYS  (indirectly)
+                   CGCA_M2PCK  (indirectly)
+                   CGCA_M2OUT  (indirectly)
+                   CGCA_M2MPIIO  (indirectly)
+                   CGCA_M2LNKLST  (indirectly)
+                   CGCA_M2HX  (indirectly)
+                   CGCA_M2GLM  (indirectly)
+                   CGCA_M2GEOM  (indirectly)
+                   CGCA_M2GB  (indirectly)
+                   CGCA_M2ALLOC  (indirectly)
+                   CGCA_M1CO  (indirectly)
+                   CGCA  (indirectly)
+
+Name  Messages
+----  --------
+TESTAUX
+      Defined as:  No definitions.
+
+      Used By:     TESTABY
+
+Name  Messages
+----  --------
+THIS_IMAGE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABY (Line 39, file testABY.f90)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

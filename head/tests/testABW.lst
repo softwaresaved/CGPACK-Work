@@ -1,0 +1,1622 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S u m m a r y   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Compilation
+-----------
+File     : /home3/y14/y14/di1c13/cgpack/head/tests/testABW.f90
+Compiled : 02/18/16  16:38:55
+Compiler : Version 8.3.7
+Ftnlx    : Version 8318 (libcif 83016)
+Target   : x86-64
+Command  : ftn_driver.exe -hcpu=ivybridge -hstatic -D__CRAYXC
+           -D__CRAY_IVYBRIDGE -D__CRAYXT_COMPUTE_LINUX_TARGET -hnetwork=aries
+           -c -c -eacFn -dm -m1 -rl -I. -I/home/y14/y14/di1c13/lib
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/mpt/7.1.1/gni/mpich2-cray/83/include
+           -I/opt/cray/libsci/13.0.1/CRAY/83/sandybridge/include
+           -I/opt/cray/rca/1.0.0-2.0502.57212.2.56.ari/include
+           -I/opt/cray/alps/5.2.3-2.0502.9295.14.14.ari/include
+           -I/opt/cray/xpmem/0.1-2.0502.57015.1.15.ari/include
+           -I/opt/cray/gni-headers/4.0-1.0502.10317.9.2.ari/include
+           -I/opt/cray/dmapp/7.0.1-1.0502.10246.8.47.ari/include
+           -I/opt/cray/pmi/5.0.6-1.0000.10439.140.2.ari/include
+           -I/opt/cray/ugni/6.0-1.0502.10245.9.9.ari/include
+           -I/opt/cray/udreg/2.3.2-1.0502.9889.2.20.ari/include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/pkgconfig/../include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/wlm_detect/1.0-1.0502.57063.1.1.ari/include
+           -I/opt/cray/krca/1.0.0-2.0502.57202.2.45.ari/include
+           -I/opt/cray-hss-devel/7.2.0/include testABW.f90
+
+ftnlx report
+------------
+Source   : /home3/y14/y14/di1c13/cgpack/head/tests/testABW.f90
+Date     : 02/18/2016  16:38:55
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S o u r c e   L i s t i n g
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    1.    !$Id: testABW.f90 124 2015-10-05 15:59:52Z mexas $
+    2.    
+    3.    !*robodoc*u* tests/testABW
+    4.    !  NAME
+    5.    !    testABW
+    6.    !  SYNOPSIS
+    7.    
+    8.    program testABW
+    9.    
+   10.    !  PURPOSE
+   11.    !    Check cgca_clvgp_nocosum (no CO_SUM version).
+   12.    !    Cleavage propagation in a model with the given "box" size,
+   13.    !    mean grain size and the microstructure resolution values.
+   14.    !    Using parallel I/O here!
+   15.    !  DESCRIPTION
+   16.    !    First need to call cgca_gdim, cgca_cadim to
+   17.    !    calculate all parameters of coarray space, including
+   18.    !    the number of nuclei. Then call solidification and then
+   19.    !    cleavage.
+   20.    !  NOTE
+   21.    !    Using 2 cleavage nuclei to see how the two macro-cracks interact.
+   22.    !  AUTHOR
+   23.    !    Anton Shterenlikht
+   24.    !  COPYRIGHT
+   25.    !    See CGPACK_Copyright
+   26.    !  USES
+   27.    !    cgca testaux
+   28.    !  USED BY
+   29.    !    Part of CGPACK test suite
+   30.    !  SOURCE
+   31.    
+   32.    use testaux
+              ^       
+ftn-1193 ftn: CAUTION TESTABW, File = testABW.f90, Line = 32, Column = 5 
+  Module "CGCA_M4FR" is indirectly used in module "TESTAUX" and is from file "./cgca_m4fr.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABW, File = testABW.f90, Line = 32, Column = 5 
+  Module "CGCA_M3SLD" is indirectly used in module "TESTAUX" and is from file "./cgca_m3sld.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABW, File = testABW.f90, Line = 32, Column = 5 
+  Module "CGCA_M3PFEM" is indirectly used in module "TESTAUX" and is from file "./cgca_m3pfem.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABW, File = testABW.f90, Line = 32, Column = 5 
+  Module "CGCA_M3NUCL" is indirectly used in module "TESTAUX" and is from file "./cgca_m3nucl.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABW, File = testABW.f90, Line = 32, Column = 5 
+  Module "CGCA_M3GBF" is indirectly used in module "TESTAUX" and is from file "./cgca_m3gbf.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABW, File = testABW.f90, Line = 32, Column = 5 
+  Module "CGCA_M3CLVG" is indirectly used in module "TESTAUX" and is from file "./cgca_m3clvg.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABW, File = testABW.f90, Line = 32, Column = 5 
+  Module "CGCA_M2STAT" is indirectly used in module "TESTAUX" and is from file "./cgca_m2stat.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABW, File = testABW.f90, Line = 32, Column = 5 
+  Module "CGCA_M2ROT" is indirectly used in module "TESTAUX" and is from file "./cgca_m2rot.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABW, File = testABW.f90, Line = 32, Column = 5 
+  Module "CGCA_M2RND" is indirectly used in module "TESTAUX" and is from file "./cgca_m2rnd.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABW, File = testABW.f90, Line = 32, Column = 5 
+  Module "CGCA_M2RED" is indirectly used in module "TESTAUX" and is from file "./cgca_m2red.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABW, File = testABW.f90, Line = 32, Column = 5 
+  Module "CGCA_M2PHYS" is indirectly used in module "TESTAUX" and is from file "./cgca_m2phys.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABW, File = testABW.f90, Line = 32, Column = 5 
+  Module "CGCA_M2PCK" is indirectly used in module "TESTAUX" and is from file "./cgca_m2pck.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABW, File = testABW.f90, Line = 32, Column = 5 
+  Module "CGCA_M2OUT" is indirectly used in module "TESTAUX" and is from file "./cgca_m2out.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABW, File = testABW.f90, Line = 32, Column = 5 
+  Module "CGCA_M2MPIIO" is indirectly used in module "TESTAUX" and is from file "./cgca_m2mpiio.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABW, File = testABW.f90, Line = 32, Column = 5 
+  Module "CGCA_M2LNKLST" is indirectly used in module "TESTAUX" and is from file "./cgca_m2lnklst.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABW, File = testABW.f90, Line = 32, Column = 5 
+  Module "CGCA_M2HX" is indirectly used in module "TESTAUX" and is from file "./cgca_m2hx.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABW, File = testABW.f90, Line = 32, Column = 5 
+  Module "CGCA_M2GLM" is indirectly used in module "TESTAUX" and is from file "./cgca_m2glm.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABW, File = testABW.f90, Line = 32, Column = 5 
+  Module "CGCA_M2GEOM" is indirectly used in module "TESTAUX" and is from file "./cgca_m2geom.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABW, File = testABW.f90, Line = 32, Column = 5 
+  Module "CGCA_M2GB" is indirectly used in module "TESTAUX" and is from file "./cgca_m2gb.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABW, File = testABW.f90, Line = 32, Column = 5 
+  Module "CGCA_M2ALLOC" is indirectly used in module "TESTAUX" and is from file "./cgca_m2alloc.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTABW, File = testABW.f90, Line = 32, Column = 5 
+  Module "CGCA_M1CO" is indirectly used in module "TESTAUX" and is from file "./cgca_m1co.o".  That file no longer exists.
+
+   33.    
+   34.    implicit none
+   35.    
+   36.    logical( kind=ldef ), parameter :: yesdebug=.true., nodebug=.false.,   &
+   37.     periodicbc=.true.,  noperiodicbc=.false.
+   38.    
+   39.    ! specify the total number of cleavage propagation iterations,
+   40.    ! and the number of times the fracture array will be dumped along
+   41.    ! the way
+   42.    integer( kind=idef ), parameter ::                                     &
+   43.     itot = 300_idef,       & ! total cleavage iterations to do
+   44.     idmp = 10_idef           ! number of dumps to do along the way 
+   45.    
+   46.    real, parameter :: gigabyte=real(2**30),                               &
+   47.    ! cleavage stress on 100, 110, 111 planes for BCC,
+   48.    ! see the manual for derivation.
+   49.     scrit(3) = (/ 1.05e4, 1.25e4, 4.90e4 /)
+   50.    
+   51.    !integer :: ierr ! default integer needed for MPI
+   52.    
+   53.    integer( kind=idef ) :: iter, fiter, ir(3),                            &
+   54.     img, nimgs,      &
+   55.     ng                       ! number of grains in the whole model
+   56.    
+   57.    integer( kind=iarr ) :: c(3)  ! coarray dimensions
+   58.    integer( kind=iarr ), allocatable :: space(:,:,:,:) [:,:,:]
+   59.    
+   60.    real( kind=rdef ) ::    &
+   61.     t(3,3),                & ! stress tensor
+   62.     qual,                  & ! quality
+   63.     bsz0(3),               & ! the given "box" size
+   64.     bsz(3),                & ! updated "box" size
+   65.     dm,                    & ! mean grain size, linear dim, phys units
+   66.     res,                   & ! resolutions, cells per grain
+   67.     icells,                & ! total number of cells on each image
+   68.     lres                     ! linear resolution, cells per unit of length
+   69.    real( kind=rdef ), allocatable :: grt(:,:,:)[:,:,:]
+   70.    
+   71.    logical( kind=ldef ) :: solid
+   72.    character(6) :: citer
+   73.    
+   74.    !*********************************************************************72
+   75.    ! first executable statement
+   76.    
+   77.    ! physical dimensions of the box, assume mm
+   78.    bsz0 = (/ 1.0, 1.0, 1.0 /)
+ftn-6271 ftn: VECTOR File = testABW.f90, Line = 78 
+  A loop starting at line 78 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = testABW.f90, Line = 78 
+  A loop starting at line 78 was unwound.
+
+   79.    
+   80.    ! mean grain size, linear dimension, e.g. mean grain diameter, also mm
+   81.    dm = 3.0e-1
+   82.    
+   83.    ! resolution
+   84.    res = 1.0e5
+   85.    
+   86.    ! In this test set the number of images via the env var
+   87.    ! the code must be able to cope with any value >= 1.
+   88.       img = this_image()
+   89.     nimgs = num_images()
+   90.    
+   91.    ! do a check on image 1
+   92.    if ( img .eq. 1 ) then
+   93.    
+   94.     ! print a banner
+   95.     call banner("ABW")
+                ^             
+ftn-3001 ftn: IPA TESTABW, File = testABW.f90, Line = 95, Column = 7 
+  The call to leaf routine "banner" was textually inlined due to constant actual(s).
+
+   96.    
+   97.     ! print the parameter values
+   98.     call cgca_pdmp
+                ^         
+ftn-3021 ftn: IPA TESTABW, File = testABW.f90, Line = 98, Column = 7 
+  "cgca_pdmp" (called from "testabw") was not inlined because the compiler was unable to locate the routine.
+
+   99.     write (*,'(a,i0,a)') "running on ", nimgs, " images in a 3D grid"
+  100.    
+  101.    end if
+  102.    
+  103.    ! want to sync here to make sure the banner is
+  104.    ! printed before the rest.
+  105.    sync all
+  106.    
+  107.    ! each image calculates the coarray grid dimensions
+  108.    call cgca_gdim( nimgs, ir, qual )
+               ^                            
+ftn-3021 ftn: IPA TESTABW, File = testABW.f90, Line = 108, Column = 6 
+  "cgca_gdim" (called from "testabw") was not inlined because the compiler was unable to locate the routine.
+
+  109.    
+  110.    ! calculate the resolution and the actual phys dimensions
+  111.    ! of the box
+  112.    ! subroutine cgca_cadim( bsz, res, dm, ir, c, lres, ng )
+  113.    ! c - coarray sizes
+  114.    ! ir - coarray grid sizes
+  115.    bsz = bsz0
+ftn-6271 ftn: VECTOR File = testABW.f90, Line = 115 
+  A loop starting at line 115 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = testABW.f90, Line = 115 
+  A loop starting at line 115 was unwound.
+
+  116.    call cgca_cadim( bsz, res, dm, ir, c, lres, ng )
+               ^                                           
+ftn-3021 ftn: IPA TESTABW, File = testABW.f90, Line = 116, Column = 6 
+  "cgca_cadim" (called from "testabw") was not inlined because the compiler was unable to locate the routine.
+
+  117.    
+  118.    ! total number of cells in a coarray
+  119.    icells = product( real( c ) )
+ftn-6271 ftn: VECTOR File = testABW.f90, Line = 119 
+  A loop starting at line 119 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = testABW.f90, Line = 119 
+  A loop starting at line 119 was unwound.
+
+  120.    
+  121.    ! dump some stats from image 1
+  122.    if ( img .eq. 1 ) then
+  123.      write ( *, "(9(a,i0), 2(tr1, es9.2), 3(a, es9.2), a)" )              &
+  124.        "img: ", img  , " nimgs: ", nimgs, " (", c(1) ,                    &
+  125.        ","    , c(2) , ","       , c(3) , ")[", ir(1),                    &
+  126.        ","    , ir(2), ","       , ir(3), "] ", ng   ,                    &
+  127.        qual, lres,                                                        &
+  128.        " (", bsz(1), ",", bsz(2), ",", bsz(3), ")"
+  129.      write (*,'(a,es9.2,a)') "Cells on each image: ", icells
+  130.      write (*,*) "dataset sizes for ParaView", c*ir
+  131.      write (*,"(a,es10.2)") "Total cells in the model",                   &
+  132.                  product( real(c) * real(ir) )
+  133.    end if
+  134.    
+  135.    ! allocate space coarray with two layers
+  136.    ! implicit sync all
+  137.    call cgca_as(1, c(1), 1, c(2), 1, c(3), 1, ir(1), 1, ir(2), 1, 2, space)
+               ^                                                                   
+ftn-3021 ftn: IPA TESTABW, File = testABW.f90, Line = 137, Column = 6 
+  "cgca_as" (called from "testabw") was not inlined because the compiler was unable to locate the routine.
+
+  138.    
+  139.    ! initialise random number seed
+  140.    call cgca_irs( nodebug )
+               ^                   
+ftn-3021 ftn: IPA TESTABW, File = testABW.f90, Line = 140, Column = 6 
+  "cgca_irs" (called from "testabw") was not inlined because the compiler was unable to locate the routine.
+
+  141.    
+  142.    ! allocate rotation tensors
+  143.    call cgca_art( 1, ng, 1, ir(1), 1, ir(2), 1, grt )
+               ^                                             
+ftn-3021 ftn: IPA TESTABW, File = testABW.f90, Line = 143, Column = 6 
+  "cgca_art" (called from "testabw") was not inlined because the compiler was unable to locate the routine.
+
+  144.    
+  145.    ! initialise space
+  146.    space( :, :, :, cgca_state_type_grain ) = cgca_liquid_state
+ftn-6066 ftn: SCALAR File = testABW.f90, Line = 146 
+   A loop nest at line 146 collapsed to a single loop.
+
+ftn-6202 ftn: VECTOR File = testABW.f90, Line = 146 
+  A loop starting at line 146 was replaced by a library call.
+
+  147.    space( :, :, :, cgca_state_type_frac  ) = cgca_intact_state
+ftn-6066 ftn: SCALAR File = testABW.f90, Line = 147 
+   A loop nest at line 147 collapsed to a single loop.
+
+ftn-6202 ftn: VECTOR File = testABW.f90, Line = 147 
+  A loop starting at line 147 was replaced by a library call.
+
+  148.    
+  149.    ! nuclei, sync all inside
+  150.    call cgca_nr( space, ng, nodebug )
+               ^                             
+ftn-3021 ftn: IPA TESTABW, File = testABW.f90, Line = 150, Column = 6 
+  "cgca_nr" (called from "testabw") was not inlined because the compiler was unable to locate the routine.
+
+  151.    
+  152.    ! assign rotation tensors, sync all inside
+  153.    call cgca_rt( grt )
+               ^              
+ftn-3021 ftn: IPA TESTABW, File = testABW.f90, Line = 153, Column = 6 
+  "cgca_rt" (called from "testabw") was not inlined because the compiler was unable to locate the routine.
+
+  154.    
+  155.    ! solidify, implicit sync all inside
+  156.    call cgca_sld( space, noperiodicbc, 0, 10, solid )
+               ^                                             
+ftn-3021 ftn: IPA TESTABW, File = testABW.f90, Line = 156, Column = 6 
+  "cgca_sld" (called from "testabw") was not inlined because the compiler was unable to locate the routine.
+
+  157.    
+  158.    ! initiate grain boundaries
+  159.    call cgca_igb( space )
+               ^                 
+ftn-3021 ftn: IPA TESTABW, File = testABW.f90, Line = 159, Column = 6 
+  "cgca_igb" (called from "testabw") was not inlined because the compiler was unable to locate the routine.
+
+  160.    
+  161.    ! smoothen the GB, several iterations, sync needed
+  162.    ! halo exchange, following smoothing
+  163.    call cgca_gbs( space )
+               ^                 
+ftn-3021 ftn: IPA TESTABW, File = testABW.f90, Line = 163, Column = 6 
+  "cgca_gbs" (called from "testabw") was not inlined because the compiler was unable to locate the routine.
+
+  164.    call cgca_hxi( space )
+               ^                 
+ftn-3021 ftn: IPA TESTABW, File = testABW.f90, Line = 164, Column = 6 
+  "cgca_hxi" (called from "testabw") was not inlined because the compiler was unable to locate the routine.
+
+  165.    call cgca_gbs( space )
+               ^                 
+ftn-3021 ftn: IPA TESTABW, File = testABW.f90, Line = 165, Column = 6 
+  "cgca_gbs" (called from "testabw") was not inlined because the compiler was unable to locate the routine.
+
+  166.    call cgca_hxi( space )
+               ^                 
+ftn-3021 ftn: IPA TESTABW, File = testABW.f90, Line = 166, Column = 6 
+  "cgca_hxi" (called from "testabw") was not inlined because the compiler was unable to locate the routine.
+
+  167.    sync all
+  168.    
+  169.    ! update grain connectivity, local routine, no sync needed
+  170.    call cgca_gcu( space )
+               ^                 
+ftn-3021 ftn: IPA TESTABW, File = testABW.f90, Line = 170, Column = 6 
+  "cgca_gcu" (called from "testabw") was not inlined because the compiler was unable to locate the routine.
+
+  171.    
+  172.    ! set a crack nucleus in the centre of the x3=max(x3) face
+  173.    space( c(1)/2, c(2)/2, c(3), cgca_state_type_frac )  &
+ftn-6077 ftn: SCALAR File = testABW.f90, Line = 173 
+  An implicit non-blocking operation was used for this statement.
+
+  174.            [ ir(1)/2, ir(2)/2, ir(3) ] = cgca_clvg_state_100_edge
+  175.    
+  176.    ! set a crack nucleus in the centre of the x3=1 face
+  177.    space( c(1)/2, c(2)/2, 1, cgca_state_type_frac )  &
+ftn-6077 ftn: SCALAR File = testABW.f90, Line = 177 
+  An implicit non-blocking operation was used for this statement.
+
+  178.            [ ir(1)/2, ir(2)/2, 1 ] = cgca_clvg_state_100_edge
+  179.    
+  180.    ! all images start MPI, used only for I/O here, so
+  181.    ! no need to start earlier
+  182.    !call MPI_Init(ierr)
+  183.    
+  184.    if ( img .eq. 1 ) write (*,*) "dumping model to files"
+  185.    
+  186.      ! dump space arrays to files, only image 1 does it, all others
+  187.      ! wait at the barrier, hence sync needed
+  188.      call cgca_pswci( space, cgca_state_type_grain, "zg0.raw" )
+                 ^                                                     
+ftn-3021 ftn: IPA TESTABW, File = testABW.f90, Line = 188, Column = 8 
+  "cgca_pswci" (called from "testabw") was not inlined because the compiler was unable to locate the routine.
+
+  189.      call cgca_pswci( space, cgca_state_type_frac,  "zf0.raw" )
+                 ^                                                     
+ftn-3021 ftn: IPA TESTABW, File = testABW.f90, Line = 189, Column = 8 
+  "cgca_pswci" (called from "testabw") was not inlined because the compiler was unable to locate the routine.
+
+  190.    
+  191.    if ( img .eq. 1) write (*,*) "finished dumping model to files"
+  192.    
+  193.    sync all
+  194.    
+  195.    ! set the stress tensor
+  196.    t = 0.0
+ftn-6066 ftn: SCALAR File = testABW.f90, Line = 196 
+   A loop nest at line 196 collapsed to a single loop.
+
+ftn-6204 ftn: VECTOR File = testABW.f90, Line = 196 
+  A loop starting at line 196 was vectorized.
+
+  197.    t(1,1) = 1.0e6
+  198.    !t(2,2) = -1.0e6
+  199.    
+  200.    ! number of cleavage iterations between file dumps
+  201.    fiter = itot/idmp
+  202.    
+  203.    ! propagate cleavage, sync inside, dump fracture arrays
+  204.    ! every certain number of increments.
+  205.    do iter = 1, idmp
+ftn-6288 ftn: VECTOR File = testABW.f90, Line = 205 
+  A loop starting at line 205 was not vectorized because it contains a call to subroutine "cgca_clvgp_nocosum" on line 212.
+
+  206.    
+  207.     ! Propagate cleavage, sync inside
+  208.     ! Run for fiter iterations
+  209.     ! subroutine cgca_clvgp_nocosum( coarray, rt, t, scrit, sub,          &
+  210.     !                                periodicbc, iter, heartbeat, debug )
+  211.    
+  212.     call cgca_clvgp_nocosum( space, grt, t, scrit, cgca_clvgsd,           &
+                ^                                                                  
+ftn-3021 ftn: IPA TESTABW, File = testABW.f90, Line = 212, Column = 7 
+  "cgca_clvgp_nocosum" (called from "testabw") was not inlined because the compiler was unable to locate the routine.
+
+  213.                              noperiodicbc, fiter, 10, yesdebug )
+  214.    
+  215.     ! dump the fracture space array to files, only image 1 does it,
+  216.     ! all others wait at the barrier, hence sync needed.
+  217.     ! citer is the total number of cleavage fracture iterations,
+  218.     ! "c" for character date type.
+  219.     write ( citer, "(i0)" ) iter*fiter
+  220.     call cgca_pswci( space, cgca_state_type_frac,                         &
+                ^                                                                  
+ftn-3021 ftn: IPA TESTABW, File = testABW.f90, Line = 220, Column = 7 
+  "cgca_pswci" (called from "testabw") was not inlined because the compiler was unable to locate the routine.
+
+  221.                                    "zf"//trim(citer)//".raw" )
+  222.    
+  223.     sync all
+  224.    
+  225.     if ( img .eq. 1 ) write (*,"(a)") &
+  226.      "Completed "//trim(citer)//" cleavage iterations"
+  227.    
+  228.    end do
+  229.    
+  230.    ! deallocate all arrays, implicit sync all.
+  231.    call cgca_ds( space )
+               ^                
+ftn-3021 ftn: IPA TESTABW, File = testABW.f90, Line = 231, Column = 6 
+  "cgca_ds" (called from "testabw") was not inlined because the compiler was unable to locate the routine.
+
+  232.    call cgca_dgc
+               ^        
+ftn-3021 ftn: IPA TESTABW, File = testABW.f90, Line = 232, Column = 6 
+  "cgca_dgc" (called from "testabw") was not inlined because the compiler was unable to locate the routine.
+
+  233.    call cgca_drt( grt )
+               ^               
+ftn-3021 ftn: IPA TESTABW, File = testABW.f90, Line = 233, Column = 6 
+  "cgca_drt" (called from "testabw") was not inlined because the compiler was unable to locate the routine.
+
+  234.    
+  235.    ! terminate MPI
+  236.    !call MPI_Finalize(ierr)
+  237.    
+  238.    if ( img .eq. 1 ) write (*,*) "Test ABW completed sucessfully"
+  239.    
+  240.    end program testABW
+ftn-5008 ftn: NOTE File = testABW.f90, Line = 240 
+  Named Constant "PERIODICBC" is not used.
+
+ftn-5008 ftn: NOTE File = testABW.f90, Line = 240 
+  Named Constant "GIGABYTE" is not used.
+
+  241.    
+  242.    !*roboend*
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                         E x t e r n a l   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Name  Messages
+----  --------
+ABORT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ABORT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+BANNER in TESTAUX
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABW (Line 95, file testABW.f90)
+
+Name  Messages
+----  --------
+CGCA
+      Defined as:  No definitions.
+
+      Used By:     TESTABW  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_ADDHEAD in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_ADDMIDDLE in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_ART in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABW (Line 143, file testABW.f90)
+
+Name  Messages
+----  --------
+CGCA_AS in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABW (Line 137, file testABW.f90)
+
+Name  Messages
+----  --------
+CGCA_AV in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_BOXSPLIT in CGCA_M2GEOM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CADIM in CGCA_M2PHYS
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABW (Line 116, file testABW.f90)
+
+Name  Messages
+----  --------
+CGCA_CKRT in CGCA_M2ROT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CLVGP in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CLVGP1 in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CLVGP_NOCOSUM in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABW (Line 212, file testABW.f90)
+
+Name  Messages
+----  --------
+CGCA_CLVGSD in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CLVGSP in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CSYM in CGCA_M2ROT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_DACF in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_DACF1 in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_DGC in CGCA_M2GB
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABW (Line 232, file testABW.f90)
+
+Name  Messages
+----  --------
+CGCA_DRT in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABW (Line 233, file testABW.f90)
+
+Name  Messages
+----  --------
+CGCA_DS in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABW (Line 231, file testABW.f90)
+
+Name  Messages
+----  --------
+CGCA_DV in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_FR in CGCA_M4FR
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_FV in CGCA_M2STAT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GBF1F in CGCA_M3GBF
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GBF1P in CGCA_M3GBF
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GBS in CGCA_M2GB
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABW (Line 163, file testABW.f90)
+                   TESTABW (Line 165, file testABW.f90)
+
+Name  Messages
+----  --------
+CGCA_GCF in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GCP in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GCR in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GCU in CGCA_M2GB
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABW (Line 170, file testABW.f90)
+
+Name  Messages
+----  --------
+CGCA_GDIM in CGCA_M2PHYS
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABW (Line 108, file testABW.f90)
+
+Name  Messages
+----  --------
+CGCA_GL in CGCA_M2GLM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GV in CGCA_M2STAT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GVL in CGCA_M2STAT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_HXG in CGCA_M2HX
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_HXI in CGCA_M2HX
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABW (Line 164, file testABW.f90)
+                   TESTABW (Line 166, file testABW.f90)
+
+Name  Messages
+----  --------
+CGCA_IGB in CGCA_M2GB
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABW (Line 159, file testABW.f90)
+
+Name  Messages
+----  --------
+CGCA_IMCO in CGCA_M2PHYS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_INITHEAD in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_IRS in CGCA_M2RND
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABW (Line 140, file testABW.f90)
+
+Name  Messages
+----  --------
+CGCA_LG in CGCA_M2GLM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_LSTDMP in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_M1CO
+      Defined as:  No definitions.
+
+      Used By:     TESTABW  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+      Used By:     TESTABW  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2GB
+      Defined as:  No definitions.
+
+      Used By:     TESTABW  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2GEOM
+      Defined as:  No definitions.
+
+      Used By:     TESTABW  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2GLM
+      Defined as:  No definitions.
+
+      Used By:     TESTABW  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2HX
+      Defined as:  No definitions.
+
+      Used By:     TESTABW  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+      Used By:     TESTABW  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2MPIIO
+      Defined as:  No definitions.
+
+      Used By:     TESTABW  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2OUT
+      Defined as:  No definitions.
+
+      Used By:     TESTABW  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2PCK
+      Defined as:  No definitions.
+
+      Used By:     TESTABW  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2PHYS
+      Defined as:  No definitions.
+
+      Used By:     TESTABW  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2RED
+      Defined as:  No definitions.
+
+      Used By:     TESTABW  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2RND
+      Defined as:  No definitions.
+
+      Used By:     TESTABW  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2ROT
+      Defined as:  No definitions.
+
+      Used By:     TESTABW  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2STAT
+      Defined as:  No definitions.
+
+      Used By:     TESTABW  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M3CLVG
+      Defined as:  No definitions.
+
+      Used By:     TESTABW  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M3GBF
+      Defined as:  No definitions.
+
+      Used By:     TESTABW  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M3NUCL
+      Defined as:  No definitions.
+
+      Used By:     TESTABW  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M3PFEM
+      Defined as:  No definitions.
+
+      Used By:     TESTABW  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M3SLD
+      Defined as:  No definitions.
+
+      Used By:     TESTABW  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M4FR
+      Defined as:  No definitions.
+
+      Used By:     TESTABW  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_MIS in CGCA_M2ROT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_MISCSYM in CGCA_M2ROT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_NR in CGCA_M3NUCL
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABW (Line 150, file testABW.f90)
+
+Name  Messages
+----  --------
+CGCA_PC in CGCA_M2OUT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PDMP in CGCA_M2PCK
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABW (Line 98, file testABW.f90)
+
+Name  Messages
+----  --------
+CGCA_PFEM_BOXIN in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_CELLIN in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_CENC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_CENDMP in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_CTALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_CTDALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_EALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_EDALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_INTCALC1 in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_INTEGALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_INTEGDALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_PARTIN in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_SALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_SDALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_SDMP in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_SIMG in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_UYM in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_WHOLEIN in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PSWCI in CGCA_M2MPIIO
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABW (Line 188, file testABW.f90)
+                   TESTABW (Line 189, file testABW.f90)
+                   TESTABW (Line 220, file testABW.f90)
+
+Name  Messages
+----  --------
+CGCA_REDAND in CGCA_M2RED
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_RMHEAD in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_RMMIDDLE in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_RT in CGCA_M2ROT
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABW (Line 153, file testABW.f90)
+
+Name  Messages
+----  --------
+CGCA_SLD in CGCA_M3SLD
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABW (Line 156, file testABW.f90)
+
+Name  Messages
+----  --------
+CGCA_SLD1 in CGCA_M3SLD
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_SLD2 in CGCA_M3SLD
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_SLD3 in CGCA_M3SLD
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_SWCI in CGCA_M2OUT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_TCHK in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+EXIT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH_8
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FTN_LIB_DEFINITIONS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+Name  Messages
+----  --------
+GETCODIM in TESTAUX
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+HUGE(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL_J
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ISO_FORTRAN_ENV
+      Defined as:  No definitions.
+
+      Used By:     TESTABW  (indirectly)
+
+Name  Messages
+----  --------
+KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+PRODUCT(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABW (Line 119, file testABW.f90)
+                   TESTABW (Line 132, file testABW.f90)
+
+Name  Messages
+----  --------
+REAL(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABW (Line 46, file testABW.f90)
+                   TESTABW (Line 119, file testABW.f90)
+                   TESTABW (Line 132, file testABW.f90)
+                   TESTABW (Line 132, file testABW.f90)
+
+Name  Messages
+----  --------
+SELECTED_INT_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SELECTED_REAL_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SIZE(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+TESTABW
+      Defined as:  Program (line 8, file testABW.f90)
+
+      Calls:       REAL(Intrinsic) (Line 46, file testABW.f90)
+                   REAL(Intrinsic) (Line 119, file testABW.f90)
+                   REAL(Intrinsic) (Line 132, file testABW.f90)
+                   REAL(Intrinsic) (Line 132, file testABW.f90)
+                   THIS_IMAGE(Intrinsic) (Line 88, file testABW.f90)
+                   shmem_n_pes(Intrinsic) (Line 89, file testABW.f90)
+                   BANNER in TESTAUX (Line 95, file testABW.f90)
+                   CGCA_PDMP in CGCA_M2PCK (Line 98, file testABW.f90)
+                   CGCA_GDIM in CGCA_M2PHYS (Line 108, file testABW.f90)
+                   CGCA_CADIM in CGCA_M2PHYS (Line 116, file testABW.f90)
+                   PRODUCT(Intrinsic) (Line 119, file testABW.f90)
+                   PRODUCT(Intrinsic) (Line 132, file testABW.f90)
+                   CGCA_AS in CGCA_M2ALLOC (Line 137, file testABW.f90)
+                   CGCA_IRS in CGCA_M2RND (Line 140, file testABW.f90)
+                   CGCA_ART in CGCA_M2ALLOC (Line 143, file testABW.f90)
+                   CGCA_NR in CGCA_M3NUCL (Line 150, file testABW.f90)
+                   CGCA_RT in CGCA_M2ROT (Line 153, file testABW.f90)
+                   CGCA_SLD in CGCA_M3SLD (Line 156, file testABW.f90)
+                   CGCA_IGB in CGCA_M2GB (Line 159, file testABW.f90)
+                   CGCA_GBS in CGCA_M2GB (Line 163, file testABW.f90)
+                   CGCA_GBS in CGCA_M2GB (Line 165, file testABW.f90)
+                   CGCA_HXI in CGCA_M2HX (Line 164, file testABW.f90)
+                   CGCA_HXI in CGCA_M2HX (Line 166, file testABW.f90)
+                   CGCA_GCU in CGCA_M2GB (Line 170, file testABW.f90)
+                   CGCA_PSWCI in CGCA_M2MPIIO (Line 188, file testABW.f90)
+                   CGCA_PSWCI in CGCA_M2MPIIO (Line 189, file testABW.f90)
+                   CGCA_PSWCI in CGCA_M2MPIIO (Line 220, file testABW.f90)
+                   CGCA_CLVGP_NOCOSUM in CGCA_M3CLVG (Line 212, file testABW.f90)
+                   TRIM(Intrinsic) (Line 221, file testABW.f90)
+                   TRIM(Intrinsic) (Line 226, file testABW.f90)
+                   CGCA_DS in CGCA_M2ALLOC (Line 231, file testABW.f90)
+                   CGCA_DGC in CGCA_M2GB (Line 232, file testABW.f90)
+                   CGCA_DRT in CGCA_M2ALLOC (Line 233, file testABW.f90)
+
+        Uses:      TESTAUX
+                   ISO_FORTRAN_ENV  (indirectly)
+                   CGCA_M4FR  (indirectly)
+                   CGCA_M3SLD  (indirectly)
+                   CGCA_M3PFEM  (indirectly)
+                   CGCA_M3NUCL  (indirectly)
+                   CGCA_M3GBF  (indirectly)
+                   CGCA_M3CLVG  (indirectly)
+                   CGCA_M2STAT  (indirectly)
+                   CGCA_M2ROT  (indirectly)
+                   CGCA_M2RND  (indirectly)
+                   CGCA_M2RED  (indirectly)
+                   CGCA_M2PHYS  (indirectly)
+                   CGCA_M2PCK  (indirectly)
+                   CGCA_M2OUT  (indirectly)
+                   CGCA_M2MPIIO  (indirectly)
+                   CGCA_M2LNKLST  (indirectly)
+                   CGCA_M2HX  (indirectly)
+                   CGCA_M2GLM  (indirectly)
+                   CGCA_M2GEOM  (indirectly)
+                   CGCA_M2GB  (indirectly)
+                   CGCA_M2ALLOC  (indirectly)
+                   CGCA_M1CO  (indirectly)
+                   CGCA  (indirectly)
+
+Name  Messages
+----  --------
+TESTAUX
+      Defined as:  No definitions.
+
+      Used By:     TESTABW
+
+Name  Messages
+----  --------
+THIS_IMAGE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABW (Line 88, file testABW.f90)
+
+Name  Messages
+----  --------
+TRIM(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABW (Line 221, file testABW.f90)
+                   TESTABW (Line 226, file testABW.f90)
+
+Name  Messages
+----  --------
+shmem_n_pes(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTABW (Line 89, file testABW.f90)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

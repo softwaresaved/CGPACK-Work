@@ -1,0 +1,112 @@
+--------------------------------------------------------------------------------
+*** di1c13   Job: 3523920.sdb   started: 19/02/16 16:58:45   host: mom2 ***
+*** di1c13   Job: 3523920.sdb   started: 19/02/16 16:58:45   host: mom2 ***
+*** di1c13   Job: 3523920.sdb   started: 19/02/16 16:58:45   host: mom2 ***
+*** di1c13   Job: 3523920.sdb   started: 19/02/16 16:58:45   host: mom2 ***
+
+--------------------------------------------------------------------------------
+******************************************************
+******                                          ******
+******                 TEST AAA                 ******
+******                                          ******
+******************************************************
+CGPACK compiled with: Cray Fortran : Version 8.3.7
+CGPACK compiler options: -O cache2,fp2,scalar2,thread2,vector2,mpi0,modinline,ipa3,noaggress -O autoprefetch,noautothread,fusion2,nomsgs,negmsgs,nooverindex -O pattern,shortcircuit2,unroll2,nozeroinc -h noadd_paren,align_arrays,caf,noconcurrent,nocontiguous,nofp_trap -h nofunc_trace,nomessage,noomp_analyze,noomp_trace,nopat_trace -h safe_addr -h omp,noacc -h flex_mp=default -h cpu=x86-64,ivybridge,aries -K trap=none -s default32 -eh -d dgjmopvBDEIPQRSZ0 -e acnqswACFT -A TN_LIB_DEFINITIONS
+CGPACK cell state types:
+                 cgca_state_type_grain: 1
+                  cgca_state_type_frac: 2
+ 
+CGPACK grain layer states:
+                     cgca_liquid_state: 0
+ 
+CGPACK fracture layer states:
+                       cgca_state_null: 2147483647
+                  cgca_gb_state_intact: 2
+               cgca_gb_state_fractured: 1
+                     cgca_intact_state: 0
+             cgca_clvg_state_100_flank: -1
+              cgca_clvg_state_100_edge: -2
+             cgca_clvg_state_110_flank: -3
+              cgca_clvg_state_110_edge: -4
+             cgca_clvg_state_111_flank: -5
+              cgca_clvg_state_111_edge: -6
+                cgca_clvg_states_flank: -1 -3 -5
+                 cgca_clvg_states_edge: -2 -4 -6
+                      cgca_clvg_states: -1 -3 -5 -2 -4 -6
+                      cgca_frac_states: 1 -1 -3 -5 -2 -4 -6
+                cgca_clvg_lowest_state: -6
+ 
+CGPACK lowest state for both types:
+                     cgca_lowest_state: -2147483647
+ 
+CGPACK kinds:
+                                  iarr: 4
+                                  idef: 4
+                                  ilrg: 8
+                                  ldef: 4
+                                  rdef: 4
+                                  rlrg: 8
+ 
+CGPACK other parameters:
+                                    pi:         3.1415927410
+running on 24 images in a 3D grid
+ codim: 2*2,  6
+img: 1. my array, size: 3456. shape: 12 12 12 2 . lbound: 0 0 0 1 . ubound:11 11 11 2 . coar index: 1 1 1 . lcobound:1 1 1 . ucobound:2 2 6
+img: 12. my array, size: 3456. shape: 12 12 12 2 . lbound: 0 0 0 1 . ubound:11 11 11 2 . coar index: 2 2 3 . lcobound:1 1 1 . ucobound:2 2 6
+img: 8. my array, size: 3456. shape: 12 12 12 2 . lbound: 0 0 0 1 . ubound:11 11 11 2 . coar index: 2 2 2 . lcobound:1 1 1 . ucobound:2 2 6
+img: 21. my array, size: 3456. shape: 12 12 12 2 . lbound: 0 0 0 1 . ubound:11 11 11 2 . coar index: 1 1 6 . lcobound:1 1 1 . ucobound:2 2 6
+img: 22. my array, size: 3456. shape: 12 12 12 2 . lbound: 0 0 0 1 . ubound:11 11 11 2 . coar index: 2 1 6 . lcobound:1 1 1 . ucobound:2 2 6
+img: 14. my array, size: 3456. shape: 12 12 12 2 . lbound: 0 0 0 1 . ubound:11 11 11 2 . coar index: 2 1 4 . lcobound:1 1 1 . ucobound:2 2 6
+img: 18. my array, size: 3456. shape: 12 12 12 2 . lbound: 0 0 0 1 . ubound:11 11 11 2 . coar index: 2 1 5 . lcobound:1 1 1 . ucobound:2 2 6
+img: 15. my array, size: 3456. shape: 12 12 12 2 . lbound: 0 0 0 1 . ubound:11 11 11 2 . coar index: 1 2 4 . lcobound:1 1 1 . ucobound:2 2 6
+img: 17. my array, size: 3456. shape: 12 12 12 2 . lbound: 0 0 0 1 . ubound:11 11 11 2 . coar index: 1 1 5 . lcobound:1 1 1 . ucobound:2 2 6
+img: 7. my array, size: 3456. shape: 12 12 12 2 . lbound: 0 0 0 1 . ubound:11 11 11 2 . coar index: 1 2 2 . lcobound:1 1 1 . ucobound:2 2 6
+img: 13. my array, size: 3456. shape: 12 12 12 2 . lbound: 0 0 0 1 . ubound:11 11 11 2 . coar index: 1 1 4 . lcobound:1 1 1 . ucobound:2 2 6
+img: 16. my array, size: 3456. shape: 12 12 12 2 . lbound: 0 0 0 1 . ubound:11 11 11 2 . coar index: 2 2 4 . lcobound:1 1 1 . ucobound:2 2 6
+img: 11. my array, size: 3456. shape: 12 12 12 2 . lbound: 0 0 0 1 . ubound:11 11 11 2 . coar index: 1 2 3 . lcobound:1 1 1 . ucobound:2 2 6
+img: 4. my array, size: 3456. shape: 12 12 12 2 . lbound: 0 0 0 1 . ubound:11 11 11 2 . coar index: 2 2 1 . lcobound:1 1 1 . ucobound:2 2 6
+img: 20. my array, size: 3456. shape: 12 12 12 2 . lbound: 0 0 0 1 . ubound:11 11 11 2 . coar index: 2 2 5 . lcobound:1 1 1 . ucobound:2 2 6
+img: 24. my array, size: 3456. shape: 12 12 12 2 . lbound: 0 0 0 1 . ubound:11 11 11 2 . coar index: 2 2 6 . lcobound:1 1 1 . ucobound:2 2 6
+img: 9. my array, size: 3456. shape: 12 12 12 2 . lbound: 0 0 0 1 . ubound:11 11 11 2 . coar index: 1 1 3 . lcobound:1 1 1 . ucobound:2 2 6
+img: 10. my array, size: 3456. shape: 12 12 12 2 . lbound: 0 0 0 1 . ubound:11 11 11 2 . coar index: 2 1 3 . lcobound:1 1 1 . ucobound:2 2 6
+img: 23. my array, size: 3456. shape: 12 12 12 2 . lbound: 0 0 0 1 . ubound:11 11 11 2 . coar index: 1 2 6 . lcobound:1 1 1 . ucobound:2 2 6
+img: 6. my array, size: 3456. shape: 12 12 12 2 . lbound: 0 0 0 1 . ubound:11 11 11 2 . coar index: 2 1 2 . lcobound:1 1 1 . ucobound:2 2 6
+img: 2. my array, size: 3456. shape: 12 12 12 2 . lbound: 0 0 0 1 . ubound:11 11 11 2 . coar index: 2 1 1 . lcobound:1 1 1 . ucobound:2 2 6
+img: 5. my array, size: 3456. shape: 12 12 12 2 . lbound: 0 0 0 1 . ubound:11 11 11 2 . coar index: 1 1 2 . lcobound:1 1 1 . ucobound:2 2 6
+img: 3. my array, size: 3456. shape: 12 12 12 2 . lbound: 0 0 0 1 . ubound:11 11 11 2 . coar index: 1 2 1 . lcobound:1 1 1 . ucobound:2 2 6
+img: 19. my array, size: 3456. shape: 12 12 12 2 . lbound: 0 0 0 1 . ubound:11 11 11 2 . coar index: 1 2 5 . lcobound:1 1 1 . ucobound:2 2 6
+Image:11 space1 not allocated
+Image:10 space1 not allocated
+Image:1 space1 not allocated
+Image:23 space1 not allocated
+Image:14 space1 not allocated
+Image:12 space1 not allocated
+Image:17 space1 not allocated
+Image:7 space1 not allocated
+Image:8 space1 not allocated
+Image:3 space1 not allocated
+Image:21 space1 not allocated
+Image:2 space1 not allocated
+Image:22 space1 not allocated
+Image:6 space1 not allocated
+Image:5 space1 not allocated
+Image:4 space1 not allocated
+Image:13 space1 not allocated
+Image:9 space1 not allocated
+Image:15 space1 not allocated
+Image:16 space1 not allocated
+Image:18 space1 not allocated
+Image:24 space1 not allocated
+Image:20 space1 not allocated
+Image:19 space1 not allocated
+Application 20646603 resources: utime ~1s, stime ~1s, Rss ~5244, inblocks ~14110, outblocks ~28045
+--------------------------------------------------------------------------------
+
+Resources requested: ncpus=24,place=free,walltime=00:20:00
+Resources allocated: cpupercent=0,cput=00:00:00,mem=0kb,ncpus=24,vmem=0kb,walltime=00:00:03
+
+*** di1c13   Job: 3523920.sdb   ended: 19/02/16 16:58:47   queue: S3504586 ***
+*** di1c13   Job: 3523920.sdb   ended: 19/02/16 16:58:47   queue: S3504586 ***
+*** di1c13   Job: 3523920.sdb   ended: 19/02/16 16:58:47   queue: S3504586 ***
+*** di1c13   Job: 3523920.sdb   ended: 19/02/16 16:58:47   queue: S3504586 ***
+--------------------------------------------------------------------------------

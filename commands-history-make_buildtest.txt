@@ -1,0 +1,630 @@
+    1  ls
+    2  ssh cplab027
+    3  ls
+    4  exit
+    5  ls
+    6  echo $HOME
+    7  mkdir $HOME/cgpack
+    8  mkdir $HOME/lib
+    9  cd $HOME/cgpack
+   10  svn co https://svn.code.sf.net/p/cgpack/code/ .
+   11  cd head
+   12  ln -s Makefile-archer Makefile
+   13  nano Makefile
+   14  make
+   15  module add PrgEnv-cray
+   16  module list
+   17  ls
+   18  module list
+   19  ls
+   20  cd cgpack/head/
+   21  ls
+   22  nano Makefile
+   23  make
+   24  nano Makefile
+   25  make
+   26  nano Makefile
+   27  module list
+   28  module add PrgEnv-cray
+   29  module swap PrgEnv-gnu PrgEnv-cray
+   30  nano Makefile
+   31  make
+   32  ls
+   33  exit
+   34  ls
+   35  cd cgpack/head/
+   36  ls
+   37  module list
+   38  ls]
+   39  ls
+   40  nano Makefile
+   41  exit
+   42  ls
+   43  cd cgpack/head/
+   44  ls
+   45  nano Makefile
+   46  nano Makefile-bc3-oca 
+   47  exit
+   48  ls
+   49  cd cgpack/lib
+   50  cd cgpack/head
+   51  ls
+   52  module list
+   53  rm *.o
+   54  ls
+   55  nano Makefile
+   56  module load PrgEnv-cray/5.2.56
+   57  module list
+   58  ln -s Makefile-archer Makefile
+   59  nano Makefile-archer 
+   60  nano Makefile
+   61  make
+   62  ls
+   63  rm *.0
+   64  rm *.o
+   65  ls
+   66  ln -s Makefile-bc3-oca Makefile
+   67  rm Makefile
+   68  ls
+   69  ln -s Makefile-bc3-oca Makefile
+   70  nano Makefile
+   71  module list
+   72  make
+   73  module list intel
+   74  module load intel
+   75  module list
+   76  nano Makefile
+   77  make
+   78  nano Makefile`
+   79  nano Makefile
+   80  nano Makefile-archer 
+   81  nano Makefile
+   82  exit
+   83  ls
+   84  cd cgpack/head/
+   85  ls
+   86  make
+   87  nano Makefile
+   88  exit
+   89  ls
+   90  cd cgpack/head/
+   91  ls
+   92  nano Makefile
+   93  pwd
+   94  echo $HOME
+   95  nano Makefile
+   96  module list
+   97  ln -a Makefile-archer Makefile
+   98  ln -s Makefile-archer Makefile
+   99  rm Makefile
+  100  ln -s Makefile-archer Makefile
+  101  rm Makefile
+  102  ln -s Makefile-bc3-oca Makefile
+  103  nano Makefile
+  104  make
+  105  nano Makefile
+  106  module list
+  107  module load intel
+  108  module list
+  109  make
+  110  module load cmake
+  111  module list
+  112  make
+  113  nano Makefile
+  114  module load PrgEnv-intel
+  115  make
+  116  module list
+  117  nano Makefile
+  118  module load PrgEnv-cray
+  119  make
+  120  module list
+  121  nano Makefile
+  122  make
+  123  nano Makefile
+  124  make
+  125  nano Makefile
+  126  make
+  127  nano Makefile
+  128  make
+  129  nano Makefile
+  130  make
+  131  nano Makefile
+  132  make
+  133  nano Makefile
+  134  make
+  135  nano Makefile
+  136  rm Makefile
+  137  ln -s Makefile-archer Makefile
+  138  make
+  139  nano Makefile
+  140  make
+  141  make clean
+  142  make 
+  143  nano Makefile
+  144  nano Makefile-archer 
+  145  nano Makefile
+  146  make clean
+  147  make 
+  148  nano cgca_m3clvg.F90 
+  149  ls
+  150  exit
+  151  ls
+  152  cd cgpack/head/
+  153  ls
+  154  nano Makefile
+  155  module load PrgEnv-cray
+  156  module load cmake 
+  157  make
+  158  nano Makefile
+  159  nano cgca_m3clvg.F90 
+  160  module list]
+  161  gfortran-4.6 -c cgca_m3clvg.F90 -fcoarray=lib
+  162  gfortran-4.6 -c cgca_m3clvg.F90
+  163  ls
+  164  gfortran cgca_m3clvg.F90
+  165  gfortran-4.6 -c cgca_m3clvg.F90
+  166  make
+  167  nano Makefile
+  168  make
+  169  exit
+  170  ls
+  171  cd cgpack/head/
+  172  ls
+  173  nano Makefile
+  174  module list
+  175  make
+  176  ftn -c coarray cgca_m3clvg.F90 
+  177  nano cgca_m3clvg
+  178  nano cgca_m3clvg.f90
+  179  nano cgca_m3clvg.F90 
+  180  rm Makefile
+  181  ln -s Makefile-bc3-oca Makefile
+  182  nano Makefile
+  183  make
+  184  pwd
+  185  cd ../..
+  186  ls
+  187  rm cgpack/
+  188  rm -r cgpack/
+  189  rmdir cgpack/
+  190  clear
+  191  rm cgpack/
+  192  ls
+  193  ls lib/
+  194  rm lib/
+  195  rm -r lib/
+  196  ls
+  197  clear
+  198  rm -r cgpack/
+  199  clear
+  200  ls
+  201  svn delete cgpack/
+  202  ls
+  203  svn delete cgpack/head/
+  204  svn delete cgpack/*
+  205  svn delete cgpack/head/*
+  206  clear
+  207  pwd
+  208  svn rm cgpack/
+  209  svn delete cgpack/
+  210  clear
+  211  ls
+  212  ls cgpack/
+  213  rm -rf cgpack/
+  214  ls
+  215  mkdir $HOME/cgpack
+  216  mkdir $HOME/lib
+  217  ls
+  218  cd $HOME/cgpack
+  219  ls
+  220  svn co https://svn.code.sf.net/p/cgpack/code/ .
+  221  ls
+  222  cd head
+  223  ls
+  224  ln -s Makefile-archer Makefile
+  225  make
+  226  ls ../lib
+  227  pwd
+  228  ls ..
+  229  ls ../../lib/
+  230  make install
+  231  ls ../../lib/
+  232  ls 
+  233  cd tests
+  234  ls
+  235  ln -s Makefile-archer Makefile
+  236  nano Makefile
+  237  make
+  238  nano testABK.f90 
+  239  module list
+  240  module avail cray
+  241  module load perftools-lite
+  242  make
+  243  nano testABX.f90 
+  244  ./testAAA.x
+  245  ./testAAB.x
+  246  make
+  247  ls ..
+  248  nano ../cgca_m2out.F90 
+  249  nano testABX.f90 
+  250  module avail cr
+  251  module avail cray*
+  252  module list
+  253  make
+  254  make -f Makefile-bc-shared
+  255  make
+  256  module load cray-mpich
+  257  make
+  258  cd ..
+  259  make
+  260  make clean
+  261  make
+  262  cd tests
+  263  make clean
+  264  make
+  265  exit
+  266  ls
+  267  cd cgpack/head/
+  268  ls
+  269  module load perftools
+  270  module load cray-mpich
+  271  make
+  272  cd tests
+  273  ls
+  274  make
+  275  ls
+  276  cd cgpack/head/
+  277  module load peftoolslite
+  278  module load peftools
+  279  clear
+  280  module load perftools-lite
+  281  ls
+  282  cd tests
+  283  nano Makefile
+  284  ls ../../../lib/libcgpack.a 
+  285  exit
+  286  ls
+  287  cd cgpack/head/
+  288  ls
+  289  nano Makefile
+  290  rxit
+  291  exit
+  292  ls
+  293  cd cgpack/head/
+  294  ls
+  295  make clean
+  296  nano Makefile
+  297  make
+  298  ls ../..
+  299  make install
+  300  make deinstall
+  301  make install
+  302  ls ../../
+  303  exit
+  304  cd cgpack/head/tests/
+  305  nano Makefile
+  306  make
+  307  module load perftools-lit
+  308  module load perftools-lite
+  309  make
+  310  exit
+  311  ls
+  312  cd cgpack/
+  313  ls
+  314  cd head
+  315  ls
+  316  cd tests
+  317  ls
+  318  make clean
+  319  l
+  320  ls
+  321  make
+  322  module load perftools-lite
+  323  make
+  324  module list
+  325  exit
+  326  cd cgpack/head
+  327  ls
+  328  cd tests
+  329  ls
+  330  ./testAAA.x 
+  331  module load openmpi
+  332  module load mpich
+  333  clear
+  334  module list
+  335  ./testABW.x
+  336  ./testABB.x
+  337  exit
+  338  ls
+  339  cd cgpack/head/tests/
+  340  ls
+  341  ./testAAA.x 
+  342  ./testAAJ.x
+  343  ls
+  344  cd ..
+  345  pwd
+  346  cd ..
+  347  ls
+  348  svn update .
+  349  pwd
+  350  cd head
+  351  ls
+  352  make clean
+  353  ls
+  354  make
+  355  make install
+  356  make deinstall
+  357  make install
+  358  cd tests
+  359  make
+  360  module load perftools-lite
+  361  make install
+  362  make
+  363  ls
+  364  nano Makefile
+  365  make install
+  366  ./testAAA.x
+  367  exit
+  368  ls
+  369  cd cgpack/head/
+  370  ls
+  371  cd tests
+  372  ./testAAA.x
+  373  pwd
+  374  cd
+  375  pwd
+  376  cd ../../../
+  377  pwd
+  378  cd ..
+  379  pwd
+  380  cd work/
+  381  ls
+  382  pwd
+  383  man pbs
+  384  pwd
+  385  module list
+  386  qstat -q 
+  387  qstat -u $USER
+  388  qstat -q -a
+  389  qstat -a
+  390  ls
+  391  cd c01
+  392  ls
+  393  cd c01/
+  394  cd ..
+  395  cd y01
+  396  cd y01/
+  397  ls
+  398  cd shared/
+  399  ls
+  400  cd ../..
+  401  checkQueue
+  402  cd ..
+  403  ls
+  404  cd home
+  405  cd ../work
+  406  ls
+  407  ls ../home/Hi Anton,
+  408  Thank you for updating.
+  409  Yes, i could make that out when I was trying to resolve certain issues I was having while compiling and building on ARCHER and suddenly all errors disappeared.
+  410  However, when I tried compiling the test scripts, it successfully builds. But I am not able to see anything or any output when I run the test executables.
+  411  Please find the screenshot attached herewith:
+  412  I logged in using 'SSH -X username@login.archer.ac.uk'.
+  413  Error as below:
+  414  'Couldn't find factory settings for the system.'
+  415  Is there any specific module that I need to load on ARCHER to render the test cases? What output am I supposed to see?
+  416  Also, I get error (highlighted in attached screenshot) with 'ca_check1.f90' file in tests directory while doing 'make' on Iridis (Southampton supercomputer) with Intel/2016 compiler. I believe its the issue with version of Intel compiler or internal compiler error but all the steps prior to that were successful. 
+  417  --
+  418  Thanks and Regards,
+  419  DevasenaHi Anton,
+  420  Thank you for updating.
+  421  Yes, i could make that out when I was trying to resolve certain issues I was having while compiling and building on ARCHER and suddenly all errors disappeared.
+  422  However, when I tried compiling the test scripts, it successfully builds. But I am not able to see anything or any output when I run the test executables.
+  423  Please find the screenshot attached herewith:
+  424  I logged in using 'SSH -X username@login.archer.ac.uk'.
+  425  Error as below:
+  426  'Couldn't find factory settings for the system.'
+  427  Is there any specific module that I need to load on ARCHER to render the test cases? What output am I supposed to see?
+  428  Also, I get error (highlighted in attached screenshot) with 'ca_check1.f90' file in tests directory while doing 'make' on Iridis (Southampton supercomputer) with Intel/2016 compiler. I believe its the issue with version of Intel compiler or internal compiler error but all the steps prior to that were successful. 
+  429  --
+  430  Thanks and Regards,
+  431  clear
+  432  ls
+  433  exit
+  434  pwd
+  435  cd ../../../work
+  436  pwd
+  437  cd ../../../../work/
+  438  ls
+  439  cd ../home/y14/y14/di1c13
+  440  cd cgpack/head/tests
+  441  bolt -o cgpack_testAAA.bolt -j cgpack_testAAA -A y14-budget testAAA.x 2 2
+  442  ls
+  443  qsub cgpack_testAAA.bolt 
+  444  bolt -o cgpack_testAAA.bolt -j cgpack_testAAA testAAA.x 2 2
+  445  qsub cgpack_testAAA.bolt 
+  446  qstat 3523383.sdb
+  447  qstat -x 3523383.sdb
+  448  ls
+  449  nano cgpack_testAAA.e3523383 
+  450  nano cgpack_testAAA.o3523383 
+  451  pwd
+  452  cd ../../../../../work
+  453  cd ../../../../work
+  454  cd ../../../work
+  455  pwd
+  456  cd ../../../../../../../work
+  457  ls
+  458  cd y14/y14
+  459  cd di1c13/
+  460  ls
+  461  bolt -o cgpack_testAAA.bolt -j cgpack_testAAA ../../../../home/y14/y14/di1c13/cgpack/head/tests/testAAA.x 2 2
+  462  ls
+  463  qsub cgpack_testAAA.bolt 
+  464  qstat 523434.sdb
+  465  qstat 3523434.sdb
+  466  ls
+  467  qstat 3523434.sdb
+  468  ls
+  469  ls -al
+  470  nano cgpack_testAAA.e3523434 
+  471  ls
+  472  nano cgpack_testAAA.bolt 
+  473  module load perftools-lite
+  474  bolt -o cgpack_testAAA.bolt -j cgpack_testAAA ../../../../home/y14/y14/di1c13/cgpack/head/tests/testAAA.x 2 2
+  475  ls
+  476  qsub cgpack_testAAA.bolt 
+  477  rm cgpack_testAAA.e3523434 
+  478  rm cgpack_testAAA.o3523434 
+  479  qstat 3523466.sdb
+  480  ls
+  481  cat cgpack_testAAA.e3523466 
+  482  cat cgpack_testAAA.bolt 
+  483  nano cgpack_testAAA.bolt 
+  484  cd ../../../../home/y14/y14/di1c13/cgpack/head/tests
+  485  ls
+  486  nano testAAA.bolt
+  487  qsub -q short testAAA.bolt 
+  488  qstat 3523807.sdb
+  489  ls
+  490  nano testAAA.e3523807 
+  491  nano testAAA.o3523807 
+  492  nano testAAA.bolt
+  493  qsub -q short testAAA.bolt 
+  494  qstat 3523812.sdb
+  495  ls
+  496  qstat 3523812.sdb
+  497  ls
+  498  nano testAAA.e3523812 
+  499  nano testAAA.bolt 
+  500  rm testAAA.e*
+  501  ls
+  502  rm testAAA.o3*
+  503  ls
+  504  pwd
+  505  nano testAAA.bolt 
+  506  qsub -q short testAAA.bolt 
+  507  qstat 3523827.sdb
+  508  ls
+  509  nano testAAA.e3523827 
+  510  cp /home/y14/y14/di1c13/cgpack/ /home3/y14/y14/di1c13/cgpack/
+  511  ls /home3/y14/y14/di1c13/cgpack/
+  512  ls /home3/y14/y14/di1c13/cgpack/head/tests/
+  513  qsub -q short testAAA.bolt 
+  514  qstat 3523838.sdb
+  515  ls
+  516  nano testAAA.e3523838 
+  517  ls /home3/y14/y14/di1c13/cgpack/head/tests
+  518  echo $PBS_O_WORKDIR
+  519  cd ../../../../work/y14/y14/di1c13
+  520  cd ../../../../work/
+  521  cd ../../../../../../work/y14/y14/di1c13
+  522  cd ../../../../../../../work/y14/y14/di1c13
+  523  ls
+  524  nano testAAA.bolt
+  525  mv testAAA.bolt cgpack_testAAA.bolt 
+  526  cat cgpack_testAAA.bolt 
+  527  ls
+  528  rm cgpack_testAAA.e*
+  529  rm cgpack_testAAA.o*
+  530  ls
+  531  cd ../../../../home/y14/y14/di1c13/cgpack/head/tests/
+  532  qsub ../../../../../../../work/y14/y14/di1c13/cgpack_testAAA.bolt 
+  533  qstat 3523877.sdb
+  534  qsub -q short ../../../../../../../work/y14/y14/di1c13/cgpack_testAAA.bolt 
+  535  qstat 3523877.sdb
+  536  qstat 3523887.sdb
+  537  clear
+  538  qstat 3523887.sdb
+  539  ls
+  540  clear
+  541  qstat 3523887.sdb
+  542  ls
+  543  nano testAAA.e3523887 
+  544  rm testAAA.bolt 
+  545  ls
+  546  pwd
+  547  clear
+  548  qsub -q short ../../../../../../../work/y14/y14/di1c13/cgpack_testAAA.bolt 
+  549  qstat 3523896.sdb
+  550  ls
+  551  nano test.e3523896
+  552  nano testAAA.e3523896
+  553  rm testAAA.e*
+  554  ls
+  555  nano testAAA.03523896
+  556  nano testAAA.o3523896
+  557  rm testAAA.o3*
+  558  ls
+  559  clear
+  560  pwd
+  561  ls
+  562  cd ../../../../../../
+  563  pwd
+  564  cd ../work/y14/y14/di1c13
+  565  ls
+  566  nano cgpack_testAAA.bolt
+  567  qsub -q short cgpack_testAAA.bolt 
+  568  qstat 3523920.sdb
+  569  ls
+  570  nano testAAA.e3523920 
+  571  nano testAAA.o3523920 
+  572  scp testAAA.o3523920 testAAA.o3523920 
+  573  ls
+  574  nano testAAA.o3523920 
+  575  exit
+  576  ls
+  577  pwd
+  578  mkdir CGPACK-ARCHER
+  579  cp cgpack/ CGPACK-ARCHER/
+  580  ls CGPACK-ARCHER/
+  581  ls
+  582  ls CGPACK-ARCHER/
+  583  ls cgpack/
+  584  exit
+  585  ls
+  586  cd cgpack/
+  587  ls
+  588  svn update .
+  589  cd ..
+  590  ls CGPACK-ARCHER/
+  591  exit
+  592  ls
+  593  cd cgpack
+  594  ls
+  595  history
+  596  cd ..
+  597  ls
+  598  cp cgpack/* CGPACK-ARCHER/
+  599  ls CGPACK-ARCHER/
+  600  cp cgpack/* CGPACK-ARCHER/*
+  601  mkdir CGPACK-ARCHER/head
+  602  cp cgpack/head/ CGPACK-ARCHER/head/
+  603  ls CGPACK-ARCHER/head/
+  604  cp cgpack/head/* CGPACK-ARCHER/head/*
+  605  cp cgpack/head/* CGPACK-ARCHER/head/
+  606  ls CGPACK-ARCHER/head/
+  607  cp cgpack/head/doc CGPACK-ARCHER/head/doc
+  608  cp cgpack/head/doc/* CGPACK-ARCHER/head/doc
+  609  mkdir CGPACK-ARCHER/head/doc
+  610  cp cgpack/head/doc/* CGPACK-ARCHER/head/doc
+  611  mkdir CGPACK-ARCHER/head/tests
+  612  cp cgpack/head/tests/* CGPACK-ARCHER/head/tests
+  613  mkdir CGPACK-ARCHER/head/tests/templates
+  614  cp cgpack/head/tests/templates/* CGPACK-ARCHER/head/tests/templates/
+  615  pwd
+  616  ls CGPACK-ARCHER/head/
+  617  ls cgpack/
+  618  mkdir CGPACK-ARCHER/branches
+  619  cp cgpack/branches/* CGPACK-ARCHER/branches/
+  620  mkdir CGPACK-ARCHER/branches/io
+  621  cp cgpack/branches/io/* CGPACK-ARCHER/branches/io/
+  622  mkdir CGPACK-ARCHER/branches/io/CrayParallelIO
+  623  cp cgpack/branches/io/CrayParallelIO/* CGPACK-ARCHER/branches/io/CrayParallelIO/
+  624  mkdir CGPACK-ARCHER/releases
+  625  cp cgpack/releases/* CGPACK-ARCHER/releases/*
+  626  cp cgpack/releases/* CGPACK-ARCHER/releases/
+  627  rm -rf CGPACK-ARCHER/releases/
+  628  ls CGPACK-ARCHER/
+  629  cd CGPACK-ARCHER/
+  630  history > commands-history-make_buildtest.txt

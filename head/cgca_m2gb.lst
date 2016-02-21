@@ -1,0 +1,1510 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S u m m a r y   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Compilation
+-----------
+File     : /home3/y14/y14/di1c13/cgpack/head/cgca_m2gb.f90
+Compiled : 02/18/16  16:36:31
+Compiler : Version 8.3.7
+Ftnlx    : Version 8318 (libcif 83016)
+Target   : x86-64
+Command  : ftn_driver.exe -hcpu=ivybridge -hstatic -D__CRAYXC
+           -D__CRAY_IVYBRIDGE -D__CRAYXT_COMPUTE_LINUX_TARGET -hnetwork=aries
+           -c -eacFn -dm -m2 -rl -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/mpt/7.1.1/gni/mpich2-cray/83/include
+           -I/opt/cray/libsci/13.0.1/CRAY/83/sandybridge/include
+           -I/opt/cray/rca/1.0.0-2.0502.57212.2.56.ari/include
+           -I/opt/cray/alps/5.2.3-2.0502.9295.14.14.ari/include
+           -I/opt/cray/xpmem/0.1-2.0502.57015.1.15.ari/include
+           -I/opt/cray/gni-headers/4.0-1.0502.10317.9.2.ari/include
+           -I/opt/cray/dmapp/7.0.1-1.0502.10246.8.47.ari/include
+           -I/opt/cray/pmi/5.0.6-1.0000.10439.140.2.ari/include
+           -I/opt/cray/ugni/6.0-1.0502.10245.9.9.ari/include
+           -I/opt/cray/udreg/2.3.2-1.0502.9889.2.20.ari/include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/pkgconfig/../include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/wlm_detect/1.0-1.0502.57063.1.1.ari/include
+           -I/opt/cray/krca/1.0.0-2.0502.57202.2.45.ari/include
+           -I/opt/cray-hss-devel/7.2.0/include cgca_m2gb.f90
+
+ftnlx report
+------------
+Source   : /home3/y14/y14/di1c13/cgpack/head/cgca_m2gb.f90
+Date     : 02/18/2016  16:36:32
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S o u r c e   L i s t i n g
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    1.    !$Id: cgca_m2gb.f90 210 2016-02-17 16:31:00Z mexas $
+    2.    
+    3.    !*********************************************************************72
+    4.    
+    5.    !*robodoc*m* CGPACK/cgca_m2gb
+    6.    !  NAME
+    7.    !    cgca_m2gb
+    8.    !  SYNOPSIS
+    9.    
+   10.    module cgca_m2gb
+   11.    
+   12.    !  DESCRIPTION
+   13.    !    Module dealing with grain boundaries.
+   14.    !    Most routines in this module are concerned with creating,
+   15.    !    updating and printing of the *local* array gc.
+   16.    !  AUTHOR
+   17.    !    Anton Shterenlikht
+   18.    !  COPYRIGHT
+   19.    !    See CGPACK_Copyright
+   20.    !  CONTAINS
+   21.    !    cgca_gcu, cgca_gcp,
+   22.    !    cgca_dgc, cgca_gcf, cgca_gcr, cgca_gbs,
+   23.    !    cgca_agc (private to this module)
+   24.    !  USES
+   25.    !    cgca_m1co
+   26.    !  USED BY
+   27.    !    cgca_m3clvg
+   28.    !  SOURCE
+   29.    
+   30.    use cgca_m1co
+   31.    implicit none
+   32.    
+   33.    private
+   34.    public :: cgca_dgc, cgca_gbs, cgca_gcf, cgca_gcp, cgca_gcr,            &
+   35.              cgca_gcu, cgca_igb
+   36.    
+   37.    !*roboend*
+   38.    
+   39.    
+   40.    !*robodoc*d* cgca_m2gb/gc
+   41.    !  NAME
+   42.    !    gc
+   43.    !  SYNOPSIS
+   44.    
+   45.    integer( kind=iarr ), allocatable, save :: gc(:,:)
+   46.    
+   47.    !  DESCRIPTION
+   48.    !    Local, *not* coarray, grain connectivity (GC) array. This
+   49.    !    array must be SAVEd.
+   50.    !  NOTES
+   51.    !    GC is a private array. It is not accessible from outside of
+   52.    !    cgca_m2gb module, hence we can use a simple name, with no
+   53.    !    cgca_ prefix.
+   54.    !    GC is zero initially!
+   55.    !  USED BY
+   56.    !    All routines of module cgca_m2gb:
+   57.    !    cgca_gcu, cgca_gcp, cgca_agc, cgca_dgc, cgca_gcf, cgca_gcr.
+   58.    !*roboend*
+   59.    
+   60.    contains
+   61.    
+   62.    !*robodoc*s* cgca_m2gb/cgca_gcu
+   63.    !  NAME
+   64.    !    cgca_gcu
+   65.    !  SYNOPSIS
+   66.    
+   67.    subroutine cgca_gcu( coarray )
+   68.    
+   69.    !  INPUT
+   70.    
+   71.    integer( kind=iarr ), allocatable, intent(in) :: coarray(:,:,:,:)[:,:,:]
+   72.    
+   73.    !  SIDE EFFECTS
+   74.    !    Updated state of gc array
+   75.    !  DESCRIPTION
+   76.    !    Update a local grain connectivity (GC) array. This means:
+   77.    !    scan the whole of the local real (no halos) model coarray.
+   78.    !    For each cell check all 26 neighbours.
+   79.    !    When a cell has a neighbour of a different number, this
+   80.    !    is understood as a grain boundary between the grains
+   81.    !    denoted by the states of both cells. If this pair is not
+   82.    !    already in GC, then it is added to it in the right place.
+   83.    !    GC is sorted, first by the first column, then by the second.
+   84.    !
+   85.    !    state(26,2) - 26 possible pairs of different states, and 2 states.
+   86.    !    In practice, 26 is a stupid value.
+   87.    !    This can only happen if a grain is only 1 cell, and if each of the
+   88.    !    26 neighbouring cells has a unique different value.
+   89.    !    Anyway, defining the array of this size seems fool proof. 
+   90.    !
+   91.    !    The 3rd entry in each row of GC is the grain boundary integrity,
+   92.    !    either cgca_gb_state_intact - intact or cgca_gb_state_fractured -
+   93.    !    fractured.
+   94.    !  NOTES
+   95.    !    Only the (:,:,:,cgca_state_type_grain) values are used in this
+   96.    !    routine.
+   97.    !    The cgca_state_type_frac values are *not* used.
+   98.    !  USES
+   99.    !    gc, cgca_agc, cgca_dgc
+  100.    !  USED BY
+  101.    !    via module cgca_m2gb
+  102.    !  SOURCE
+  103.    
+  104.    integer( kind=iarr ), allocatable :: tmp(:,:)
+  105.    integer( kind=iarr ) :: state(26,2) = 0_iarr, i, j, gclen
+  106.    integer :: errstat=0, x1, x2, x3, n1, n2, n3, lbr(4), ubr(4), pair,    &
+  107.     con, img
+  108.    
+  109.    img = this_image()
+  110.    
+  111.    !*********************************************************************72
+  112.    ! checks
+  113.    !*********************************************************************72
+  114.    
+  115.    if ( .not. allocated(coarray) ) then
+  116.     write (*,'(a,i0)') "ERROR: cgca_gc: coarray not allocated, img: ", img
+  117.     error stop
+  118.    end if
+  119.    
+  120.    !*********************************************************************72
+  121.    ! end of checks
+  122.    !*********************************************************************72
+  123.    
+  124.    ! if GC not already allocated, allocate to zero length!
+  125.    if ( .not.  allocated( gc ) ) call cgca_agc(0)
+                                             ^           
+ftn-3171 ftn: IPA CGCA_GCU, File = cgca_m2gb.f90, Line = 125, Column = 36 
+  "cgca_agc" (called from "cgca_gcu") was not inlined because it is not in the body of a loop.
+
+  126.    
+  127.    ! Assume the coarray has halos. Ignore those
+  128.    lbr = lbound( coarray ) + 1
+ftn-6205 ftn: VECTOR File = cgca_m2gb.f90, Line = 128 
+  A loop starting at line 128 was vectorized with a single vector iteration.
+
+  129.    ubr = ubound( coarray ) - 1
+ftn-6004 ftn: SCALAR File = cgca_m2gb.f90, Line = 129 
+  A loop starting at line 129 was fused with the loop starting at line 128.
+
+  130.    
+  131.           do x3 = lbr(3), ubr(3)
+ftn-6262 ftn: VECTOR File = cgca_m2gb.f90, Line = 131 
+  A loop starting at line 131 was not vectorized because it contains a call to a subroutine or function on line 196.
+
+  132.           do x2 = lbr(2), ubr(2)
+ftn-6262 ftn: VECTOR File = cgca_m2gb.f90, Line = 132 
+  A loop starting at line 132 was not vectorized because it contains a call to a subroutine or function on line 196.
+
+  133.    inner: do x1 = lbr(1), ubr(1)
+ftn-6262 ftn: VECTOR File = cgca_m2gb.f90, Line = 133 
+  A loop starting at line 133 was not vectorized because it contains a call to a subroutine or function on line 196.
+
+  134.    
+  135.      ! Loop over 26 neighbours, find all neighbours with different states
+  136.      pair = 0
+  137.      do n3 = x3-1, x3+1
+ftn-6254 ftn: VECTOR File = cgca_m2gb.f90, Line = 137 
+  A loop starting at line 137 was not vectorized because a recurrence was found on "pair" at line 149.
+
+  138.      do n2 = x2-1, x2+1
+ftn-6254 ftn: VECTOR File = cgca_m2gb.f90, Line = 138 
+  A loop starting at line 138 was not vectorized because a recurrence was found on "pair" at line 149.
+
+  139.      do n1 = x1-1, x1+1
+ftn-6254 ftn: VECTOR File = cgca_m2gb.f90, Line = 139 
+  A loop starting at line 139 was not vectorized because a recurrence was found on "pair" at line 149.
+
+  140.    
+  141.        ! if the states differ but no liquid
+  142.        if ( ( coarray(x1,x2,x3,cgca_state_type_grain) .ne.                &
+  143.               coarray(n1,n2,n3,cgca_state_type_grain) )                   &
+  144.             .and.                                                         &
+  145.             (coarray(n1,n2,n3,cgca_state_type_grain) .ne.                 &
+  146.              cgca_liquid_state) ) then
+  147.    
+  148.          ! this is another pair
+  149.          pair = pair + 1
+  150.    
+  151.          ! add this pair to state array
+  152.          state( pair, 1 ) = coarray( x1, x2, x3, cgca_state_type_grain )
+  153.          state( pair, 2 ) = coarray( n1, n2, n3, cgca_state_type_grain )
+  154.    
+  155.          ! Make state(pair,1) < state(pair,2)
+  156.          if ( coarray(n1,n2,n3,cgca_state_type_grain) .lt.                &
+  157.               coarray(x1,x2,x3,cgca_state_type_grain) ) then 
+  158.    
+  159.            ! swap them
+  160.            state(pair,1) = coarray(n1,n2,n3,cgca_state_type_grain)
+  161.            state(pair,2) = coarray(x1,x2,x3,cgca_state_type_grain)
+  162.          end if
+  163.        end if
+  164.    
+  165.      end do
+  166.      end do
+  167.      end do
+  168.    
+  169.      ! At the end of the this loop, "state" array will have
+  170.      ! all pairs of different grains containg the central cell.
+  171.      ! Now all of these pair, which are not already in GC, need
+  172.      ! to be added there.
+  173.    
+  174.      ! For all identified pairs of states
+  175.      newcon: do con = 1, pair
+ftn-6262 ftn: VECTOR File = cgca_m2gb.f90, Line = 175 
+  A loop starting at line 175 was not vectorized because it contains a call to a subroutine or function on line 196.
+
+  176.    
+  177.        ! Check if this connectivity is already in the GC array.
+  178.        ! If yes, cycle to the next pair.
+  179.        gclen = ubound( gc, dim=1 )
+  180.    
+  181.        do i = 1, gclen
+ftn-6221 ftn: VECTOR File = cgca_m2gb.f90, Line = 181 
+  A loop starting at line 181 uses a checked speculative load of "state".
+
+ftn-6334 ftn: VECTOR File = cgca_m2gb.f90, Line = 181 
+  A loop starting at line 181 was not vectorized because it contains multiple potential exits.
+
+  182.          ! each pair repeats twice, so the order doesn't matter
+  183.          ! If the pair is already in GC, then cycle
+  184.          if ( gc(i,1) .eq. state(con,1) .and. &
+  185.               gc(i,2) .eq. state(con,2) ) cycle newcon
+  186.        end do
+  187.    
+  188.        ! If this connectivity is not yet in the GC array, then extend
+  189.        ! the GC array by 2 rows.
+  190.        gclen = gclen + 2
+  191.    
+  192.    ! this should be replaced by MOVE_ALLOC!!!
+  193.    
+  194.        ! Allocate a temp array with length 2 more than GC, and set
+  195.        ! to intact.
+  196.        allocate( tmp(gclen, 3), source=0_iarr, stat=errstat )
+ftn-7418 ftn: CAUTION File = cgca_m2gb.f90, Line = 196 
+  Fortran allocatable variable "tmp" may be used before being allocated.
+
+  197.        if (errstat .ne. 0) then
+  198.          write (*,'(2(a,i0))') "ERROR: cgca_gc: img: ", img,              &
+  199.                            " cannot allocate tmp, error code: ", errstat
+  200.          error stop
+  201.        end if
+  202.    
+  203.        ! Copy GC to the beginning of the temp array
+  204.        tmp(1:gclen-2,:) = gc
+ftn-6202 ftn: VECTOR File = cgca_m2gb.f90, Line = 204 
+  A loop starting at line 204 was replaced by a library call.
+
+ftn-6302 ftn: VECTOR File = cgca_m2gb.f90, Line = 204 
+  A loop starting at line 204 was not vectorized because the loop starting at line 181 was not vectorizable.
+
+  205.    
+  206.        ! Can replace this with move_alloc, but I make use of the
+  207.        ! temp array later, so this is better!
+  208.        call cgca_dgc
+                   ^        
+ftn-3001 ftn: IPA CGCA_GCU, File = cgca_m2gb.f90, Line = 208, Column = 10 
+  The call to tiny leaf routine "cgca_dgc" was textually inlined.
+
+  209.        call cgca_agc( gclen )
+                   ^                 
+ftn-3095 ftn: IPA CGCA_GCU, File = cgca_m2gb.f90, Line = 209, Column = 10 
+  "cgca_agc" (called from "cgca_gcu") was not inlined because the containing loop does I/O.
+
+  210.        gc = tmp
+ftn-6231 ftn: VECTOR File = cgca_m2gb.f90, Line = 210 
+  A statement was replaced by a library call.
+
+ftn-6302 ftn: VECTOR File = cgca_m2gb.f90, Line = 210 
+  A loop starting at line 210 was not vectorized because the loop starting at line 181 was not vectorizable.
+
+  211.    
+  212.    !********************************************************
+  213.    ! debug output
+  214.    !
+  215.    !if (this_image() .eq. 1) then
+  216.    ! do k=1,gclen
+  217.    !  write (*,*) gc(k,:)
+  218.    ! end do
+  219.    ! write (*,*) "state1,state2",state(con,1),state(con,2)
+  220.    !end if
+  221.    !********************************************************
+  222.    
+  223.        ! find where to insert the first pair: state(con,1), state(con,2)
+  224.        i1: do i=1,gclen
+ftn-6302 ftn: VECTOR File = cgca_m2gb.f90, Line = 224 
+  A loop starting at line 224 was not vectorized because the loop starting at line 181 was not vectorizable.
+
+  225.    
+  226.          ! If state(con,1) doesn't exist in the first row at all, but
+  227.          ! is smaller that some existing value
+  228.          if (state(con,1) .lt. gc(i,1)) then
+  229.            tmp(1:gclen-i-1,:) = gc(i:gclen-2,:)
+ftn-6202 ftn: VECTOR File = cgca_m2gb.f90, Line = 229 
+  A loop starting at line 229 was replaced by a library call.
+
+ftn-6302 ftn: VECTOR File = cgca_m2gb.f90, Line = 229 
+  A loop starting at line 229 was not vectorized because the loop starting at line 181 was not vectorizable.
+
+  230.            gc(i,1) = state(con,1)
+  231.            gc(i,2) = state(con,2)
+  232.            gc(i,3) = cgca_gb_state_intact
+  233.            gc(i+1:gclen-1,:) = tmp(1:gclen-i-1,:)
+ftn-6202 ftn: VECTOR File = cgca_m2gb.f90, Line = 233 
+  A loop starting at line 233 was replaced by a library call.
+
+ftn-6302 ftn: VECTOR File = cgca_m2gb.f90, Line = 233 
+  A loop starting at line 233 was not vectorized because the loop starting at line 181 was not vectorizable.
+
+  234.            exit i1
+  235.          else if (state(con,1) .eq. gc(i,1)) then
+  236.    
+  237.            ! If state(con,1) already exists in the first column, then
+  238.            ! need to sort by the second column
+  239.            do j=i,gclen
+ftn-6302 ftn: VECTOR File = cgca_m2gb.f90, Line = 239 
+  A loop starting at line 239 was not vectorized because the loop starting at line 181 was not vectorizable.
+
+  240.              if (state(con,2) .lt. gc(j,2)) then
+  241.                tmp(1:gclen-j-1,:) = gc(j:gclen-2,:)
+ftn-6202 ftn: VECTOR File = cgca_m2gb.f90, Line = 241 
+  A loop starting at line 241 was replaced by a library call.
+
+ftn-6302 ftn: VECTOR File = cgca_m2gb.f90, Line = 241 
+  A loop starting at line 241 was not vectorized because the loop starting at line 181 was not vectorizable.
+
+  242.                gc(j,1) = state(con,1)
+  243.                gc(j,2) = state(con,2)
+  244.                gc(j,3) = cgca_gb_state_intact
+  245.                gc(j+1:gclen-1,:) = tmp(1:gclen-j-1,:)
+ftn-6202 ftn: VECTOR File = cgca_m2gb.f90, Line = 245 
+  A loop starting at line 245 was replaced by a library call.
+
+ftn-6302 ftn: VECTOR File = cgca_m2gb.f90, Line = 245 
+  A loop starting at line 245 was not vectorized because the loop starting at line 181 was not vectorizable.
+
+  246.                exit i1
+  247.              else if (state(con,2) .gt. gc(j,2) .and.    &
+  248.                       gc(j+1,1) .ne. gc(j,1) ) then
+  249.    
+  250.                ! If state(con,2) is greater than all column 2 values,
+  251.                ! for the same column 1 value, just add it *after* this
+  252.                ! row.
+  253.                tmp(1:gclen-j-2,:) = gc(j+1:gclen-2,:)
+ftn-6202 ftn: VECTOR File = cgca_m2gb.f90, Line = 253 
+  A loop starting at line 253 was replaced by a library call.
+
+ftn-6302 ftn: VECTOR File = cgca_m2gb.f90, Line = 253 
+  A loop starting at line 253 was not vectorized because the loop starting at line 181 was not vectorizable.
+
+  254.                gc(j+1,1) = state(con,1)
+  255.                gc(j+1,2) = state(con,2)
+  256.                gc(j+1,3) = cgca_gb_state_intact
+  257.                gc(j+2:gclen-1,:) = tmp(1:gclen-j-2,:)
+ftn-6202 ftn: VECTOR File = cgca_m2gb.f90, Line = 257 
+  A loop starting at line 257 was replaced by a library call.
+
+ftn-6302 ftn: VECTOR File = cgca_m2gb.f90, Line = 257 
+  A loop starting at line 257 was not vectorized because the loop starting at line 181 was not vectorizable.
+
+  258.                exit i1
+  259.              end if
+  260.            end do
+  261.          else if (i .gt. gclen-2) then
+  262.    
+  263.            ! If state(con,1) is greater than all column 1 values, just
+  264.            ! add it at the end. 
+  265.            gc(i,1) = state(con,1)
+  266.            gc(i,2) = state(con,2)
+  267.            gc(i,3) = cgca_gb_state_intact
+  268.            exit i1
+  269.          end if
+  270.        end do i1 
+  271.    
+  272.      ! Find where to insert the second pair:
+  273.      ! ( state(con,2), state(con,1) ).
+  274.      ! Note that as the first pair has been inserted already,
+  275.      ! this loop is not exactly as the previous one. 
+  276.      i2: do i=1,gclen
+ftn-6302 ftn: VECTOR File = cgca_m2gb.f90, Line = 276 
+  A loop starting at line 276 was not vectorized because the loop starting at line 181 was not vectorizable.
+
+  277.        ! If state(con,2) doesn't exist in the first row at all, but
+  278.        ! is smaller that some existing value
+  279.        if (state(con,2) .lt. gc(i,1)) then
+  280.          tmp(1:gclen-i,:) = gc(i:gclen-1,:)
+ftn-6202 ftn: VECTOR File = cgca_m2gb.f90, Line = 280 
+  A loop starting at line 280 was replaced by a library call.
+
+ftn-6302 ftn: VECTOR File = cgca_m2gb.f90, Line = 280 
+  A loop starting at line 280 was not vectorized because the loop starting at line 181 was not vectorizable.
+
+  281.          gc(i,1) = state(con,2)
+  282.          gc(i,2) = state(con,1)
+  283.          gc(i,3) = cgca_gb_state_intact
+  284.          gc(i+1:gclen,:) = tmp(1:gclen-i,:)
+ftn-6202 ftn: VECTOR File = cgca_m2gb.f90, Line = 284 
+  A loop starting at line 284 was replaced by a library call.
+
+ftn-6302 ftn: VECTOR File = cgca_m2gb.f90, Line = 284 
+  A loop starting at line 284 was not vectorized because the loop starting at line 181 was not vectorizable.
+
+  285.          exit i2
+  286.        else if (state(con,2) .eq. gc(i,1)) then
+  287.          ! If state(con,2) already exist in the first column, then
+  288.          ! need to sort by the second column by state(con,1)
+  289.    
+  290.          do j=i,gclen
+ftn-6221 ftn: VECTOR File = cgca_m2gb.f90, Line = 290 
+  A loop starting at line 290 uses a checked speculative load of "state".
+
+ftn-6302 ftn: VECTOR File = cgca_m2gb.f90, Line = 290 
+  A loop starting at line 290 was not vectorized because the loop starting at line 181 was not vectorizable.
+
+  291.            if (state(con,1) .lt. gc(j,2)) then
+  292.              tmp(1:gclen-j,:) = gc(j:gclen-1,:)
+ftn-6202 ftn: VECTOR File = cgca_m2gb.f90, Line = 292 
+  A loop starting at line 292 was replaced by a library call.
+
+ftn-6302 ftn: VECTOR File = cgca_m2gb.f90, Line = 292 
+  A loop starting at line 292 was not vectorized because the loop starting at line 181 was not vectorizable.
+
+  293.              gc(j,1) = state(con,2)
+  294.              gc(j,2) = state(con,1)
+  295.              gc(j,3) = cgca_gb_state_intact
+  296.              gc(j+1:gclen,:) = tmp(1:gclen-j,:)
+ftn-6202 ftn: VECTOR File = cgca_m2gb.f90, Line = 296 
+  A loop starting at line 296 was replaced by a library call.
+
+ftn-6302 ftn: VECTOR File = cgca_m2gb.f90, Line = 296 
+  A loop starting at line 296 was not vectorized because the loop starting at line 181 was not vectorizable.
+
+  297.              exit i2
+  298.            else if (state(con,1) .gt. gc(j,2) .and.   &
+  299.                     gc(j+1,1) .ne. gc(j,1) ) then
+  300.              ! If state(con,1) is greater than all column 2 values, just
+  301.              ! add it *after* this row.
+  302.              tmp(1:gclen-j-1,:) = gc(j+1:gclen-1,:)
+ftn-6202 ftn: VECTOR File = cgca_m2gb.f90, Line = 302 
+  A loop starting at line 302 was replaced by a library call.
+
+ftn-6302 ftn: VECTOR File = cgca_m2gb.f90, Line = 302 
+  A loop starting at line 302 was not vectorized because the loop starting at line 181 was not vectorizable.
+
+  303.              gc(j+1,1) = state(con,2)
+  304.              gc(j+1,2) = state(con,1)
+  305.              gc(j+1,3) = cgca_gb_state_intact
+  306.              gc(j+2:gclen,:) = tmp(1:gclen-j-1,:)
+ftn-6202 ftn: VECTOR File = cgca_m2gb.f90, Line = 306 
+  A loop starting at line 306 was replaced by a library call.
+
+ftn-6302 ftn: VECTOR File = cgca_m2gb.f90, Line = 306 
+  A loop starting at line 306 was not vectorized because the loop starting at line 181 was not vectorizable.
+
+  307.              exit i2
+  308.            end if
+  309.          end do
+  310.        else if (i .gt. gclen-1) then
+  311.          ! If state(con,2) is greater than all column 1 values, just
+  312.          ! add it at the end. 
+  313.          gc(i,1) = state(con,2)
+  314.          gc(i,2) = state(con,1)
+  315.          gc(i,3) = cgca_gb_state_intact
+  316.          exit i2
+  317.        end if
+  318.      end do i2
+  319.    
+  320.      deallocate(tmp, stat=errstat )
+  321.      if (errstat .ne. 0) then
+  322.        write (*,'(2(a,i0))') "ERROR: cgca_gcu: img: ", img,               &
+  323.                              " cannot deallocate tmp, err code: ", errstat
+  324.        error stop
+  325.      end if
+  326.    
+  327.    end do newcon
+  328.    end do inner
+  329.    end do
+  330.    end do
+  331.    
+  332.    end subroutine cgca_gcu
+  333.    
+  334.    !*roboend*
+  335.    
+  336.    
+  337.    !*robodoc*s* cgca_m2gb/cgca_gcp
+  338.    !  NAME
+  339.    !    cgca_gcp
+  340.    !  SYNOPSIS
+  341.    
+  342.    subroutine cgca_gcp( ounit, fname )
+  343.    
+  344.    !  INPUTS
+  345.    
+  346.    integer( kind=idef ), intent(in) :: ounit
+  347.    character( len=* ), intent(in) :: fname
+  348.    
+  349.    !  SIDE EFFECTS
+  350.    !    create output file on each processor and dump gc array to it
+  351.    !  DESCRIPTION
+  352.    !    Print grain connectivity (GC) array to file.
+  353.    !    Remember that GC is a *local* array, and hence this routine will
+  354.    !    write only the GC from the processor which called this routine.
+  355.    !    It is indended to be called from all images with file names supplied
+  356.    !    linked to the processor/image number via this_image.
+  357.    !  USES
+  358.    !    gc
+  359.    !  USED BY
+  360.    !    none 
+  361.    !  SOURCE
+  362.    
+  363.    integer :: i, errstat=0, img
+  364.    character( len=10) :: state
+  365.    
+  366.    img = this_image()
+  367.    
+  368.    ! open file
+  369.    open( unit=ounit, file=trim(fname), form="formatted",                  &
+          ^                                                                        
+ftn-3021 ftn: IPA CGCA_GCP, File = cgca_m2gb.f90, Line = 369, Column = 1 
+  "_OPEN" (called from "cgca_gcp") was not inlined because the compiler was unable to locate the routine.
+
+  370.          status="replace", iostat=errstat )
+  371.    if ( errstat .ne. 0 ) then
+  372.      write (*,'(2(a,i0))') "ERROR: cgca_gcp: img: ", img,                 &
+  373.                            " cannot open file, error code: ", errstat
+  374.      error stop
+  375.    end if
+  376.    
+  377.    ! write data, one line at a time
+  378.    do i = 1, ubound( gc, dim=1 )
+ftn-6286 ftn: VECTOR File = cgca_m2gb.f90, Line = 378 
+  A loop starting at line 378 was not vectorized because it contains input/output operations at line 392.
+
+  379.    
+  380.      ! convert numerical values of intact and fractured into words
+  381.      if ( gc(i,3) .eq. cgca_gb_state_intact) then
+  382.        state = "intact"
+  383.      else if ( gc(i,3) .eq. cgca_gb_state_fractured) then
+  384.        state = "fractured"
+  385.      else
+  386.        write (*,'(2(a,i0))') "ERROR: cgca_gcp: image: ", img,             &
+  387.                       " state is neither intact nor fractured: ", gc(i,3)
+  388.        error stop
+  389.      end if
+  390.    
+  391.      ! actual write
+  392.      write ( unit=ounit, fmt="(2(i0,tr1),a10)", iostat=errstat)           &
+  393.       gc(i,1:2), state
+  394.    
+  395.      if ( errstat .ne. 0 ) then
+  396.        write (*,'(2(a,i0))') "ERROR: cgca_gcp: image: ", img,             &
+  397.                          " cannot write to file, error code: ", errstat
+  398.        error stop
+  399.      end if
+  400.    
+  401.    end do
+  402.    
+  403.    ! close file
+  404.    close( ounit, iostat=errstat )
+          ^                              
+ftn-3021 ftn: IPA CGCA_GCP, File = cgca_m2gb.f90, Line = 404, Column = 1 
+  "_CLOSE" (called from "cgca_gcp") was not inlined because the compiler was unable to locate the routine.
+
+  405.    if ( errstat .ne. 0 ) then
+  406.      write (*,'(2(a,i0))') "ERROR: cgca_gcp: image: ", img,               &
+  407.                            " cannot close file, error code: ", errstat
+  408.      error stop
+  409.    end if
+  410.    
+  411.    end subroutine cgca_gcp
+  412.    
+  413.    !*roboend*
+  414.    
+  415.    
+  416.    !*robodoc*s* cgca_m2gb/cgca_agc
+  417.    !  NAME
+  418.    !    cgca_agc
+  419.    !  SYNOPSIS
+  420.    
+  421.    subroutine cgca_agc(len)
+  422.    
+  423.    !  INPUT
+  424.    
+  425.    integer( kind=idef ), intent(in) :: len
+  426.    
+  427.    !  SIDE EFFECTS
+  428.    !    Allocate gc array
+  429.    !  DESCRIPTION
+  430.    !    Allocate the grain connectivity (GC) array, and set to zero.
+  431.    !    The first dimension is given by len.
+  432.    !    The second dimension is 3, because:
+  433.    !     1 - grain number
+  434.    !     2 - grain neighbour number
+  435.    !     3 - grain boundary state - fractured or intact
+  436.    !  USES
+  437.    !    gc
+  438.    !  USED BY
+  439.    !    module cgca_m2gb: cgca_gcu
+  440.    !  SOURCE
+  441.    
+  442.    integer :: errstat=0
+  443.    
+  444.    allocate( gc(len,3), source=0_iarr, stat=errstat )
+  445.    if ( errstat .ne. 0 ) then
+  446.      write (*,'(2(a,i0))') "ERROR: cgca_agc: img: ", this_image(),        &
+  447.                            " cannot allocate gc, error code: ", errstat
+  448.      error stop
+  449.    end if
+  450.    
+  451.    end subroutine cgca_agc
+  452.    
+  453.    !*roboend*
+  454.    
+  455.    
+  456.    !*robodoc*s* cgca_m2gb/cgca_dgc
+  457.    !  NAME
+  458.    !    cgca_dgc
+  459.    !  SYNOPSIS
+  460.    
+  461.    subroutine cgca_dgc
+  462.    
+  463.    !  SIDE EFFECTS
+  464.    !    deallocate gc array
+  465.    !  USES
+  466.    !    gc
+  467.    !  USED BY
+  468.    !    module cgca_m2gb: cgca_gcu
+  469.    !  SOURCE
+  470.    
+  471.    integer :: errstat
+  472.    
+  473.    deallocate( gc, stat=errstat )
+  474.    if (errstat .ne. 0) then
+  475.      write (*,'(2(a,i0))') "ERROR: cgca_dgc: img: ", this_image(),        &
+  476.                            " cannot deallocate gc, err code: ", errstat
+  477.      error stop
+  478.    end if
+  479.    
+  480.    end subroutine cgca_dgc
+  481.    
+  482.    !*roboend*
+  483.    
+  484.    
+  485.    !*robodoc*s* cgca_m2gb/cgca_gcf
+  486.    !  NAME
+  487.    !    cgca_gcf
+  488.    !  SYNOPSIS
+  489.    
+  490.    subroutine cgca_gcf( g1, g2 )
+  491.    
+  492.    !  INPUTS
+  493.    
+  494.    integer( kind=iarr ), intent(in) :: g1, g2
+  495.    
+  496.    !  SIDE EFFECTS
+  497.    !    gc array modified
+  498.    !  DESCRIPTION
+  499.    !    This routine changes the state of the grain boundary integrity
+  500.    !    between the two provided grains to cgca_gb_state_fractured.
+  501.    !  USES
+  502.    !    gc
+  503.    !  USED BY
+  504.    !    cgca_clvgsd, cgca_clvgsp, cgca_gcupdn
+  505.    !  SOURCE
+  506.    
+  507.    integer( kind=iarr ) :: i, tmp, grain1, grain2, match1, gclen
+  508.    integer :: matches, img
+  509.    
+  510.    img = this_image()
+  511.    
+  512.    !*********************************************************************72
+  513.    ! sanity checks
+  514.    !*********************************************************************72
+  515.    
+  516.    ! grains must be different. However, if there is no sync between images
+  517.    ! it's possible that 2 different images write to gcupd simultaneously,
+  518.    ! thus creating impossible combinations of GB pairs, including
+  519.    ! identical grain numbers for both grains. Let's issue a warning, not
+  520.    ! error for this case, and return, i.e. don't add this impossible pair.
+  521.    if ( g1 .eq. g2 ) then
+  522.     write (*,"(a,i0,tr1,i0,a,i0)")                                        &
+  523.       "WARN: cgca_gcf: identical grain numbers: ", g1, g2, " image ", img
+  524.     return
+  525.     ! error stop
+  526.    end if
+  527.    
+  528.    !*********************************************************************72
+  529.    ! end of sanity checks
+  530.    !*********************************************************************72
+  531.    
+  532.    ! Use the local variables
+  533.    grain1 = g1
+  534.    grain2 = g2
+  535.    
+  536.    ! Make grain1 < grain2
+  537.    if ( grain2 .lt. grain1 ) then
+  538.      tmp = grain1
+  539.      grain1 = grain2
+  540.      grain2 = tmp
+  541.    end if
+  542.    
+  543.    ! Look for matches
+  544.    matches = 0
+  545.     match1 = 0_iarr
+  546.      gclen = ubound(gc,1)
+  547.    
+  548.    ! First match
+  549.    do i = 1, gclen
+ftn-6334 ftn: VECTOR File = cgca_m2gb.f90, Line = 549 
+  A loop starting at line 549 was not vectorized because it contains multiple potential exits.
+
+  550.      if ( gc(i,1) .eq. grain1 .and. gc(i,2) .eq. grain2 ) then
+  551.        gc(i,3) = cgca_gb_state_fractured
+  552.        matches = matches+1
+  553.        ! line number of the first match
+  554.        match1 = i
+  555.        exit
+  556.      end if
+  557.    end do
+  558.    
+  559.    ! Second match, start from the line with the first match
+  560.    do i = match1 + 1, gclen
+ftn-6334 ftn: VECTOR File = cgca_m2gb.f90, Line = 560 
+  A loop starting at line 560 was not vectorized because it contains multiple potential exits.
+
+  561.      if ( gc(i,1) .eq. grain2 .and. gc(i,2) .eq. grain1 ) then
+  562.        gc(i,3) = cgca_gb_state_fractured
+  563.        matches = matches+1
+  564.        exit
+  565.      end if
+  566.    end do
+  567.    
+  568.    ! Sanity check
+  569.    if ( matches .eq. 0 ) then
+  570.     ! don't issue the INFO message, just swamps the stdout
+  571.     ! perhaps better logic should be built in future
+  572.     ! write (*,'(2(a,i0),tr1,i0,a)') "INFO: cgca_gcf: image ",              &
+  573.     ! img, " pair ", g1, g2, " does not exist."
+  574.    else if ( matches .ne. 2 ) then
+  575.     write (*,'(3(a,i0),",",tr1,i0,".")') "ERROR: cgca_gcf: image ",       &
+  576.      img, ": found ", matches, " matches for pair: ", g1, g2
+  577.     write (*,'(a,i0,a)') "ERROR: cgca_gcf: image ", img,                  &
+  578.      ": Should have found exactly two matches or none!"
+  579.     write (*,'(a,i0,a)') "ERROR: cgca_gcf: image ", img,                  &
+  580.      ": This means the gc array is corrupted. Aborting!"
+  581.     error stop
+  582.    end if
+  583.    
+  584.    end subroutine cgca_gcf
+  585.    
+  586.    !*roboend*
+  587.    
+  588.    
+  589.    !*robodoc*s* cgca_m2gb/cgca_gcr
+  590.    !  NAME
+  591.    !    cgca_gcr
+  592.    !  SYNOPSIS
+  593.    
+  594.    subroutine cgca_gcr( g1, g2, intact )
+  595.    
+  596.    !  INPUTS
+  597.    
+  598.    integer( kind=iarr ), intent(in) :: g1, g2
+  599.    
+  600.    !  OUTPUT
+  601.    
+  602.    logical( kind=ldef ), intent(out) :: intact
+  603.    
+  604.    !  SIDE EFFECTS
+  605.    !    none
+  606.    !  DESCRIPTION
+  607.    !    Find and return the boundary integrity state between
+  608.    !    2 grains. Returns .true. if the boundary is intact,
+  609.    !    .false. if it is fractured. The routine does some
+  610.    !    simple checks and stops with errors where appropriate.
+  611.    !  USES
+  612.    !    gc
+  613.    !  USED BY
+  614.    !    module cgca_m3clvg: cgca_clvgsd
+  615.    !  SOURCE
+  616.    
+  617.    integer( kind=iarr ) :: i, tmp, grain1, grain2
+  618.    integer :: img
+  619.    logical :: match
+  620.    
+  621.    img = this_image()
+  622.    
+  623.    !**********************************************************************73
+  624.    ! sanity checks
+  625.    !**********************************************************************73
+  626.    
+  627.    ! grains must be different
+  628.    if ( g1 .eq. g2 ) then
+  629.      write (*,'(2(a,i0),tr1,i0,".")') "ERROR: cgca_gcr: image ", img, &
+  630.        ": The two grain numbers must differ: ", g1, g2
+  631.      error stop
+  632.    end if
+  633.    
+  634.    !**********************************************************************73
+  635.    ! end of sanity checks
+  636.    !**********************************************************************73
+  637.    
+  638.    ! Use the local variables
+  639.    grain1 = g1
+  640.    grain2 = g2
+  641.    
+  642.    ! Make grain1 < grain2
+  643.    if ( grain2 .lt. grain1 ) then
+  644.         tmp = grain1
+  645.      grain1 = grain2
+  646.      grain2 = tmp
+  647.    end if
+  648.    
+  649.    ! Look for matches
+  650.    match=.false.
+  651.    do i=1,ubound(gc,1)
+ftn-6334 ftn: VECTOR File = cgca_m2gb.f90, Line = 651 
+  A loop starting at line 651 was not vectorized because it contains multiple potential exits.
+
+  652.     mtch: if ( gc(i,1) .eq. grain1 .and. gc(i,2) .eq. grain2 ) then
+  653.      match = .true.
+  654.      if ( gc(i,3) .eq. cgca_gb_state_intact) then
+  655.       intact = .true.
+  656.       exit
+  657.      else if ( gc(i,3) .eq. cgca_gb_state_fractured) then
+  658.       intact = .false.
+  659.       exit
+  660.      else
+  661.       ! Must never end up here. This is an error
+  662.       write (*,'(a,i0)')                                                  &
+  663.         "ERROR: cgca_gcr: the state is neither intact nor fractured. &
+  664.            &Integrity of the gc array is broken. img: ", img
+  665.       error stop
+  666.      end if
+  667.     end if mtch
+  668.    end do
+  669.    
+  670.    ! Sanity check
+  671.    if (.not. match) then
+  672.      write (*,'(a,i0,a,i0,tr1,i0,".")') "WARN: cgca_gcr: image ", &
+  673.        img, ": No match found for given pair: ", g1, g2
+  674.      write (*,'(a,i0,a)') "WARN: cgca_gcr: image ", img,      &
+  675.        ": Returning .true. in intact!"
+  676.      intact = .true.
+  677.    end if
+  678.    
+  679.    end subroutine cgca_gcr
+  680.    
+  681.    !*roboend*
+  682.    
+  683.    !*********************************************************************72
+  684.    
+  685.    !*robodoc*s* cgca_m2gb/cgca_gbs
+  686.    !  NAME
+  687.    !    cgca_gbs
+  688.    !  SYNOPSIS
+  689.    
+  690.    subroutine cgca_gbs( coarray )
+  691.    
+  692.    !  INPUT
+  693.    
+  694.    integer( kind=iarr ), allocatable, intent(inout) :: &
+  695.     coarray(:,:,:,:)[:,:,:]
+  696.    
+  697.    !  SIDE EFFECTS
+  698.    !    state of coarray changes
+  699.    !  DESCRIPTION
+  700.    !    This routines does Grain Boundary Smoothing (GBS).
+  701.    !    It works only with cgca_state_type_grain layer.
+  702.    !    For each cell that has neighbours from other grains the routine
+  703.    !    substites the cell value (grain number) by that
+  704.    !    of the grain that has most cells in the (3,3,3) neighbourhood.
+  705.    !    Example:
+  706.    !
+  707.    !         -> 2        5 5 5
+  708.    !      / |            5 5 5
+  709.    !     3  V            5 5 5
+  710.    !        1      5 1 1
+  711.    !               5 1 1
+  712.    !               5 5 5
+  713.    !         1 1 1
+  714.    !         8 1 1
+  715.    !         8 1 1
+  716.    !
+  717.    !    The central cell is grain 1. In the (3,3,3) neighbourhood,
+  718.    !    including the central cell, there are 14 cells with grain 5,
+  719.    !    11 cells with grain 1, and 2 cells with grain 8.
+  720.    !    The highest number of cells belong to grain 5, hence the
+  721.    !    central cell state in changed to 5.
+  722.    !  SOURCE
+  723.    
+  724.    integer( kind=iarr ), allocatable :: array(:,:,:)
+  725.    integer( kind=iarr ) :: neigh(27,2)=0_iarr, newgrain
+  726.    integer( kind=idef ) :: &
+  727.     lbv(4),   & ! lower bounds of the complete (plus virtual) coarray
+  728.     ubv(4),   & ! upper bounds of the complete (plus virtual) coarray
+  729.     lbr(4),   & ! lower bounds of the "real" coarray, lower virtual+1
+  730.     ubr(4),   & ! upper bounds of the "real" coarray, upper virtual-1
+  731.     x1,x2,x3, & ! local coordinates in an array, which are also
+  732.     n1,n2,n3    ! local coord. of the neighbours [-1,0,1]
+  733.    
+  734.    integer :: errstat,i
+  735.    
+  736.    ! determine the extents
+  737.    lbv = lbound(coarray)
+ftn-6205 ftn: VECTOR File = cgca_m2gb.f90, Line = 737 
+  A loop starting at line 737 was vectorized with a single vector iteration.
+
+  738.    ubv = ubound(coarray)
+ftn-6004 ftn: SCALAR File = cgca_m2gb.f90, Line = 738 
+  A loop starting at line 738 was fused with the loop starting at line 737.
+
+  739.    lbr = lbv+1
+ftn-6004 ftn: SCALAR File = cgca_m2gb.f90, Line = 739 
+  A loop starting at line 739 was fused with the loop starting at line 737.
+
+  740.    ubr = ubv-1
+ftn-6004 ftn: SCALAR File = cgca_m2gb.f90, Line = 740 
+  A loop starting at line 740 was fused with the loop starting at line 737.
+
+  741.    
+  742.    ! allocate the temp array
+  743.    allocate( array( lbv(1):ubv(1), lbv(2):ubv(2), lbv(3):ubv(3) ), &
+ftn-7418 ftn: CAUTION File = cgca_m2gb.f90, Line = 743 
+  Fortran allocatable variable "array" may be used before being allocated.
+
+  744.              stat=errstat )
+  745.    if (errstat .ne. 0) then
+  746.      write (*,'(2(a,i0))') &
+  747.        "ERROR: cgca_gbs: image: ", this_image(), &
+  748.        ": cannot allocate array, error code=", errstat
+  749.      error stop
+  750.    end if
+  751.    
+  752.    ! copy the grain layer to the temp array
+  753.    array = coarray(:,:,:,cgca_state_type_grain)
+ftn-6066 ftn: SCALAR File = cgca_m2gb.f90, Line = 753 
+   A loop nest at line 753 collapsed to a single loop.
+
+ftn-6231 ftn: VECTOR File = cgca_m2gb.f90, Line = 753 
+  A statement was replaced by a library call.
+
+  754.    
+  755.    ! loop over all cells
+  756.    do x3 = lbr(3), ubr(3)
+ftn-6306 ftn: VECTOR File = cgca_m2gb.f90, Line = 756 
+  A loop starting at line 756 was not vectorized because the iteration space is too irregular.
+
+  757.    do x2 = lbr(2), ubr(2)
+ftn-6306 ftn: VECTOR File = cgca_m2gb.f90, Line = 757 
+  A loop starting at line 757 was not vectorized because the iteration space is too irregular.
+
+  758.    do x1 = lbr(1), ubr(1)
+ftn-6315 ftn: VECTOR File = cgca_m2gb.f90, Line = 758 
+  A loop starting at line 758 was not vectorized because the target array (neigh) would require rank expansion.
+
+  759.    
+  760.      ! Construct the array with all neighbour numbers.
+  761.      ! Note, at this stage the array might contain non-grain
+  762.      ! phase, e.g. liquid, if the cell is at the model
+  763.      ! boundary, with non-grain halo cell neighbours.
+  764.      ! It is easier to ignore these cases on calculation.
+  765.      ! We'll simply forbid changing into non-grain state later.
+  766.      i=0
+  767.      do n3 = -1,1
+ftn-6294 ftn: VECTOR File = cgca_m2gb.f90, Line = 767 
+  A loop starting at line 767 was not vectorized because a better candidate was found at line 769.
+
+  768.      do n2 = -1,1
+ftn-6294 ftn: VECTOR File = cgca_m2gb.f90, Line = 768 
+  A loop starting at line 768 was not vectorized because a better candidate was found at line 769.
+
+  769.      do n1 = -1,1
+ftn-6271 ftn: VECTOR File = cgca_m2gb.f90, Line = 769 
+  A loop starting at line 769 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m2gb.f90, Line = 769 
+  A loop starting at line 769 was unwound.
+
+  770.        i=i+1
+  771.        ! The first column of neigh array contains grain numbers
+  772.        ! for all 27 cells in the (3,3,3) array
+  773.        neigh(i,1) =  array( x1+n1, x2+n2, x3+n3 )
+  774.      end do
+  775.      end do
+  776.      end do
+  777.     
+  778.      ! Count the number of neighbours of each grain, and
+  779.      ! assign to the second column of array neigh.
+  780.      do i=1,27
+ftn-6204 ftn: VECTOR File = cgca_m2gb.f90, Line = 780 
+  A loop starting at line 780 was vectorized.
+
+  781.        neigh(i,2) = count( neigh(:,1) .eq. neigh(i,1) )
+ftn-6208 ftn: VECTOR File = cgca_m2gb.f90, Line = 781 
+  A loop starting at line 781 was vectorized as part of the loop starting at line 780.
+
+  782.      end do
+  783.     
+  784.      ! Get the grain number that has most cells in the neigh array
+  785.      newgrain = neigh( maxloc( neigh(:,2), dim=1 ), 1 )
+ftn-6008 ftn: SCALAR File = cgca_m2gb.f90, Line = 785 
+  A loop starting at line 785 was unwound.
+
+ftn-6337 ftn: VECTOR File = cgca_m2gb.f90, Line = 785 
+  A loop starting at line 785 was not vectorized because it contains unsupported conditional constructs near line 785.
+
+  786.      if ( newgrain .ne. cgca_liquid_state )               &
+  787.        coarray(x1,x2,x3,cgca_state_type_grain) = newgrain
+  788.    
+  789.    end do
+  790.    end do
+  791.    end do
+  792.    
+  793.    ! deallocate the temp array
+  794.    ! The intention is that this routine is called only
+  795.    ! once, or, at best, only a few times, so keeping the
+  796.    ! array allocated for the duration of the execution is a waste.
+  797.    deallocate( array, stat=errstat )
+  798.    if (errstat .ne. 0) then
+  799.      write (*,'(2(a,i0))') &
+  800.        "ERROR: cgca_gbs: image: ", this_image(), &
+  801.        ": cannot deallocate array, error code=", errstat
+  802.      error stop
+  803.    end if
+  804.    
+  805.    end subroutine cgca_gbs
+  806.    
+  807.    !*roboend*
+  808.    
+  809.    !*********************************************************************72
+  810.    
+  811.    !*robodoc*s* cgca_m2gb/cgca_igb
+  812.    !  NAME
+  813.    !    cgca_igb
+  814.    !  SYNOPSIS
+  815.    
+  816.    subroutine cgca_igb ( coarray )
+  817.    
+  818.    !  INPUT
+  819.    
+  820.    integer( kind=iarr ), allocatable, intent(inout) :: &
+  821.     coarray(:,:,:,:)[:,:,:]
+  822.    
+  823.    !  SIDE EFFECTS
+  824.    !    state of coarray changes
+  825.    !  DESCRIPTION
+  826.    !    Initialise Grain Boundary (IGB) cells.
+  827.    !    Simply scan through the (:,:,:,cgca_state_type_grain) array
+  828.    !    and mark all cells which have a neighbour of a different state
+  829.    !    as cgca_gb_state_intact in (:,:,:,cgca_state_type_frac) array.
+  830.    !    Clearly this routine must be called before any fracture is
+  831.    !    simulated.
+  832.    !    Possibly a halo exchange should be called before and/or
+  833.    !    after calling this routine.
+  834.    !  NOTES
+  835.    !    All images must call this routine
+  836.    !  SOURCE
+  837.    
+  838.    integer( kind=idef ) :: &
+  839.     lbv(4),   & ! lower bounds of the complete (plus virtual) coarray
+  840.     ubv(4),   & ! upper bounds of the complete (plus virtual) coarray
+  841.     lbr(4),   & ! lower bounds of the "real" coarray, lower virtual+1
+  842.     ubr(4),   & ! upper bounds of the "real" coarray, upper virtual-1
+  843.     x1,x2,x3, & ! local coordinates in an array, which are also
+  844.     n1,n2,n3    ! local coord. of the neighbours [-1,0,1]
+  845.    
+  846.    ! determine the extents
+  847.    lbv = lbound(coarray)
+ftn-6205 ftn: VECTOR File = cgca_m2gb.f90, Line = 847 
+  A loop starting at line 847 was vectorized with a single vector iteration.
+
+  848.    ubv = ubound(coarray)
+ftn-6004 ftn: SCALAR File = cgca_m2gb.f90, Line = 848 
+  A loop starting at line 848 was fused with the loop starting at line 847.
+
+  849.    lbr = lbv+1
+ftn-6004 ftn: SCALAR File = cgca_m2gb.f90, Line = 849 
+  A loop starting at line 849 was fused with the loop starting at line 847.
+
+  850.    ubr = ubv-1
+ftn-6004 ftn: SCALAR File = cgca_m2gb.f90, Line = 850 
+  A loop starting at line 850 was fused with the loop starting at line 847.
+
+  851.    
+  852.    ! scan over all cells
+  853.    outer: do x3 = lbr(3), ubr(3)
+ftn-6250 ftn: VECTOR File = cgca_m2gb.f90, Line = 853 
+  A loop starting at line 853 was not vectorized for an unspecified reason.
+
+  854.           do x2 = lbr(2), ubr(2)
+ftn-6250 ftn: VECTOR File = cgca_m2gb.f90, Line = 854 
+  A loop starting at line 854 was not vectorized for an unspecified reason.
+
+  855.           do x1 = lbr(1), ubr(1)
+ftn-6250 ftn: VECTOR File = cgca_m2gb.f90, Line = 855 
+  A loop starting at line 855 was not vectorized for an unspecified reason.
+
+  856.    
+  857.      ! choose all neighbourhood cells
+  858.      inner: do n3 = x3-1, x3+1
+ftn-6250 ftn: VECTOR File = cgca_m2gb.f90, Line = 858 
+  A loop starting at line 858 was not vectorized for an unspecified reason.
+
+  859.             do n2 = x2-1, x2+1
+ftn-6250 ftn: VECTOR File = cgca_m2gb.f90, Line = 859 
+  A loop starting at line 859 was not vectorized for an unspecified reason.
+
+  860.             do n1 = x1-1, x1+1
+ftn-6334 ftn: VECTOR File = cgca_m2gb.f90, Line = 860 
+  A loop starting at line 860 was not vectorized because it contains multiple potential exits.
+
+  861.    
+  862.        ! Ignore the global halo cells
+  863.        if ( n1 .eq. lbv(1) .or. n1 .eq. ubv(1) .or.                       &
+  864.             n2 .eq. lbv(2) .or. n2 .eq. ubv(2) .or.                       &
+  865.             n3 .eq. lbv(3) .or. n3 .eq. ubv(3) ) cycle
+  866.    
+  867.        ! If the neighbouring grain .ne. the state of the central
+  868.        ! cell, then mark this central cell as GB in fracture
+  869.        ! array and exit 
+  870.        if ( coarray(n1, n2, n3, cgca_state_type_grain) .ne.               &
+  871.             coarray(x1, x2, x3, cgca_state_type_grain) ) then
+  872.          coarray(x1, x2, x3, cgca_state_type_frac) = cgca_gb_state_intact
+  873.          exit inner
+  874.        end if
+  875.    
+  876.      end do
+  877.      end do
+  878.      end do inner
+  879.    
+  880.    end do
+  881.    end do
+  882.    end do outer
+  883.    
+  884.    end subroutine cgca_igb
+  885.    
+  886.    !*roboend*
+  887.    
+  888.    !*********************************************************************72
+  889.    
+  890.    end module cgca_m2gb
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                         E x t e r n a l   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Name  Messages
+----  --------
+ABORT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ABORT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ALLOCATED(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_GCU in CGCA_M2GB (Line 115, file cgca_m2gb.f90)
+                   CGCA_GCU in CGCA_M2GB (Line 125, file cgca_m2gb.f90)
+
+Name  Messages
+----  --------
+CGCA_AGC in CGCA_M2GB
+      Defined as:  Subroutine (line 421, file cgca_m2gb.f90)
+
+      Interface:   None
+
+      Called By:   CGCA_GCU in CGCA_M2GB (Line 125, file cgca_m2gb.f90)
+                   CGCA_GCU in CGCA_M2GB (Line 209, file cgca_m2gb.f90)
+
+      Calls:       THIS_IMAGE(Intrinsic) (Line 446, file cgca_m2gb.f90)
+
+Name  Messages
+----  --------
+CGCA_DGC in CGCA_M2GB
+      Defined as:  Subroutine (line 34, file cgca_m2gb.f90)
+
+      Interface:   None
+
+      Called By:   CGCA_GCU in CGCA_M2GB (Line 208, file cgca_m2gb.f90)
+
+      Calls:       THIS_IMAGE(Intrinsic) (Line 475, file cgca_m2gb.f90)
+
+Name  Messages
+----  --------
+CGCA_GBS in CGCA_M2GB
+      Defined as:  Subroutine (line 34, file cgca_m2gb.f90)
+
+      Interface:   None
+
+      Calls:       LBOUND(Intrinsic) (Line 737, file cgca_m2gb.f90)
+                   UBOUND(Intrinsic) (Line 738, file cgca_m2gb.f90)
+                   THIS_IMAGE(Intrinsic) (Line 747, file cgca_m2gb.f90)
+                   THIS_IMAGE(Intrinsic) (Line 800, file cgca_m2gb.f90)
+                   COUNT(Intrinsic) (Line 781, file cgca_m2gb.f90)
+                   MAXLOC(Intrinsic) (Line 785, file cgca_m2gb.f90)
+
+Name  Messages
+----  --------
+CGCA_GCF in CGCA_M2GB
+      Defined as:  Subroutine (line 34, file cgca_m2gb.f90)
+
+      Interface:   None
+
+      Calls:       THIS_IMAGE(Intrinsic) (Line 510, file cgca_m2gb.f90)
+                   UBOUND(Intrinsic) (Line 546, file cgca_m2gb.f90)
+
+Name  Messages
+----  --------
+CGCA_GCP in CGCA_M2GB
+      Defined as:  Subroutine (line 34, file cgca_m2gb.f90)
+
+      Interface:   None
+
+      Calls:       THIS_IMAGE(Intrinsic) (Line 366, file cgca_m2gb.f90)
+                   TRIM(Intrinsic) (Line 369, file cgca_m2gb.f90)
+                   UBOUND(Intrinsic) (Line 378, file cgca_m2gb.f90)
+
+Name  Messages
+----  --------
+CGCA_GCR in CGCA_M2GB
+      Defined as:  Subroutine (line 34, file cgca_m2gb.f90)
+
+      Interface:   None
+
+      Calls:       THIS_IMAGE(Intrinsic) (Line 621, file cgca_m2gb.f90)
+                   UBOUND(Intrinsic) (Line 651, file cgca_m2gb.f90)
+
+Name  Messages
+----  --------
+CGCA_GCU in CGCA_M2GB
+      Defined as:  Subroutine (line 35, file cgca_m2gb.f90)
+
+      Interface:   None
+
+      Calls:       CGCA_DGC in CGCA_M2GB (Line 208, file cgca_m2gb.f90)
+                   CGCA_AGC in CGCA_M2GB (Line 125, file cgca_m2gb.f90)
+                   CGCA_AGC in CGCA_M2GB (Line 209, file cgca_m2gb.f90)
+                   THIS_IMAGE(Intrinsic) (Line 109, file cgca_m2gb.f90)
+                   ALLOCATED(Intrinsic) (Line 115, file cgca_m2gb.f90)
+                   ALLOCATED(Intrinsic) (Line 125, file cgca_m2gb.f90)
+                   LBOUND(Intrinsic) (Line 128, file cgca_m2gb.f90)
+                   UBOUND(Intrinsic) (Line 129, file cgca_m2gb.f90)
+                   UBOUND(Intrinsic) (Line 179, file cgca_m2gb.f90)
+
+Name  Messages
+----  --------
+CGCA_IGB in CGCA_M2GB
+      Defined as:  Subroutine (line 35, file cgca_m2gb.f90)
+
+      Interface:   None
+
+      Calls:       LBOUND(Intrinsic) (Line 847, file cgca_m2gb.f90)
+                   UBOUND(Intrinsic) (Line 848, file cgca_m2gb.f90)
+
+Name  Messages
+----  --------
+CGCA_M1CO
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M2GB
+
+Name  Messages
+----  --------
+CGCA_M2GB
+      Defined as:  Module (line 10, file cgca_m2gb.f90)
+
+        Uses:      CGCA_M1CO
+                   ISO_FORTRAN_ENV  (indirectly)
+
+Name  Messages
+----  --------
+COUNT(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_GBS in CGCA_M2GB (Line 781, file cgca_m2gb.f90)
+
+Name  Messages
+----  --------
+EXIT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH_8
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FTN_LIB_DEFINITIONS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+Name  Messages
+----  --------
+HUGE(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL_J
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ISO_FORTRAN_ENV
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M2GB  (indirectly)
+
+Name  Messages
+----  --------
+KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+LBOUND(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_GCU in CGCA_M2GB (Line 128, file cgca_m2gb.f90)
+                   CGCA_GBS in CGCA_M2GB (Line 737, file cgca_m2gb.f90)
+                   CGCA_IGB in CGCA_M2GB (Line 847, file cgca_m2gb.f90)
+
+Name  Messages
+----  --------
+MAXLOC(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_GBS in CGCA_M2GB (Line 785, file cgca_m2gb.f90)
+
+Name  Messages
+----  --------
+SELECTED_INT_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SELECTED_REAL_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SIZE(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+THIS_IMAGE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_GCU in CGCA_M2GB (Line 109, file cgca_m2gb.f90)
+                   CGCA_GCP in CGCA_M2GB (Line 366, file cgca_m2gb.f90)
+                   CGCA_AGC in CGCA_M2GB (Line 446, file cgca_m2gb.f90)
+                   CGCA_DGC in CGCA_M2GB (Line 475, file cgca_m2gb.f90)
+                   CGCA_GCF in CGCA_M2GB (Line 510, file cgca_m2gb.f90)
+                   CGCA_GCR in CGCA_M2GB (Line 621, file cgca_m2gb.f90)
+                   CGCA_GBS in CGCA_M2GB (Line 747, file cgca_m2gb.f90)
+                   CGCA_GBS in CGCA_M2GB (Line 800, file cgca_m2gb.f90)
+
+Name  Messages
+----  --------
+TRIM(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_GCP in CGCA_M2GB (Line 369, file cgca_m2gb.f90)
+
+Name  Messages
+----  --------
+UBOUND(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_GCU in CGCA_M2GB (Line 129, file cgca_m2gb.f90)
+                   CGCA_GCU in CGCA_M2GB (Line 179, file cgca_m2gb.f90)
+                   CGCA_GCP in CGCA_M2GB (Line 378, file cgca_m2gb.f90)
+                   CGCA_GCF in CGCA_M2GB (Line 546, file cgca_m2gb.f90)
+                   CGCA_GCR in CGCA_M2GB (Line 651, file cgca_m2gb.f90)
+                   CGCA_GBS in CGCA_M2GB (Line 738, file cgca_m2gb.f90)
+                   CGCA_IGB in CGCA_M2GB (Line 848, file cgca_m2gb.f90)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

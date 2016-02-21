@@ -1,0 +1,344 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S u m m a r y   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Compilation
+-----------
+File     : /home3/y14/y14/di1c13/cgpack/head/cgca_m2red.f90
+Compiled : 02/18/16  16:36:35
+Compiler : Version 8.3.7
+Ftnlx    : Version 8318 (libcif 83016)
+Target   : x86-64
+Command  : ftn_driver.exe -hcpu=ivybridge -hstatic -D__CRAYXC
+           -D__CRAY_IVYBRIDGE -D__CRAYXT_COMPUTE_LINUX_TARGET -hnetwork=aries
+           -c -eacFn -dm -m2 -rl -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/mpt/7.1.1/gni/mpich2-cray/83/include
+           -I/opt/cray/libsci/13.0.1/CRAY/83/sandybridge/include
+           -I/opt/cray/rca/1.0.0-2.0502.57212.2.56.ari/include
+           -I/opt/cray/alps/5.2.3-2.0502.9295.14.14.ari/include
+           -I/opt/cray/xpmem/0.1-2.0502.57015.1.15.ari/include
+           -I/opt/cray/gni-headers/4.0-1.0502.10317.9.2.ari/include
+           -I/opt/cray/dmapp/7.0.1-1.0502.10246.8.47.ari/include
+           -I/opt/cray/pmi/5.0.6-1.0000.10439.140.2.ari/include
+           -I/opt/cray/ugni/6.0-1.0502.10245.9.9.ari/include
+           -I/opt/cray/udreg/2.3.2-1.0502.9889.2.20.ari/include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/pkgconfig/../include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/wlm_detect/1.0-1.0502.57063.1.1.ari/include
+           -I/opt/cray/krca/1.0.0-2.0502.57202.2.45.ari/include
+           -I/opt/cray-hss-devel/7.2.0/include cgca_m2red.f90
+
+ftnlx report
+------------
+Source   : /home3/y14/y14/di1c13/cgpack/head/cgca_m2red.f90
+Date     : 02/18/2016  16:36:35
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S o u r c e   L i s t i n g
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    1.    !$Id: cgca_m2red.f90 14 2014-12-01 10:14:16Z mexas $
+    2.    
+    3.    !**********************************************************************73
+    4.    
+    5.    !*robodoc*m* CGPACK/cgca_m2red
+    6.    !  NAME
+    7.    !    cgca_m2red
+    8.    !  SYNOPSIS
+    9.    
+   10.    module cgca_m2red
+   11.    
+   12.    !  DESCRIPTION
+   13.    ! Module dealing with collective reduction operations, including
+   14.    ! all required image syncronisation.
+   15.    !  AUTHOR
+   16.    !    Anton Shterenlikht
+   17.    !  COPYRIGHT
+   18.    !    See CGPACK_Copyright
+   19.    !  CONTAINS
+   20.    !    cgca_redand
+   21.    !  USES
+   22.    !    cgca_m1co
+   23.    !  USED BY
+   24.    !    cgca
+   25.    !  SOURCE
+   26.    
+   27.    use cgca_m1co
+   28.    implicit none
+   29.    
+   30.    private
+   31.    public :: cgca_redand
+   32.    
+   33.    contains
+   34.    
+   35.    !*roboend*
+   36.    
+   37.    
+   38.    !*robodoc*s* cgca_m2red/cgca_redand
+   39.    !  NAME
+   40.    !    cgca_redand
+   41.    !  SYNOPSIS
+   42.    
+   43.    subroutine cgca_redand(coarray,p)
+   44.    
+   45.    !  INPUTS
+   46.    
+   47.    logical(kind=ldef),intent(inout) :: coarray[*]
+   48.    integer(kind=idef),intent(in) :: p
+   49.    
+   50.    !  SIDE EFFECTS
+   51.    !    coarray values change
+   52.    !  DESCRIPTION
+   53.    ! This routine does collective AND operation over coarray values across
+   54.    ! all images. The result is returned in coarray on every image.
+   55.    ! The result is TRUE
+   56.    ! if coarray values on all images are TRUE, and FALSE otherwise.
+   57.    ! The algorithm implements a divide and conquer scheme that works
+   58.    ! only when the number of images, n, is a power of 2 - n=2**p.
+   59.    ! p is the input to this routine.
+   60.    !
+   61.    ! If the number of images is 2**p,
+   62.    ! then reduction takes p iterations.
+   63.    ! In this example I have 2**4=16, so it takes 4 iterations.
+   64.    !
+   65.    !     img1 img2 img3 img4 img5 img6 img7 img8 img9 img10 img11 img12 img13 img14 img15 img16
+   66.    !  1. img1 _/   img3 _/   img5 _/   img7 _/   img9 _/    img11 _/    img13 _/    img15 _/
+   67.    !  2. img1 ______/        img5 ______/        img9 _______/          img13 _______/
+   68.    !  3. img1 ________________/                  img9 ___________________/
+   69.    !  4. img1 ____________________________________/
+   70.    !     img1
+   71.    !
+   72.    !  NOTE
+   73.    !   For efficiency no check is made that n = 2**p. This check must be
+   74.    !   made in the calling routine or the main program.
+   75.    !  USES
+   76.    !    none 
+   77.    !  USED BY
+   78.    !    cgca_m2red
+   79.    !  SOURCE
+   80.    
+   81.    integer(kind=idef) :: i, img, step, stepold
+   82.    
+   83.    img = this_image()
+   84.    
+   85.    step    = 2
+   86.    stepold = 1
+   87.    
+   88.    ! do the reduction
+   89.    
+   90.    redu: do i = 1,p
+ftn-6263 ftn: VECTOR File = cgca_m2red.f90, Line = 90 
+  A loop starting at line 90 was not vectorized because it contains a reference to a non-vector intrinsic on line 93.
+
+   91.    
+   92.     if (mod(img,step)-1 .eq. 0) then
+   93.      sync images (img+stepold)
+   94.      coarray = coarray .and. coarray[img+stepold]
+   95.     else if (mod(img+stepold,step)-1 .eq. 0) then
+   96.      sync images (img-stepold)
+   97.     end if
+   98.    
+   99.     stepold = step
+  100.     step = step * 2
+  101.    
+  102.    end do redu
+  103.    
+  104.    ! now send the result, which is in z[1] to all images.
+  105.    ! all images wait for image 1, so can use sync images(*),
+  106.    ! but, as the standard suggests, sync images is probably faster.
+  107.    
+  108.    sync all
+  109.    
+  110.    coarray = coarray[1]
+  111.    
+  112.    end subroutine cgca_redand
+  113.    
+  114.    !*roboend*
+  115.    
+  116.    end module cgca_m2red
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                         E x t e r n a l   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Name  Messages
+----  --------
+ABORT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ABORT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_M1CO
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M2RED
+
+Name  Messages
+----  --------
+CGCA_M2RED
+      Defined as:  Module (line 10, file cgca_m2red.f90)
+
+        Uses:      CGCA_M1CO
+                   ISO_FORTRAN_ENV  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_REDAND in CGCA_M2RED
+      Defined as:  Subroutine (line 31, file cgca_m2red.f90)
+
+      Interface:   None
+
+      Calls:       THIS_IMAGE(Intrinsic) (Line 83, file cgca_m2red.f90)
+                   MOD(Intrinsic) (Line 92, file cgca_m2red.f90)
+                   MOD(Intrinsic) (Line 95, file cgca_m2red.f90)
+
+Name  Messages
+----  --------
+EXIT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH_8
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FTN_LIB_DEFINITIONS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+Name  Messages
+----  --------
+HUGE(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL_J
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ISO_FORTRAN_ENV
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M2RED  (indirectly)
+
+Name  Messages
+----  --------
+KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+MOD(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_REDAND in CGCA_M2RED (Line 92, file cgca_m2red.f90)
+                   CGCA_REDAND in CGCA_M2RED (Line 95, file cgca_m2red.f90)
+
+Name  Messages
+----  --------
+SELECTED_INT_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SELECTED_REAL_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SIZE(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+THIS_IMAGE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_REDAND in CGCA_M2RED (Line 83, file cgca_m2red.f90)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

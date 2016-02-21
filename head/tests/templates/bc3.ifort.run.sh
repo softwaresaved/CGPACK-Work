@@ -1,0 +1,17 @@
+#!/bin/sh
+export FOR_COARRAY_NUM_IMAGES=8
+./testAAA.x 2 2
+export FOR_COARRAY_NUM_IMAGES=64
+./testAAB.x 4 4
+export FOR_COARRAY_NUM_IMAGES=64
+./testAAC.x 4 4
+export FOR_COARRAY_NUM_IMAGES=8
+./testAAD.x 2 2
+export FOR_COARRAY_NUM_IMAGES=8
+./testAAE.x 2 2
+export FOR_COARRAY_NUM_IMAGES=8
+./testAAF.x 2 2
+export FOR_COARRAY_NUM_IMAGES=8
+./testAAG.x 2 2
+export FOR_COARRAY_NUM_IMAGES=8
+./testAAH.x 2 2

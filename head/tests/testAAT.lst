@@ -1,0 +1,1560 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S u m m a r y   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Compilation
+-----------
+File     : /home3/y14/y14/di1c13/cgpack/head/tests/testAAT.f90
+Compiled : 02/18/16  16:38:48
+Compiler : Version 8.3.7
+Ftnlx    : Version 8318 (libcif 83016)
+Target   : x86-64
+Command  : ftn_driver.exe -hcpu=ivybridge -hstatic -D__CRAYXC
+           -D__CRAY_IVYBRIDGE -D__CRAYXT_COMPUTE_LINUX_TARGET -hnetwork=aries
+           -c -c -eacFn -dm -m1 -rl -I. -I/home/y14/y14/di1c13/lib
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/mpt/7.1.1/gni/mpich2-cray/83/include
+           -I/opt/cray/libsci/13.0.1/CRAY/83/sandybridge/include
+           -I/opt/cray/rca/1.0.0-2.0502.57212.2.56.ari/include
+           -I/opt/cray/alps/5.2.3-2.0502.9295.14.14.ari/include
+           -I/opt/cray/xpmem/0.1-2.0502.57015.1.15.ari/include
+           -I/opt/cray/gni-headers/4.0-1.0502.10317.9.2.ari/include
+           -I/opt/cray/dmapp/7.0.1-1.0502.10246.8.47.ari/include
+           -I/opt/cray/pmi/5.0.6-1.0000.10439.140.2.ari/include
+           -I/opt/cray/ugni/6.0-1.0502.10245.9.9.ari/include
+           -I/opt/cray/udreg/2.3.2-1.0502.9889.2.20.ari/include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/pkgconfig/../include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/wlm_detect/1.0-1.0502.57063.1.1.ari/include
+           -I/opt/cray/krca/1.0.0-2.0502.57202.2.45.ari/include
+           -I/opt/cray-hss-devel/7.2.0/include testAAT.f90
+
+ftnlx report
+------------
+Source   : /home3/y14/y14/di1c13/cgpack/head/tests/testAAT.f90
+Date     : 02/18/2016  16:38:48
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S o u r c e   L i s t i n g
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    1.    !$Id: testAAT.f90 8 2014-12-01 09:13:54Z mexas $
+    2.    
+    3.    !*robodoc*u* tests/testAAT
+    4.    !  NAME
+    5.    !    testAAT
+    6.    !  SYNOPSIS
+    7.    
+    8.    program testAAT
+    9.    
+   10.    !  PURPOSE
+   11.    !    Checking: cgca_dacf, cgca_hxi, cgca_hxg
+   12.    !  DESCRIPTION
+   13.    !    Checking deactivation of crack flanks with halo exchange.
+   14.    !    In image1 fracture coarray only, cells on one plane are given
+   15.    !    "crack edge" values. Then cgca_dacf is called. As all interior cells
+   16.    !    on this planes are switched to "crack flanks".
+   17.    !  AUTHOR
+   18.    !    Anton Shterenlikht
+   19.    !  COPYRIGHT
+   20.    !    See CGPACK_Copyright
+   21.    !  USES
+   22.    !    cgca testaux
+   23.    !  USED BY
+   24.    !    Part of CGPACK test suite
+   25.    !  SOURCE
+   26.    
+   27.    use testaux
+              ^       
+ftn-1193 ftn: CAUTION TESTAAT, File = testAAT.f90, Line = 27, Column = 5 
+  Module "CGCA_M4FR" is indirectly used in module "TESTAUX" and is from file "./cgca_m4fr.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAT, File = testAAT.f90, Line = 27, Column = 5 
+  Module "CGCA_M3SLD" is indirectly used in module "TESTAUX" and is from file "./cgca_m3sld.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAT, File = testAAT.f90, Line = 27, Column = 5 
+  Module "CGCA_M3PFEM" is indirectly used in module "TESTAUX" and is from file "./cgca_m3pfem.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAT, File = testAAT.f90, Line = 27, Column = 5 
+  Module "CGCA_M3NUCL" is indirectly used in module "TESTAUX" and is from file "./cgca_m3nucl.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAT, File = testAAT.f90, Line = 27, Column = 5 
+  Module "CGCA_M3GBF" is indirectly used in module "TESTAUX" and is from file "./cgca_m3gbf.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAT, File = testAAT.f90, Line = 27, Column = 5 
+  Module "CGCA_M3CLVG" is indirectly used in module "TESTAUX" and is from file "./cgca_m3clvg.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAT, File = testAAT.f90, Line = 27, Column = 5 
+  Module "CGCA_M2STAT" is indirectly used in module "TESTAUX" and is from file "./cgca_m2stat.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAT, File = testAAT.f90, Line = 27, Column = 5 
+  Module "CGCA_M2ROT" is indirectly used in module "TESTAUX" and is from file "./cgca_m2rot.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAT, File = testAAT.f90, Line = 27, Column = 5 
+  Module "CGCA_M2RND" is indirectly used in module "TESTAUX" and is from file "./cgca_m2rnd.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAT, File = testAAT.f90, Line = 27, Column = 5 
+  Module "CGCA_M2RED" is indirectly used in module "TESTAUX" and is from file "./cgca_m2red.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAT, File = testAAT.f90, Line = 27, Column = 5 
+  Module "CGCA_M2PHYS" is indirectly used in module "TESTAUX" and is from file "./cgca_m2phys.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAT, File = testAAT.f90, Line = 27, Column = 5 
+  Module "CGCA_M2PCK" is indirectly used in module "TESTAUX" and is from file "./cgca_m2pck.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAT, File = testAAT.f90, Line = 27, Column = 5 
+  Module "CGCA_M2OUT" is indirectly used in module "TESTAUX" and is from file "./cgca_m2out.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAT, File = testAAT.f90, Line = 27, Column = 5 
+  Module "CGCA_M2MPIIO" is indirectly used in module "TESTAUX" and is from file "./cgca_m2mpiio.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAT, File = testAAT.f90, Line = 27, Column = 5 
+  Module "CGCA_M2LNKLST" is indirectly used in module "TESTAUX" and is from file "./cgca_m2lnklst.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAT, File = testAAT.f90, Line = 27, Column = 5 
+  Module "CGCA_M2HX" is indirectly used in module "TESTAUX" and is from file "./cgca_m2hx.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAT, File = testAAT.f90, Line = 27, Column = 5 
+  Module "CGCA_M2GLM" is indirectly used in module "TESTAUX" and is from file "./cgca_m2glm.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAT, File = testAAT.f90, Line = 27, Column = 5 
+  Module "CGCA_M2GEOM" is indirectly used in module "TESTAUX" and is from file "./cgca_m2geom.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAT, File = testAAT.f90, Line = 27, Column = 5 
+  Module "CGCA_M2GB" is indirectly used in module "TESTAUX" and is from file "./cgca_m2gb.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAT, File = testAAT.f90, Line = 27, Column = 5 
+  Module "CGCA_M2ALLOC" is indirectly used in module "TESTAUX" and is from file "./cgca_m2alloc.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAT, File = testAAT.f90, Line = 27, Column = 5 
+  Module "CGCA_M1CO" is indirectly used in module "TESTAUX" and is from file "./cgca_m1co.o".  That file no longer exists.
+
+   28.    
+   29.    implicit none
+   30.    
+   31.     logical(kind=ldef),parameter :: yesdebug=.true., nodebug=.false., &
+   32.       periodicbc=.true.
+   33.     real,parameter :: gigabyte=real(2**30), resolution=1.0e-5, &
+   34.    
+   35.    ! cleavage stress on 100, 110, 111 planes for BCC,
+   36.    ! see the manual for derivation.
+   37.      scrit(3) = (/ 1.05e4, 1.25e4, 4.90e4 /)
+   38.    
+   39.     real(kind=rdef),allocatable :: grt(:,:,:)[:,:,:]
+   40.     real(kind=rdef) :: s1(3)
+   41.    
+   42.     integer(kind=idef) :: l1,u1,l2,u2,l3,u3,col1,cou1,col2,cou2,col3, &
+   43.       cou3,   &
+   44.       nuc,    & ! number of nuclei in the model
+   45.       nimages,codim(3)[*]
+   46.     integer(kind=iarr),allocatable :: space(:,:,:,:)[:,:,:]
+   47.     integer(kind=ilrg),allocatable :: grainvol(:)[:,:,:],fracvol(:)[:,:,:]
+   48.     integer(kind=ilrg) :: icells,mcells
+   49.    
+   50.     logical(kind=ldef) :: image1
+   51.    
+   52.     real :: image_storage
+   53.    
+   54.    !**********************************************************************73
+   55.    ! first executable statement
+   56.    
+   57.    nimages=num_images()
+   58.    image1=.false.
+   59.    if (this_image().eq.1) image1=.true.
+   60.    
+   61.    ! do a check on image 1
+   62.    if (image1) then
+   63.     call getcodim(nimages,codim)
+                ^                       
+ftn-3118 ftn: IPA TESTAAT, File = testAAT.f90, Line = 63, Column = 7 
+  "getcodim" (called from "testaat") was not inlined because the call site will not flatten.  "_GET_COMMAND_ARGUMENT" is missing.
+
+   64.     ! print a banner
+   65.     call banner("AAT")
+                ^             
+ftn-3001 ftn: IPA TESTAAT, File = testAAT.f90, Line = 65, Column = 7 
+  The call to leaf routine "banner" was textually inlined due to constant actual(s).
+
+   66.     ! print the parameter values
+   67.     call cgca_pdmp
+                ^         
+ftn-3021 ftn: IPA TESTAAT, File = testAAT.f90, Line = 67, Column = 7 
+  "cgca_pdmp" (called from "testaat") was not inlined because the compiler was unable to locate the routine.
+
+   68.     write (*,'(a,i0,a)') "running on ", nimages, " images in a 3D grid"
+   69.     write (*,*) "codim:", codim
+   70.    end if
+   71.    
+   72.    sync all
+   73.    
+   74.    codim(:) = codim(:)[1]
+ftn-6202 ftn: VECTOR File = testAAT.f90, Line = 74 
+  A loop starting at line 74 was replaced by a library call.
+
+   75.    
+   76.    l1=1
+   77.    l2=l1
+   78.    l3=l1
+   79.    
+   80.    ! The array size is only controlled by this value
+   81.    ! in this program.
+   82.    u1=10
+   83.    u2=u1
+   84.    u3=u1
+   85.    
+   86.    col1=1
+   87.    cou1=codim(1)-col1+1
+   88.    col2=1
+   89.    cou2=codim(2)-col2+1
+   90.    col3=1
+   91.    cou3=codim(3)-col3+1
+   92.    
+   93.    ! total number of cells in a coarray
+   94.    icells = int(u1-l1+1,kind=ilrg) * int(u2-l2+1,kind=ilrg) * &
+   95.      int(u3-l3+1,kind=ilrg)
+   96.    
+   97.    ! total number of cells in the model
+   98.    mcells = icells * int(codim(1),kind=ilrg) * int(codim(2),kind=ilrg) * &
+   99.      int(codim(3),kind=ilrg)
+  100.    
+  101.    ! total number of nuclei
+  102.    !nuc = resolution*mcells
+  103.    ! just 1 nuclei in this test
+  104.    nuc=1
+  105.    
+  106.    if (image1) then
+  107.      write (*,'(a,2(i0,":",i0,","),i0,":",i0,")")') &
+  108.        "bounds: (",l1,u1,l2,u2,l3,u3
+  109.      write (*,'(a,2(i0,":",i0,","),i0,":",i0,")")') &
+  110.        "cobounds: (",col1,cou1,col2,cou2,col3,cou3
+  111.    
+  112.      ! An absolute minimum of storage, in GB, per image.
+  113.      image_storage = real( &
+ftn-6010 ftn: SCALAR File = testAAT.f90, Line = 113 
+  A divide was turned into a multiply by a reciprocal
+
+  114.        ! 2nd space array is allocated in _sld
+  115.        2 * icells*storage_size(space) &
+  116.        ! grain volumes
+  117.        + nuc*storage_size(grainvol) &
+  118.        ! rotation tensors
+  119.        + nuc*9*storage_size(grt))/8/gigabyte 
+  120.    
+  121.      write (*,'(a,i0,a)') "Each image has ",icells, " cells"
+  122.      write (*,'(a,i0,a)') "The model has ", mcells, " cells"
+  123.      write (*,'(a,i0,a)') "The model has ", nuc, " nuclei"
+  124.      write (*,'(a,es9.2,a)') "Each image will use at least ", &
+  125.        image_storage, " GB memory"
+  126.    end if
+  127.    
+  128.    ! initialise random number seed
+  129.    call cgca_irs(nodebug)
+               ^                 
+ftn-3021 ftn: IPA TESTAAT, File = testAAT.f90, Line = 129, Column = 6 
+  "cgca_irs" (called from "testaat") was not inlined because the compiler was unable to locate the routine.
+
+  130.    
+  131.    ! allocate 2 coarrays, for grains and for fracture
+  132.    call cgca_as(l1,u1,l2,u2,l3,u3,col1,cou1,col2,cou2,col3,2,space)
+               ^                                                           
+ftn-3021 ftn: IPA TESTAAT, File = testAAT.f90, Line = 132, Column = 6 
+  "cgca_as" (called from "testaat") was not inlined because the compiler was unable to locate the routine.
+
+  133.    
+  134.    ! initialise coarrays: a single grain and no damage
+  135.    space(:,:,:,cgca_state_type_grain) = 1
+ftn-6066 ftn: SCALAR File = testAAT.f90, Line = 135 
+   A loop nest at line 135 collapsed to a single loop.
+
+ftn-6202 ftn: VECTOR File = testAAT.f90, Line = 135 
+  A loop starting at line 135 was replaced by a library call.
+
+  136.    space(:,:,:,cgca_state_type_frac) = cgca_intact_state
+ftn-6066 ftn: SCALAR File = testAAT.f90, Line = 136 
+   A loop nest at line 136 collapsed to a single loop.
+
+ftn-6202 ftn: VECTOR File = testAAT.f90, Line = 136 
+  A loop starting at line 136 was replaced by a library call.
+
+  137.    
+  138.    ! set all image 1 cells to an edge state
+  139.    space(:,:,u3/2,cgca_state_type_frac)[col1,col2,col3] = &
+ftn-6066 ftn: SCALAR File = testAAT.f90, Line = 139 
+   A loop nest at line 139 collapsed to a single loop.
+
+ftn-6202 ftn: VECTOR File = testAAT.f90, Line = 139 
+  A loop starting at line 139 was replaced by a library call.
+
+  140.      cgca_clvg_state_100_edge
+  141.    
+  142.    ! Allocate grain and fracture volumes
+  143.    call cgca_av(1,nuc,col1,cou1,col2,cou2,col3,grainvol)
+               ^                                                
+ftn-3021 ftn: IPA TESTAAT, File = testAAT.f90, Line = 143, Column = 6 
+  "cgca_av" (called from "testaat") was not inlined because the compiler was unable to locate the routine.
+
+  144.    call cgca_av(1,nuc,col1,cou1,col2,cou2,col3,fracvol)
+               ^                                               
+ftn-3021 ftn: IPA TESTAAT, File = testAAT.f90, Line = 144, Column = 6 
+  "cgca_av" (called from "testaat") was not inlined because the compiler was unable to locate the routine.
+
+  145.    
+  146.    ! allocate rotation tensors
+  147.    call cgca_art(1,nuc,col1,cou1,col2,cou2,col3,grt)
+               ^                                            
+ftn-3021 ftn: IPA TESTAAT, File = testAAT.f90, Line = 147, Column = 6 
+  "cgca_art" (called from "testaat") was not inlined because the compiler was unable to locate the routine.
+
+  148.    
+  149.    ! assign rotation tensor, aligned with spatial coord. system
+  150.    grt(1,:,:) = 0.0
+ftn-6066 ftn: SCALAR File = testAAT.f90, Line = 150 
+   A loop nest at line 150 collapsed to a single loop.
+
+ftn-6005 ftn: SCALAR File = testAAT.f90, Line = 150 
+  A loop starting at line 150 was unrolled 2 times.
+
+ftn-6213 ftn: VECTOR File = testAAT.f90, Line = 150 
+  A loop starting at line 150 was conditionally vectorized.
+
+  151.    grt(1,1,1) = 1.0
+  152.    grt(1,2,2) = 1.0
+  153.    grt(1,3,3) = 1.0
+  154.    
+  155.    ! set s1, although not used in this test
+  156.    s1 = (/ 1.0, 1.0, 1.0 /)
+  157.    
+  158.    ! dump both the grain and the fracture arrays
+  159.    call cgca_swci(space,cgca_state_type_grain,10,"zg1.raw")
+               ^                                                   
+ftn-3021 ftn: IPA TESTAAT, File = testAAT.f90, Line = 159, Column = 6 
+  "cgca_swci" (called from "testaat") was not inlined because the compiler was unable to locate the routine.
+
+  160.    call cgca_swci(space,cgca_state_type_frac,10,"zf1.raw")
+               ^                                                  
+ftn-3021 ftn: IPA TESTAAT, File = testAAT.f90, Line = 160, Column = 6 
+  "cgca_swci" (called from "testaat") was not inlined because the compiler was unable to locate the routine.
+
+  161.    sync all
+  162.    
+  163.    ! local and global halo exchange
+  164.    call cgca_hxi(space)
+               ^               
+ftn-3021 ftn: IPA TESTAAT, File = testAAT.f90, Line = 164, Column = 6 
+  "cgca_hxi" (called from "testaat") was not inlined because the compiler was unable to locate the routine.
+
+  165.    call cgca_hxg(space)
+               ^               
+ftn-3021 ftn: IPA TESTAAT, File = testAAT.f90, Line = 165, Column = 6 
+  "cgca_hxg" (called from "testaat") was not inlined because the compiler was unable to locate the routine.
+
+  166.    sync all
+  167.    
+  168.    ! deactivate flanks
+  169.    call cgca_dacf(space,yesdebug)
+               ^                         
+ftn-3021 ftn: IPA TESTAAT, File = testAAT.f90, Line = 169, Column = 6 
+  "cgca_dacf" (called from "testaat") was not inlined because the compiler was unable to locate the routine.
+
+  170.    sync all
+  171.    
+  172.    ! local and global halo exchange
+  173.    call cgca_hxi(space)
+               ^               
+ftn-3021 ftn: IPA TESTAAT, File = testAAT.f90, Line = 173, Column = 6 
+  "cgca_hxi" (called from "testaat") was not inlined because the compiler was unable to locate the routine.
+
+  174.    call cgca_hxg(space)
+               ^               
+ftn-3021 ftn: IPA TESTAAT, File = testAAT.f90, Line = 174, Column = 6 
+  "cgca_hxg" (called from "testaat") was not inlined because the compiler was unable to locate the routine.
+
+  175.    sync all
+  176.    
+  177.    ! dump both the grain and the fracture arrays
+  178.    call cgca_swci(space,cgca_state_type_grain,10,"zg2.raw")
+               ^                                                   
+ftn-3021 ftn: IPA TESTAAT, File = testAAT.f90, Line = 178, Column = 6 
+  "cgca_swci" (called from "testaat") was not inlined because the compiler was unable to locate the routine.
+
+  179.    call cgca_swci(space,cgca_state_type_frac,10,"zf2.raw")
+               ^                                                  
+ftn-3021 ftn: IPA TESTAAT, File = testAAT.f90, Line = 179, Column = 6 
+  "cgca_swci" (called from "testaat") was not inlined because the compiler was unable to locate the routine.
+
+  180.    sync all
+  181.    
+  182.    ! deallocate all arrays
+  183.    call cgca_ds(space)
+               ^              
+ftn-3021 ftn: IPA TESTAAT, File = testAAT.f90, Line = 183, Column = 6 
+  "cgca_ds" (called from "testaat") was not inlined because the compiler was unable to locate the routine.
+
+  184.    call cgca_dv(grainvol)
+               ^                 
+ftn-3021 ftn: IPA TESTAAT, File = testAAT.f90, Line = 184, Column = 6 
+  "cgca_dv" (called from "testaat") was not inlined because the compiler was unable to locate the routine.
+
+  185.    call cgca_dv(fracvol)
+               ^                
+ftn-3021 ftn: IPA TESTAAT, File = testAAT.f90, Line = 185, Column = 6 
+  "cgca_dv" (called from "testaat") was not inlined because the compiler was unable to locate the routine.
+
+  186.    call cgca_drt(grt)
+               ^             
+ftn-3021 ftn: IPA TESTAAT, File = testAAT.f90, Line = 186, Column = 6 
+  "cgca_drt" (called from "testaat") was not inlined because the compiler was unable to locate the routine.
+
+  187.    
+  188.    end program testAAT
+ftn-5001 ftn: NOTE File = testAAT.f90, Line = 188 
+  Local variable "S1" is assigned a value but never used.
+
+ftn-5008 ftn: NOTE File = testAAT.f90, Line = 188 
+  Named Constant "RESOLUTION" is not used.
+
+ftn-5008 ftn: NOTE File = testAAT.f90, Line = 188 
+  Named Constant "PERIODICBC" is not used.
+
+  189.    
+  190.    !*roboend*
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                         E x t e r n a l   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Name  Messages
+----  --------
+ABORT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ABORT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+BANNER in TESTAUX
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAT (Line 65, file testAAT.f90)
+
+Name  Messages
+----  --------
+CGCA
+      Defined as:  No definitions.
+
+      Used By:     TESTAAT  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_ADDHEAD in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_ADDMIDDLE in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_ART in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAT (Line 147, file testAAT.f90)
+
+Name  Messages
+----  --------
+CGCA_AS in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAT (Line 132, file testAAT.f90)
+
+Name  Messages
+----  --------
+CGCA_AV in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAT (Line 143, file testAAT.f90)
+                   TESTAAT (Line 144, file testAAT.f90)
+
+Name  Messages
+----  --------
+CGCA_BOXSPLIT in CGCA_M2GEOM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CADIM in CGCA_M2PHYS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CKRT in CGCA_M2ROT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CLVGP in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CLVGP1 in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CLVGP_NOCOSUM in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CLVGSD in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CLVGSP in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CSYM in CGCA_M2ROT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_DACF in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAT (Line 169, file testAAT.f90)
+
+Name  Messages
+----  --------
+CGCA_DACF1 in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_DGC in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_DRT in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAT (Line 186, file testAAT.f90)
+
+Name  Messages
+----  --------
+CGCA_DS in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAT (Line 183, file testAAT.f90)
+
+Name  Messages
+----  --------
+CGCA_DV in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAT (Line 184, file testAAT.f90)
+                   TESTAAT (Line 185, file testAAT.f90)
+
+Name  Messages
+----  --------
+CGCA_FR in CGCA_M4FR
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_FV in CGCA_M2STAT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GBF1F in CGCA_M3GBF
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GBF1P in CGCA_M3GBF
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GBS in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GCF in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GCP in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GCR in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GCU in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GDIM in CGCA_M2PHYS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GL in CGCA_M2GLM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GV in CGCA_M2STAT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GVL in CGCA_M2STAT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_HXG in CGCA_M2HX
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAT (Line 165, file testAAT.f90)
+                   TESTAAT (Line 174, file testAAT.f90)
+
+Name  Messages
+----  --------
+CGCA_HXI in CGCA_M2HX
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAT (Line 164, file testAAT.f90)
+                   TESTAAT (Line 173, file testAAT.f90)
+
+Name  Messages
+----  --------
+CGCA_IGB in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_IMCO in CGCA_M2PHYS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_INITHEAD in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_IRS in CGCA_M2RND
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAT (Line 129, file testAAT.f90)
+
+Name  Messages
+----  --------
+CGCA_LG in CGCA_M2GLM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_LSTDMP in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_M1CO
+      Defined as:  No definitions.
+
+      Used By:     TESTAAT  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+      Used By:     TESTAAT  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2GB
+      Defined as:  No definitions.
+
+      Used By:     TESTAAT  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2GEOM
+      Defined as:  No definitions.
+
+      Used By:     TESTAAT  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2GLM
+      Defined as:  No definitions.
+
+      Used By:     TESTAAT  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2HX
+      Defined as:  No definitions.
+
+      Used By:     TESTAAT  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+      Used By:     TESTAAT  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2MPIIO
+      Defined as:  No definitions.
+
+      Used By:     TESTAAT  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2OUT
+      Defined as:  No definitions.
+
+      Used By:     TESTAAT  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2PCK
+      Defined as:  No definitions.
+
+      Used By:     TESTAAT  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2PHYS
+      Defined as:  No definitions.
+
+      Used By:     TESTAAT  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2RED
+      Defined as:  No definitions.
+
+      Used By:     TESTAAT  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2RND
+      Defined as:  No definitions.
+
+      Used By:     TESTAAT  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2ROT
+      Defined as:  No definitions.
+
+      Used By:     TESTAAT  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2STAT
+      Defined as:  No definitions.
+
+      Used By:     TESTAAT  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M3CLVG
+      Defined as:  No definitions.
+
+      Used By:     TESTAAT  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M3GBF
+      Defined as:  No definitions.
+
+      Used By:     TESTAAT  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M3NUCL
+      Defined as:  No definitions.
+
+      Used By:     TESTAAT  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M3PFEM
+      Defined as:  No definitions.
+
+      Used By:     TESTAAT  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M3SLD
+      Defined as:  No definitions.
+
+      Used By:     TESTAAT  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M4FR
+      Defined as:  No definitions.
+
+      Used By:     TESTAAT  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_MIS in CGCA_M2ROT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_MISCSYM in CGCA_M2ROT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_NR in CGCA_M3NUCL
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PC in CGCA_M2OUT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PDMP in CGCA_M2PCK
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAT (Line 67, file testAAT.f90)
+
+Name  Messages
+----  --------
+CGCA_PFEM_BOXIN in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_CELLIN in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_CENC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_CENDMP in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_CTALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_CTDALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_EALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_EDALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_INTCALC1 in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_INTEGALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_INTEGDALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_PARTIN in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_SALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_SDALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_SDMP in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_SIMG in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_UYM in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_WHOLEIN in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PSWCI in CGCA_M2MPIIO
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_REDAND in CGCA_M2RED
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_RMHEAD in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_RMMIDDLE in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_RT in CGCA_M2ROT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_SLD in CGCA_M3SLD
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_SLD1 in CGCA_M3SLD
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_SLD2 in CGCA_M3SLD
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_SLD3 in CGCA_M3SLD
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_SWCI in CGCA_M2OUT
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAT (Line 159, file testAAT.f90)
+                   TESTAAT (Line 160, file testAAT.f90)
+                   TESTAAT (Line 178, file testAAT.f90)
+                   TESTAAT (Line 179, file testAAT.f90)
+
+Name  Messages
+----  --------
+CGCA_TCHK in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+EXIT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH_8
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FTN_LIB_DEFINITIONS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+Name  Messages
+----  --------
+GETCODIM in TESTAUX
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAT (Line 63, file testAAT.f90)
+
+Name  Messages
+----  --------
+HUGE(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL_J
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+INT(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAT (Line 94, file testAAT.f90)
+                   TESTAAT (Line 94, file testAAT.f90)
+                   TESTAAT (Line 95, file testAAT.f90)
+                   TESTAAT (Line 98, file testAAT.f90)
+                   TESTAAT (Line 98, file testAAT.f90)
+                   TESTAAT (Line 99, file testAAT.f90)
+
+Name  Messages
+----  --------
+ISO_FORTRAN_ENV
+      Defined as:  No definitions.
+
+      Used By:     TESTAAT  (indirectly)
+
+Name  Messages
+----  --------
+KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+REAL(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAT (Line 33, file testAAT.f90)
+                   TESTAAT (Line 113, file testAAT.f90)
+
+Name  Messages
+----  --------
+SELECTED_INT_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SELECTED_REAL_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SIZE(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+STORAGE_SIZE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAT (Line 115, file testAAT.f90)
+                   TESTAAT (Line 117, file testAAT.f90)
+                   TESTAAT (Line 119, file testAAT.f90)
+
+Name  Messages
+----  --------
+TESTAAT
+      Defined as:  Program (line 8, file testAAT.f90)
+
+      Calls:       REAL(Intrinsic) (Line 33, file testAAT.f90)
+                   REAL(Intrinsic) (Line 113, file testAAT.f90)
+                   shmem_n_pes(Intrinsic) (Line 57, file testAAT.f90)
+                   THIS_IMAGE(Intrinsic) (Line 59, file testAAT.f90)
+                   GETCODIM in TESTAUX (Line 63, file testAAT.f90)
+                   BANNER in TESTAUX (Line 65, file testAAT.f90)
+                   CGCA_PDMP in CGCA_M2PCK (Line 67, file testAAT.f90)
+                   INT(Intrinsic) (Line 94, file testAAT.f90)
+                   INT(Intrinsic) (Line 94, file testAAT.f90)
+                   INT(Intrinsic) (Line 95, file testAAT.f90)
+                   INT(Intrinsic) (Line 98, file testAAT.f90)
+                   INT(Intrinsic) (Line 98, file testAAT.f90)
+                   INT(Intrinsic) (Line 99, file testAAT.f90)
+                   STORAGE_SIZE(Intrinsic) (Line 115, file testAAT.f90)
+                   STORAGE_SIZE(Intrinsic) (Line 117, file testAAT.f90)
+                   STORAGE_SIZE(Intrinsic) (Line 119, file testAAT.f90)
+                   CGCA_IRS in CGCA_M2RND (Line 129, file testAAT.f90)
+                   CGCA_AS in CGCA_M2ALLOC (Line 132, file testAAT.f90)
+                   CGCA_AV in CGCA_M2ALLOC (Line 143, file testAAT.f90)
+                   CGCA_AV in CGCA_M2ALLOC (Line 144, file testAAT.f90)
+                   CGCA_ART in CGCA_M2ALLOC (Line 147, file testAAT.f90)
+                   CGCA_SWCI in CGCA_M2OUT (Line 159, file testAAT.f90)
+                   CGCA_SWCI in CGCA_M2OUT (Line 160, file testAAT.f90)
+                   CGCA_SWCI in CGCA_M2OUT (Line 178, file testAAT.f90)
+                   CGCA_SWCI in CGCA_M2OUT (Line 179, file testAAT.f90)
+                   CGCA_HXI in CGCA_M2HX (Line 164, file testAAT.f90)
+                   CGCA_HXI in CGCA_M2HX (Line 173, file testAAT.f90)
+                   CGCA_HXG in CGCA_M2HX (Line 165, file testAAT.f90)
+                   CGCA_HXG in CGCA_M2HX (Line 174, file testAAT.f90)
+                   CGCA_DACF in CGCA_M3CLVG (Line 169, file testAAT.f90)
+                   CGCA_DS in CGCA_M2ALLOC (Line 183, file testAAT.f90)
+                   CGCA_DV in CGCA_M2ALLOC (Line 184, file testAAT.f90)
+                   CGCA_DV in CGCA_M2ALLOC (Line 185, file testAAT.f90)
+                   CGCA_DRT in CGCA_M2ALLOC (Line 186, file testAAT.f90)
+
+        Uses:      TESTAUX
+                   ISO_FORTRAN_ENV  (indirectly)
+                   CGCA_M4FR  (indirectly)
+                   CGCA_M3SLD  (indirectly)
+                   CGCA_M3PFEM  (indirectly)
+                   CGCA_M3NUCL  (indirectly)
+                   CGCA_M3GBF  (indirectly)
+                   CGCA_M3CLVG  (indirectly)
+                   CGCA_M2STAT  (indirectly)
+                   CGCA_M2ROT  (indirectly)
+                   CGCA_M2RND  (indirectly)
+                   CGCA_M2RED  (indirectly)
+                   CGCA_M2PHYS  (indirectly)
+                   CGCA_M2PCK  (indirectly)
+                   CGCA_M2OUT  (indirectly)
+                   CGCA_M2MPIIO  (indirectly)
+                   CGCA_M2LNKLST  (indirectly)
+                   CGCA_M2HX  (indirectly)
+                   CGCA_M2GLM  (indirectly)
+                   CGCA_M2GEOM  (indirectly)
+                   CGCA_M2GB  (indirectly)
+                   CGCA_M2ALLOC  (indirectly)
+                   CGCA_M1CO  (indirectly)
+                   CGCA  (indirectly)
+
+Name  Messages
+----  --------
+TESTAUX
+      Defined as:  No definitions.
+
+      Used By:     TESTAAT
+
+Name  Messages
+----  --------
+THIS_IMAGE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAT (Line 59, file testAAT.f90)
+
+Name  Messages
+----  --------
+shmem_n_pes(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAT (Line 57, file testAAT.f90)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

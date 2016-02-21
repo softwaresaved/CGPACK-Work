@@ -1,0 +1,2 @@
+PE ??: ERROR: could not find system factory for this system (at or around line 77 in __pgas_runtime_error_checking() from file /home/y14/y14/di1c13/cgpack/head/tests/testAAA.f90)
+/cm/local/apps/pbspro/var/spool/mom_priv/jobs/3523383.sdb.SC: line 18: 69999 Aborted                 testAAA.x 2 2

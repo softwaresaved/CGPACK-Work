@@ -1,0 +1,1198 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S u m m a r y   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Compilation
+-----------
+File     : /home3/y14/y14/di1c13/cgpack/head/cgca_m2rot.f90
+Compiled : 02/18/16  16:36:36
+Compiler : Version 8.3.7
+Ftnlx    : Version 8318 (libcif 83016)
+Target   : x86-64
+Command  : ftn_driver.exe -hcpu=ivybridge -hstatic -D__CRAYXC
+           -D__CRAY_IVYBRIDGE -D__CRAYXT_COMPUTE_LINUX_TARGET -hnetwork=aries
+           -c -eacFn -dm -m2 -rl -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/mpt/7.1.1/gni/mpich2-cray/83/include
+           -I/opt/cray/libsci/13.0.1/CRAY/83/sandybridge/include
+           -I/opt/cray/rca/1.0.0-2.0502.57212.2.56.ari/include
+           -I/opt/cray/alps/5.2.3-2.0502.9295.14.14.ari/include
+           -I/opt/cray/xpmem/0.1-2.0502.57015.1.15.ari/include
+           -I/opt/cray/gni-headers/4.0-1.0502.10317.9.2.ari/include
+           -I/opt/cray/dmapp/7.0.1-1.0502.10246.8.47.ari/include
+           -I/opt/cray/pmi/5.0.6-1.0000.10439.140.2.ari/include
+           -I/opt/cray/ugni/6.0-1.0502.10245.9.9.ari/include
+           -I/opt/cray/udreg/2.3.2-1.0502.9889.2.20.ari/include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/pkgconfig/../include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/wlm_detect/1.0-1.0502.57063.1.1.ari/include
+           -I/opt/cray/krca/1.0.0-2.0502.57202.2.45.ari/include
+           -I/opt/cray-hss-devel/7.2.0/include cgca_m2rot.f90
+
+ftnlx report
+------------
+Source   : /home3/y14/y14/di1c13/cgpack/head/cgca_m2rot.f90
+Date     : 02/18/2016  16:36:36
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S o u r c e   L i s t i n g
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    1.    !$Id: cgca_m2rot.f90 144 2015-10-21 16:40:36Z mexas $
+    2.    
+    3.    !*robodoc*m* CGPACK/cgca_m2rot
+    4.    !  NAME
+    5.    !    cgca_m2rot
+    6.    !  SYNOPSIS
+    7.    
+    8.    module cgca_m2rot
+    9.    
+   10.    !  DESCRIPTION
+   11.    !    Module dealing with tensor rotations, orientations,
+   12.    !    mis-orientations
+   13.    !  AUTHOR
+   14.    !    Anton Shterenlikht
+   15.    !  COPYRIGHT
+   16.    !    See CGPACK_Copyright
+   17.    !  CONTAINS
+   18.    !    cgca_rt, cgca_ckrt, rtprint, cgca_csym, cgca_mis, cgca_miscsym
+   19.    !  USES
+   20.    !    cgca_m1co
+   21.    !  USED BY
+   22.    !    cgca
+   23.    !  SOURCE
+   24.    
+   25.    use cgca_m1co, only : idef, ldef, rdef, cgca_pi
+   26.    implicit none
+   27.    
+   28.    private
+   29.    public :: cgca_ckrt, cgca_csym, cgca_mis, cgca_miscsym, cgca_rt
+   30.    
+   31.    contains
+   32.    
+   33.    !*roboend*
+   34.    
+   35.    
+   36.    !*robodoc*s* cgca_m2rot/cgca_rt
+   37.    !  NAME
+   38.    !    cgca_rt
+   39.    !  SYNOPSIS
+   40.    
+   41.    subroutine cgca_rt(r)
+   42.    
+   43.    !  INPUT
+   44.    !    Array r to store output
+   45.    !  OUTPUT
+   46.    
+   47.    real(kind=rdef),allocatable,intent(inout) :: r(:,:,:)[:,:,:]
+   48.    
+   49.    !  DESCRIPTION
+   50.    ! Choose grain rotation tensors at random and return in a
+   51.    ! coarray r(:,:,:)[:,:,:]. dimension 1 of the coarray is the grain
+   52.    ! number. dimensions 2 and 3 are for the rotation tensor for the grain,
+   53.    ! e.g. r(387,2,1) is the rotation tensor component r21 for grain 387.
+   54.    !
+   55.    ! image 1 assigns rotation tensors to all grains. then all other
+   56.    ! images copy the coarray from image 1.
+   57.    !
+   58.    ! the method: choose 3 random angles. then interpret them as rotations
+   59.    ! about axes 1, 2 and 3 in turn. the resulting rotation will be quite
+   60.    ! random.
+   61.    !
+   62.    ! grain axes are the crystallographic directions:
+   63.    !
+   64.    ! axis  direction
+   65.    !  1     [100]
+   66.    !  2     [010]
+   67.    !  3     [001]
+   68.    ! 
+   69.    ! then the grain orientation tensor for some grain z is defined as:
+   70.    !
+   71.    !  r(z,1,1) r(z,1,2) r(z,1,3)
+   72.    !  r(z,2,1) r(z,2,2) r(z,2,3)
+   73.    !  r(z,3,1) r(z,3,2) r(z,3,3)
+   74.    !
+   75.    ! index 2  is the grain axis, index 3 is the space axis, i.e.
+   76.    ! r(z,i,j)= cos(x_i_grain,x_j_space), e.g.
+   77.    ! r(z,3,2) = cos(3_grain,2_space) is the angle between grain
+   78.    ! axis 3 and the space axix 2 for grain z.
+   79.    !
+   80.    ! This leads to the important convention:
+   81.    !
+   82.    !    x_grain =           r  * x_space
+   83.    !    x_space = transpose(r) * x_grain
+   84.    !
+   85.    ! *All* other routines must adhere to this convention.
+   86.    !  NOTES
+   87.    !    Call cgca_art before calling this routine.
+   88.    !  USES
+   89.    !    none
+   90.    !  USED BY
+   91.    !    none, end user
+   92.    !  SOURCE  
+   93.    
+   94.    real( kind=rdef ), parameter :: zero = 0.0_rdef, one = 1.0_rdef,       &
+   95.      eight=8.0_rdef, twopi = 2 * cgca_pi
+   96.    real(kind=rdef) :: a(3),q(3,3)
+   97.    real :: rndnum(3)
+   98.    
+   99.    integer(kind=idef) :: l(3),u(3),lcob(3),ucob(3),i
+  100.    
+  101.    ! check for allocated
+  102.    if (.not. allocated(r)) error stop "error in cgca_rt: r is not allocated"
+  103.    
+  104.    ! define cobounds on all images. these are used at the end
+  105.    ! to read the values from image 1.
+  106.    lcob=lcobound(r)
+ftn-6271 ftn: VECTOR File = cgca_m2rot.f90, Line = 106 
+  A loop starting at line 106 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m2rot.f90, Line = 106 
+  A loop starting at line 106 was unwound.
+
+  107.    ucob=ucobound(r)
+  108.    
+  109.    ! image 1 does all work, otherwise lots of syncs will be needed
+  110.    
+  111.    image1: if (this_image() .eq. 1) then
+  112.    
+  113.    ! coarray bounds
+  114.    l=lbound(r)
+ftn-6271 ftn: VECTOR File = cgca_m2rot.f90, Line = 114 
+  A loop starting at line 114 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m2rot.f90, Line = 114 
+  A loop starting at line 114 was unwound.
+
+  115.    u=ubound(r)
+ftn-6004 ftn: SCALAR File = cgca_m2rot.f90, Line = 115 
+  A loop starting at line 115 was fused with the loop starting at line 114.
+
+  116.    
+  117.    ! check that bounds for dimensions 2 and 3 are 1:3
+  118.    if (l(2) .ne. 1 .or. l(3) .ne. 1 .or. &
+  119.        u(2) .ne. 3 .or. u(3) .ne. 3) then
+  120.      write (*,'(a)') &
+  121.        "error in cgca_rt: coarray bounds along dimensions 2 or 3 are wrong."
+  122.      write (*,'(a)') &
+  123.        "error in cgca_rt: these must be [1:3]."
+  124.      error stop
+  125.    end if
+  126.    
+  127.    ! loop over all grains
+  128.    main: do i=l(1),u(1)
+ftn-6263 ftn: VECTOR File = cgca_m2rot.f90, Line = 128 
+  A loop starting at line 128 was not vectorized because it contains a reference to a non-vector intrinsic on line 153.
+
+  129.    
+  130.    call random_number(rndnum)         ! in [0,1)
+ftn-6271 ftn: VECTOR File = cgca_m2rot.f90, Line = 130 
+  A loop starting at line 130 was not vectorized because its trip count is too small.
+
+  131.    a=real(rndnum,kind=rdef)*twopi     ! a in [0,2*pi)
+ftn-6004 ftn: SCALAR File = cgca_m2rot.f90, Line = 131 
+  A loop starting at line 131 was fused with the loop starting at line 130.
+
+  132.    
+  133.    ! rotation about 1
+  134.     r(i,:,:)=zero
+ftn-6066 ftn: SCALAR File = cgca_m2rot.f90, Line = 134 
+   A loop nest at line 134 collapsed to a single loop.
+
+ftn-6077 ftn: SCALAR File = cgca_m2rot.f90, Line = 134 
+  An implicit non-blocking operation was used for this statement.
+
+ftn-6333 ftn: VECTOR File = cgca_m2rot.f90, Line = 134 
+  A loop starting at line 134 was not vectorized because it contains a definition or reference to a coarray variable on line 134.
+
+ftn-6005 ftn: SCALAR File = cgca_m2rot.f90, Line = 134 
+  A loop starting at line 134 was unrolled 8 times.
+
+  135.     r(i,1,1)=one
+ftn-6077 ftn: SCALAR File = cgca_m2rot.f90, Line = 135 
+  An implicit non-blocking operation was used for this statement.
+
+  136.     r(i,2,2)=cos(a(1))
+ftn-6077 ftn: SCALAR File = cgca_m2rot.f90, Line = 136 
+  An implicit non-blocking operation was used for this statement.
+
+  137.     r(i,2,3)=sin(a(1))
+ftn-6077 ftn: SCALAR File = cgca_m2rot.f90, Line = 137 
+  An implicit non-blocking operation was used for this statement.
+
+  138.     r(i,3,2)=-r(i,2,3)
+ftn-6077 ftn: SCALAR File = cgca_m2rot.f90, Line = 138 
+  An implicit non-blocking operation was used for this statement.
+
+  139.     r(i,3,3)=r(i,2,2)
+ftn-6077 ftn: SCALAR File = cgca_m2rot.f90, Line = 139 
+  An implicit non-blocking operation was used for this statement.
+
+  140.    
+  141.    ! rotation about 2
+  142.     q=zero
+ftn-6066 ftn: SCALAR File = cgca_m2rot.f90, Line = 142 
+   A loop nest at line 142 collapsed to a single loop.
+
+ftn-6204 ftn: VECTOR File = cgca_m2rot.f90, Line = 142 
+  A loop starting at line 142 was vectorized.
+
+  143.     q(1,1)=cos(a(2))
+  144.     q(1,3)=sin(a(2))
+  145.     q(2,2)=one
+  146.     q(3,1)=-q(1,3)
+  147.     q(3,3)=q(1,1)
+  148.    
+  149.    ! intermediate compound rotation
+  150.     r(i,:,:) = matmul(q,r(i,:,:))
+ftn-6008 ftn: SCALAR File = cgca_m2rot.f90, Line = 150 
+  A loop starting at line 150 was unwound.
+
+ftn-6077 ftn: SCALAR File = cgca_m2rot.f90, Line = 150 
+  An implicit non-blocking operation was used for this statement.
+
+ftn-6333 ftn: VECTOR File = cgca_m2rot.f90, Line = 150 
+  A loop starting at line 150 was not vectorized because it contains a definition or reference to a coarray variable on line 150.
+
+ftn-6005 ftn: SCALAR File = cgca_m2rot.f90, Line = 150 
+  A loop starting at line 150 was unrolled 8 times.
+
+  151.    
+  152.    ! rotation about 3
+  153.     q=zero
+ftn-6066 ftn: SCALAR File = cgca_m2rot.f90, Line = 153 
+   A loop nest at line 153 collapsed to a single loop.
+
+ftn-6204 ftn: VECTOR File = cgca_m2rot.f90, Line = 153 
+  A loop starting at line 153 was vectorized.
+
+  154.     q(1,1)=cos(a(3))
+  155.     q(1,2)=sin(a(3))
+  156.     q(2,1)=-q(1,2)
+  157.     q(2,2)=q(1,1)
+  158.     q(3,3)=one
+  159.    
+  160.    ! final compound rotation
+  161.     r(i,:,:) = matmul(q,r(i,:,:))
+ftn-6008 ftn: SCALAR File = cgca_m2rot.f90, Line = 161 
+  A loop starting at line 161 was unwound.
+
+ftn-6077 ftn: SCALAR File = cgca_m2rot.f90, Line = 161 
+  An implicit non-blocking operation was used for this statement.
+
+ftn-6333 ftn: VECTOR File = cgca_m2rot.f90, Line = 161 
+  A loop starting at line 161 was not vectorized because it contains a definition or reference to a coarray variable on line 161.
+
+ftn-6005 ftn: SCALAR File = cgca_m2rot.f90, Line = 161 
+  A loop starting at line 161 was unrolled 8 times.
+
+  162.    
+  163.    end do main
+  164.    
+  165.    end if image1 
+  166.    
+  167.    ! global sync here
+  168.    sync all
+  169.    
+  170.    ! all images read r from image 1
+  171.    r(:,:,:) = r(:,:,:)[lcob(1),lcob(2),lcob(3)] 
+ftn-6066 ftn: SCALAR File = cgca_m2rot.f90, Line = 171 
+   A loop nest at line 171 collapsed to a single loop.
+
+ftn-6202 ftn: VECTOR File = cgca_m2rot.f90, Line = 171 
+  A loop starting at line 171 was replaced by a library call.
+
+  172.    
+  173.    ! exit only after all images have the rotation tensors assigned.
+  174.    sync all
+  175.    
+  176.    end subroutine cgca_rt
+ftn-5001 ftn: NOTE File = cgca_m2rot.f90, Line = 176 
+  Local variable "UCOB" is assigned a value but never used.
+
+ftn-5008 ftn: NOTE File = cgca_m2rot.f90, Line = 176 
+  Named Constant "EIGHT" is not used.
+
+  177.    
+  178.    !*roboend*
+  179.    
+  180.    
+  181.    !*robodoc*s* cgca_m2rot/cgca_ckrt
+  182.    !  NAME
+  183.    !    cgca_ckrt
+  184.    !  SYNOPSIS
+  185.    
+  186.    subroutine cgca_ckrt(r,debug,flag)
+  187.    
+  188.    !  INPUTS
+  189.    
+  190.    real(kind=rdef),intent(in) :: r(3,3)
+  191.    logical(kind=ldef),intent(in) :: debug
+  192.    
+  193.    !  OUTPUT
+  194.    
+  195.    integer(kind=idef),intent(out) :: flag
+  196.    
+  197.    !  DESCRIPTION
+  198.    !    Check that the given rotation tensor r(3,3) is
+  199.    !    orthogonal.
+  200.    !    If debug .eq. .true., then  verbose diagnostics is
+  201.    !    printed on error.
+  202.    !    In this case a non-zero return flag shows the number
+  203.    !    of the failed test.
+  204.    !  USES
+  205.    !    rtprint
+  206.    !  USED BY
+  207.    !    none, end user
+  208.    !  SOURCE
+  209.    
+  210.    real(kind=rdef),parameter :: one=1.0_rdef,factor=1.0e1_rdef
+  211.    integer :: i
+  212.    real :: maxerr, orthogon(3,3)
+  213.    
+  214.    maxerr = factor * epsilon(one)
+  215.    
+  216.    flag = 0 
+  217.    
+  218.     do i=1,2
+ftn-6289 ftn: VECTOR File = cgca_m2rot.f90, Line = 218 
+  A loop starting at line 218 was not vectorized because a recurrence was found on "orthogon" between lines 219 and 222.
+
+  219.       if (i.eq.1) orthogon = matmul(r,transpose(r))
+ftn-6008 ftn: SCALAR File = cgca_m2rot.f90, Line = 219 
+  A loop starting at line 219 was unwound.
+
+ftn-6271 ftn: VECTOR File = cgca_m2rot.f90, Line = 219 
+  A loop starting at line 219 was not vectorized because its trip count is too small.
+
+  220.       if (i.eq.2) orthogon = matmul(transpose(r),r)
+ftn-6271 ftn: VECTOR File = cgca_m2rot.f90, Line = 220 
+  A loop starting at line 220 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m2rot.f90, Line = 220 
+  A loop starting at line 220 was unwound.
+
+  221.    
+  222.       if (abs(orthogon(1,1)-one) .gt. maxerr) then
+  223.         if (debug) call rtprint(r,transpose(r),orthogon,maxerr)
+                               ^                                       
+ftn-3095 ftn: IPA CGCA_CKRT, File = cgca_m2rot.f90, Line = 223, Column = 22 
+  "rtprint" (called from "cgca_ckrt") was not inlined because the containing loop does I/O.
+
+                                         ^                             
+ftn-1438 ftn: CAUTION CGCA_CKRT, File = cgca_m2rot.f90, Line = 223, Column = 32 
+  This argument produces a copy in to a temporary variable.
+
+  224.         flag=1*i
+  225.         return
+  226.       end if
+  227.    
+  228.       if (abs(orthogon(1,2))     .gt. maxerr) then
+  229.         if (debug) call rtprint(r,transpose(r),orthogon,maxerr)
+                               ^                                       
+ftn-3095 ftn: IPA CGCA_CKRT, File = cgca_m2rot.f90, Line = 229, Column = 22 
+  "rtprint" (called from "cgca_ckrt") was not inlined because the containing loop does I/O.
+
+                                         ^                             
+ftn-1438 ftn: CAUTION CGCA_CKRT, File = cgca_m2rot.f90, Line = 229, Column = 32 
+  This argument produces a copy in to a temporary variable.
+
+  230.         flag=2*i
+  231.         return
+  232.       end if
+  233.    
+  234.       if (abs(orthogon(1,3))     .gt. maxerr) then
+  235.         if (debug) call rtprint(r,transpose(r),orthogon,maxerr)
+                               ^                                       
+ftn-3095 ftn: IPA CGCA_CKRT, File = cgca_m2rot.f90, Line = 235, Column = 22 
+  "rtprint" (called from "cgca_ckrt") was not inlined because the containing loop does I/O.
+
+                                         ^                             
+ftn-1438 ftn: CAUTION CGCA_CKRT, File = cgca_m2rot.f90, Line = 235, Column = 32 
+  This argument produces a copy in to a temporary variable.
+
+  236.         flag=3*i
+  237.         return
+  238.       end if
+  239.    
+  240.       if (abs(orthogon(2,1))     .gt. maxerr) then
+  241.         if (debug) call rtprint(r,transpose(r),orthogon,maxerr)
+                               ^                                       
+ftn-3095 ftn: IPA CGCA_CKRT, File = cgca_m2rot.f90, Line = 241, Column = 22 
+  "rtprint" (called from "cgca_ckrt") was not inlined because the containing loop does I/O.
+
+                                         ^                             
+ftn-1438 ftn: CAUTION CGCA_CKRT, File = cgca_m2rot.f90, Line = 241, Column = 32 
+  This argument produces a copy in to a temporary variable.
+
+  242.         flag=4*i
+  243.         return
+  244.       end if
+  245.    
+  246.       if (abs(orthogon(2,2)-one) .gt. maxerr) then
+  247.         if (debug) call rtprint(r,transpose(r),orthogon,maxerr)
+                               ^                                       
+ftn-3095 ftn: IPA CGCA_CKRT, File = cgca_m2rot.f90, Line = 247, Column = 22 
+  "rtprint" (called from "cgca_ckrt") was not inlined because the containing loop does I/O.
+
+                                         ^                             
+ftn-1438 ftn: CAUTION CGCA_CKRT, File = cgca_m2rot.f90, Line = 247, Column = 32 
+  This argument produces a copy in to a temporary variable.
+
+  248.         flag=5*i
+  249.         return
+  250.       end if
+  251.    
+  252.       if (abs(orthogon(2,3))     .gt. maxerr) then
+  253.         if (debug) call rtprint(r,transpose(r),orthogon,maxerr)
+                               ^                                       
+ftn-3095 ftn: IPA CGCA_CKRT, File = cgca_m2rot.f90, Line = 253, Column = 22 
+  "rtprint" (called from "cgca_ckrt") was not inlined because the containing loop does I/O.
+
+                                         ^                             
+ftn-1438 ftn: CAUTION CGCA_CKRT, File = cgca_m2rot.f90, Line = 253, Column = 32 
+  This argument produces a copy in to a temporary variable.
+
+  254.         flag=6*i
+  255.         return
+  256.       end if
+  257.    
+  258.       if (abs(orthogon(3,1))     .gt. maxerr) then
+  259.         if (debug) call rtprint(r,transpose(r),orthogon,maxerr)
+                               ^                                       
+ftn-3095 ftn: IPA CGCA_CKRT, File = cgca_m2rot.f90, Line = 259, Column = 22 
+  "rtprint" (called from "cgca_ckrt") was not inlined because the containing loop does I/O.
+
+                                         ^                             
+ftn-1438 ftn: CAUTION CGCA_CKRT, File = cgca_m2rot.f90, Line = 259, Column = 32 
+  This argument produces a copy in to a temporary variable.
+
+  260.         flag=7*i
+  261.         return
+  262.       end if
+  263.    
+  264.       if (abs(orthogon(3,2))     .gt. maxerr) then
+  265.         if (debug) call rtprint(r,transpose(r),orthogon,maxerr)
+                               ^                                       
+ftn-3095 ftn: IPA CGCA_CKRT, File = cgca_m2rot.f90, Line = 265, Column = 22 
+  "rtprint" (called from "cgca_ckrt") was not inlined because the containing loop does I/O.
+
+                                         ^                             
+ftn-1438 ftn: CAUTION CGCA_CKRT, File = cgca_m2rot.f90, Line = 265, Column = 32 
+  This argument produces a copy in to a temporary variable.
+
+  266.         flag=8*i
+  267.         return
+  268.       end if
+  269.    
+  270.       if (abs(orthogon(3,3)-one) .gt. maxerr) then
+  271.         if (debug) call rtprint(r,transpose(r),orthogon,maxerr)
+                               ^                                       
+ftn-3095 ftn: IPA CGCA_CKRT, File = cgca_m2rot.f90, Line = 271, Column = 22 
+  "rtprint" (called from "cgca_ckrt") was not inlined because the containing loop does I/O.
+
+                                         ^                             
+ftn-1438 ftn: CAUTION CGCA_CKRT, File = cgca_m2rot.f90, Line = 271, Column = 32 
+  This argument produces a copy in to a temporary variable.
+
+  272.         flag=9*i
+  273.         return
+  274.       end if
+  275.    
+  276.     end do
+  277.    
+  278.    end subroutine cgca_ckrt
+  279.    
+  280.    !*roboend*
+  281.    
+  282.    
+  283.    !*robodoc*s* cgca_m2rot/rtprint
+  284.    !  NAME
+  285.    !    rtprint
+  286.    !  SYNOPSIS
+  287.    
+  288.    subroutine rtprint(a,b,c,err)
+  289.    
+  290.    !  INPUT
+  291.    
+  292.    real(kind=rdef),intent(in) :: a(3,3),b(3,3),c(3,3),err
+  293.    
+  294.    !  SIDE EFFECTS
+  295.    !    dumps some text on stdout
+  296.    !  DESCRIPTION
+  297.    !    This routine prints on stdout the details of the
+  298.    !    rotation tensor that failed one of the tests.
+  299.    !    It prints the tensor itself, as a matrix, the
+  300.    !    transposed tensor, and then a product.
+  301.    !  NOTES
+  302.    !    This routine is not accessible from outside of
+  303.    !    module cgca_m2rot.
+  304.    !  USES
+  305.    !    none
+  306.    !  USED BY
+  307.    !    cgca_ckrt
+  308.    !  SOURCE
+  309.    
+  310.    integer :: i
+  311.    
+  312.    write (*,'(a)') "troublesome tensor:"
+  313.    do i=1,3
+ftn-6286 ftn: VECTOR File = cgca_m2rot.f90, Line = 313 
+  A loop starting at line 313 was not vectorized because it contains input/output operations at line 314.
+
+  314.      write (*,*) a(i,:)
+  315.    end do
+  316.    
+  317.    write (*,*)
+  318.    
+  319.    write (*,'(a)') "transposed troublesome tensor:"
+  320.    do i=1,3
+ftn-6286 ftn: VECTOR File = cgca_m2rot.f90, Line = 320 
+  A loop starting at line 320 was not vectorized because it contains input/output operations at line 321.
+
+  321.      write (*,*) b(i,:)
+  322.    end do
+  323.    
+  324.    write (*,*)
+  325.    write (*,'(a)') "this should have been the unit tensor:"
+  326.    do i=1,3
+ftn-6286 ftn: VECTOR File = cgca_m2rot.f90, Line = 326 
+  A loop starting at line 326 was not vectorized because it contains input/output operations at line 327.
+
+  327.      write (*,*) c(i,:)
+  328.    end do
+  329.    
+  330.    write (*,*)"max allowed error was:", err
+  331.    
+  332.    end subroutine rtprint
+  333.    
+  334.    !*roboend*
+  335.    
+  336.    
+  337.    !*robodoc*s* cgca_m2rot/cgca_csym
+  338.    !  NAME
+  339.    !    cgca_csym
+  340.    !  SYNOPSIS
+  341.    
+  342.    subroutine cgca_csym(num,rs)
+  343.    
+  344.    !  INPUT
+  345.     
+  346.    integer( kind=idef ), intent(in) :: num
+  347.    
+  348.    !  OUTPUT
+  349.    
+  350.    real( kind=rdef ), intent(out) :: rs(3,3)
+  351.    
+  352.    !  NOTES
+  353.    !    The symmetry tensors and the misorientation angle
+  354.    !    equations can be found in "Introduction to texture
+  355.    !    analysis : macrotexture, microtexture, and
+  356.    !    orientation mapping", Olaf Engler, Valerie Randle,
+  357.    !    2nd ed, Boca Raton, CRC Press, 2010, 456 p.
+  358.    !
+  359.    !    There is a copy in QBL.
+  360.    !  DESCRIPTION
+  361.    !    This routine stores, and outputs on demand, symmetry rotation
+  362.    !    tensors, for cubic crystals, 24 in total.
+  363.    !    The first tensor is the unit tensor (trivial case).
+  364.    !    Then there are 23 non-trivial tensors.
+  365.    !    There are 24*3*3=216 elements in total:
+  366.    !    - num - rotation symmetry tensor number
+  367.    !    - rs - rotation symmetry tensor
+  368.    !  USES
+  369.    !    none
+  370.    !  USED BY
+  371.    !    cgca_miscsym
+  372.    !  SOURCE
+  373.    
+  374.    real( kind=rdef ), parameter :: mnsone = -1.0_rdef,      &
+  375.                                      zero =  0.0_rdef,      &
+  376.                                       one =  1.0_rdef
+  377.    
+  378.    ! Keep the identity tensor as well, at number zero, if required in future.
+  379.    ! Data are filled columns first!
+  380.    
+  381.    real( kind=rdef ), parameter :: r(3,3,24) = reshape(     &
+  382.    (/ one,zero,zero,    zero,one,zero,    zero,zero,one,    &
+  383.       one,zero,zero,    zero,zero,mnsone, zero,one,zero,    &
+  384.       one,zero,zero,    zero,mnsone,zero, zero,zero,mnsone, &
+  385.    
+  386.       one,zero,zero,    zero,zero,one,    zero,mnsone,zero, &
+  387.       zero,zero,one,    zero,one,zero,    mnsone,zero,zero, &
+  388.       mnsone,zero,zero, zero,one,zero,    zero,zero,mnsone, &
+  389.    
+  390.       zero,zero,mnsone, zero,one,zero,    one,zero,zero,    &
+  391.       zero,mnsone,zero, one,zero,zero,    zero,zero,one,    &
+  392.       mnsone,zero,zero, zero,mnsone,zero, zero,zero,one,    &
+  393.       zero,one,zero,    mnsone,zero,zero, zero,zero,one,    &
+  394.    
+  395.       zero,zero,one,    one,zero,zero,    zero,one,zero,    &
+  396.       mnsone,zero,zero, zero,zero,one,    zero,one,zero,    &
+  397.       zero,zero,mnsone, mnsone,zero,zero, zero,one,zero,    &
+  398.    
+  399.       zero,mnsone,zero, zero,zero,mnsone, one,zero,zero,    &
+  400.       mnsone,zero,zero, zero,zero,mnsone, zero,mnsone,zero, &
+  401.       zero,one,zero,    zero,zero,mnsone, mnsone,zero,zero, &
+  402.    
+  403.       zero,zero,one,    zero,mnsone,zero, one,zero,zero,    &
+  404.       zero,zero,mnsone, zero,mnsone,zero, mnsone,zero,zero, &
+  405.       zero,one,zero,    one,zero,zero,    zero,zero,mnsone, &
+  406.       zero,mnsone,zero, mnsone,zero,zero, zero,zero,mnsone, &
+  407.    
+  408.       zero,zero,one,    mnsone,zero,zero, zero,mnsone,zero, &
+  409.       zero,zero,mnsone, one,zero,zero,    zero,mnsone,zero, &
+  410.       zero,mnsone,zero, zero,zero,one,    mnsone,zero,zero, &
+  411.       zero,one,zero,    zero,zero,one,    one,zero,zero /), &
+  412.       (/3,3,24/) )
+  413.    
+  414.    ! sanity check
+  415.    
+  416.    if (num .lt. 1 .or. num .gt. 24) then 
+  417.      write (*,'(a,i0)') "ERROR: cgca_csym: image: ", this_image()
+  418.      write (*,'(a)') "ERROR: cgca_csym: num is out of range [1..24]"
+  419.      error stop
+  420.    end if
+  421.    
+  422.    ! simply return the required rotation tensor
+  423.    
+  424.    rs = r(:,:,num)
+ftn-6066 ftn: SCALAR File = cgca_m2rot.f90, Line = 424 
+   A loop nest at line 424 collapsed to a single loop.
+
+ftn-6204 ftn: VECTOR File = cgca_m2rot.f90, Line = 424 
+  A loop starting at line 424 was vectorized.
+
+  425.    
+  426.    end subroutine cgca_csym
+  427.    
+  428.    !*roboend*
+  429.    
+  430.    
+  431.    !*robodoc*s* cgca_m2rot/cgca_mis
+  432.    !  NAME
+  433.    !    cgca_mis
+  434.    !  SYNOPSIS
+  435.    
+  436.    subroutine cgca_mis(r1,r2,angle)
+  437.    
+  438.    !  INPUTS
+  439.    
+  440.    real(kind=rdef),intent(in) :: r1(3,3),r2(3,3)
+  441.    
+  442.    !  OUTPUT
+  443.    
+  444.    real(kind=rdef),intent(out) :: angle
+  445.    
+  446.    !  DESCRIPTION
+  447.    !    This routine calculates grain misoreintation.
+  448.    !    Given 2 orientation tensors, r1 and r2, the
+  449.    !    misorientation angle (in rad) is:
+  450.    !    acos((tr(r1*r2^t)-1)/2), where "tr" is tensor trace.
+  451.    !    The angle is [0,pi].
+  452.    !  USES
+  453.    !    none
+  454.    !  USED BY
+  455.    !    cgca_miscsym
+  456.    !  SOURCE
+  457.    
+  458.    real(kind=rdef),parameter :: one=1.0_rdef
+  459.    real(kind=rdef) :: misor(3,3),trace,arg
+  460.    
+  461.    misor=matmul(r1,transpose(r2))
+ftn-6008 ftn: SCALAR File = cgca_m2rot.f90, Line = 461 
+  A loop starting at line 461 was unwound.
+
+ftn-6271 ftn: VECTOR File = cgca_m2rot.f90, Line = 461 
+  A loop starting at line 461 was not vectorized because its trip count is too small.
+
+  462.    trace=misor(1,1)+misor(2,2)+misor(3,3)
+  463.    arg = (trace-one) / 2
+  464.    
+  465.    if (arg .gt.  one) arg= one
+  466.    if (arg .lt. -one) arg=-one
+  467.    
+  468.    angle = acos(arg)
+  469.    
+  470.    if (isnan(angle)) then
+  471.      write (*,'(a,i0)') "ERROR: cgca_mis: image: ", this_image()
+  472.      write (*,'(a,i0)') "ERROR: cgca_mis: arg: ", arg
+  473.      write (*,'(a,i0)') "ERROR: cgca_mis: angle=acos(arg) is NAN"
+  474.      error stop
+  475.    end if
+  476.    
+  477.    end subroutine cgca_mis
+  478.    
+  479.    !*roboend*
+  480.    
+  481.    
+  482.    !*robodoc*s* cgca_m2rot/cgca_miscsym
+  483.    !  NAME
+  484.    !    cgca_miscsym
+  485.    !  SYNOPSIS
+  486.    
+  487.    subroutine cgca_miscsym(r1,r2,minang)
+  488.    
+  489.    !  INPUTS
+  490.    
+  491.    real(kind=rdef),intent(in) :: r1(3,3),r2(3,3)
+  492.    
+  493.    !  OUTPUT
+  494.    
+  495.    real(kind=rdef),intent(out) :: minang
+  496.    
+  497.    !  USES
+  498.    !    cgca_csym, cgca_mis
+  499.    !  USED BY
+  500.    !  DESCRIPTION
+  501.    !    This routine calculates the grain misorientation. angle,
+  502.    !    taking cubic symmetry into account.
+  503.    !    Given 2 orientation tensors, r1 and r2, the
+  504.    !    misorientation angle (in rad) is: acos((tr(r1*r2^t)-1)/2), where "tr"
+  505.    !    is tensor trace. the angle is [0,pi].
+  506.    !  SOURCE
+  507.    
+  508.    real(kind=rdef) :: rot(3,3), angle
+  509.    integer :: i
+  510.    
+  511.    minang = 1.0e1 ! any number .gt. PI will do
+  512.    
+  513.    do i=1,24
+ftn-6288 ftn: VECTOR File = cgca_m2rot.f90, Line = 513 
+  A loop starting at line 513 was not vectorized because it contains a call to subroutine "cgca_mis" on line 515.
+
+  514.      call cgca_csym(i,rot)
+ftn-6066 ftn: SCALAR File = cgca_m2rot.f90, Line = 514 
+   A loop nest at line 514 collapsed to a single loop.
+
+ftn-6204 ftn: VECTOR File = cgca_m2rot.f90, Line = 514 
+  A loop starting at line 514 was vectorized.
+
+                 ^                
+ftn-3001 ftn: IPA CGCA_MISCSYM, File = cgca_m2rot.f90, Line = 514, Column = 8 
+  The call to tiny leaf routine "cgca_csym" was textually inlined.
+
+  515.      call cgca_mis(r1,matmul(rot,r2),angle)
+                 ^                                 
+ftn-3095 ftn: IPA CGCA_MISCSYM, File = cgca_m2rot.f90, Line = 515, Column = 8 
+  "cgca_mis" (called from "cgca_miscsym") was not inlined because the containing loop does I/O.
+
+                             ^                     
+ftn-1438 ftn: CAUTION CGCA_MISCSYM, File = cgca_m2rot.f90, Line = 515, Column = 20 
+  This argument produces a copy in to a temporary variable.
+
+  516.      if (angle .lt. minang) minang=angle
+ftn-7405 ftn: CAUTION File = cgca_m2rot.f90, Line = 516 
+  Variable "angle" may be used before it is defined.
+
+  517.    end do
+  518.    
+  519.    end subroutine cgca_miscsym
+  520.    
+  521.    !*roboend*
+  522.    
+  523.    end module cgca_m2rot
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                         E x t e r n a l   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Name  Messages
+----  --------
+ABORT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ABORT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ABS(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_CKRT in CGCA_M2ROT (Line 222, file cgca_m2rot.f90)
+                   CGCA_CKRT in CGCA_M2ROT (Line 228, file cgca_m2rot.f90)
+                   CGCA_CKRT in CGCA_M2ROT (Line 234, file cgca_m2rot.f90)
+                   CGCA_CKRT in CGCA_M2ROT (Line 240, file cgca_m2rot.f90)
+                   CGCA_CKRT in CGCA_M2ROT (Line 246, file cgca_m2rot.f90)
+                   CGCA_CKRT in CGCA_M2ROT (Line 252, file cgca_m2rot.f90)
+                   CGCA_CKRT in CGCA_M2ROT (Line 258, file cgca_m2rot.f90)
+                   CGCA_CKRT in CGCA_M2ROT (Line 264, file cgca_m2rot.f90)
+                   CGCA_CKRT in CGCA_M2ROT (Line 270, file cgca_m2rot.f90)
+
+Name  Messages
+----  --------
+ACOS(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_MIS in CGCA_M2ROT (Line 468, file cgca_m2rot.f90)
+
+Name  Messages
+----  --------
+ALLOCATED(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_RT in CGCA_M2ROT (Line 102, file cgca_m2rot.f90)
+
+Name  Messages
+----  --------
+CGCA_CKRT in CGCA_M2ROT
+      Defined as:  Subroutine (line 29, file cgca_m2rot.f90)
+
+      Interface:   None
+
+      Calls:       RTPRINT in CGCA_M2ROT (Line 223, file cgca_m2rot.f90)
+                   RTPRINT in CGCA_M2ROT (Line 229, file cgca_m2rot.f90)
+                   RTPRINT in CGCA_M2ROT (Line 235, file cgca_m2rot.f90)
+                   RTPRINT in CGCA_M2ROT (Line 241, file cgca_m2rot.f90)
+                   RTPRINT in CGCA_M2ROT (Line 247, file cgca_m2rot.f90)
+                   RTPRINT in CGCA_M2ROT (Line 253, file cgca_m2rot.f90)
+                   RTPRINT in CGCA_M2ROT (Line 259, file cgca_m2rot.f90)
+                   RTPRINT in CGCA_M2ROT (Line 265, file cgca_m2rot.f90)
+                   RTPRINT in CGCA_M2ROT (Line 271, file cgca_m2rot.f90)
+                   EPSILON(Intrinsic) (Line 214, file cgca_m2rot.f90)
+                   TRANSPOSE(Intrinsic) (Line 219, file cgca_m2rot.f90)
+                   TRANSPOSE(Intrinsic) (Line 220, file cgca_m2rot.f90)
+                   TRANSPOSE(Intrinsic) (Line 223, file cgca_m2rot.f90)
+                   TRANSPOSE(Intrinsic) (Line 229, file cgca_m2rot.f90)
+                   TRANSPOSE(Intrinsic) (Line 235, file cgca_m2rot.f90)
+                   TRANSPOSE(Intrinsic) (Line 241, file cgca_m2rot.f90)
+                   TRANSPOSE(Intrinsic) (Line 247, file cgca_m2rot.f90)
+                   TRANSPOSE(Intrinsic) (Line 253, file cgca_m2rot.f90)
+                   TRANSPOSE(Intrinsic) (Line 259, file cgca_m2rot.f90)
+                   TRANSPOSE(Intrinsic) (Line 265, file cgca_m2rot.f90)
+                   TRANSPOSE(Intrinsic) (Line 271, file cgca_m2rot.f90)
+                   MATMUL(Intrinsic) (Line 219, file cgca_m2rot.f90)
+                   MATMUL(Intrinsic) (Line 220, file cgca_m2rot.f90)
+                   ABS(Intrinsic) (Line 222, file cgca_m2rot.f90)
+                   ABS(Intrinsic) (Line 228, file cgca_m2rot.f90)
+                   ABS(Intrinsic) (Line 234, file cgca_m2rot.f90)
+                   ABS(Intrinsic) (Line 240, file cgca_m2rot.f90)
+                   ABS(Intrinsic) (Line 246, file cgca_m2rot.f90)
+                   ABS(Intrinsic) (Line 252, file cgca_m2rot.f90)
+                   ABS(Intrinsic) (Line 258, file cgca_m2rot.f90)
+                   ABS(Intrinsic) (Line 264, file cgca_m2rot.f90)
+                   ABS(Intrinsic) (Line 270, file cgca_m2rot.f90)
+
+Name  Messages
+----  --------
+CGCA_CSYM in CGCA_M2ROT
+      Defined as:  Subroutine (line 29, file cgca_m2rot.f90)
+
+      Interface:   None
+
+      Called By:   CGCA_MISCSYM in CGCA_M2ROT (Line 514, file cgca_m2rot.f90)
+
+      Calls:       RESHAPE(Intrinsic) (Line 381, file cgca_m2rot.f90)
+                   THIS_IMAGE(Intrinsic) (Line 417, file cgca_m2rot.f90)
+
+Name  Messages
+----  --------
+CGCA_M1CO
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M2ROT
+
+Name  Messages
+----  --------
+CGCA_M2ROT
+      Defined as:  Module (line 8, file cgca_m2rot.f90)
+
+        Uses:      CGCA_M1CO
+
+Name  Messages
+----  --------
+CGCA_MIS in CGCA_M2ROT
+      Defined as:  Subroutine (line 29, file cgca_m2rot.f90)
+
+      Interface:   None
+
+      Called By:   CGCA_MISCSYM in CGCA_M2ROT (Line 515, file cgca_m2rot.f90)
+
+      Calls:       TRANSPOSE(Intrinsic) (Line 461, file cgca_m2rot.f90)
+                   MATMUL(Intrinsic) (Line 461, file cgca_m2rot.f90)
+                   ACOS(Intrinsic) (Line 468, file cgca_m2rot.f90)
+                   ISNAN(Intrinsic) (Line 470, file cgca_m2rot.f90)
+                   THIS_IMAGE(Intrinsic) (Line 471, file cgca_m2rot.f90)
+
+Name  Messages
+----  --------
+CGCA_MISCSYM in CGCA_M2ROT
+      Defined as:  Subroutine (line 29, file cgca_m2rot.f90)
+
+      Interface:   None
+
+      Calls:       CGCA_CSYM in CGCA_M2ROT (Line 514, file cgca_m2rot.f90)
+                   CGCA_MIS in CGCA_M2ROT (Line 515, file cgca_m2rot.f90)
+                   MATMUL(Intrinsic) (Line 515, file cgca_m2rot.f90)
+
+Name  Messages
+----  --------
+CGCA_RT in CGCA_M2ROT
+      Defined as:  Subroutine (line 29, file cgca_m2rot.f90)
+
+      Interface:   None
+
+      Calls:       ALLOCATED(Intrinsic) (Line 102, file cgca_m2rot.f90)
+                   LCOBOUND(Intrinsic) (Line 106, file cgca_m2rot.f90)
+                   UCOBOUND(Intrinsic) (Line 107, file cgca_m2rot.f90)
+                   THIS_IMAGE(Intrinsic) (Line 111, file cgca_m2rot.f90)
+                   LBOUND(Intrinsic) (Line 114, file cgca_m2rot.f90)
+                   UBOUND(Intrinsic) (Line 115, file cgca_m2rot.f90)
+                   RANDOM_NUMBER(Intrinsic) (Line 130, file cgca_m2rot.f90)
+                   REAL(Intrinsic) (Line 131, file cgca_m2rot.f90)
+                   COS(Intrinsic) (Line 136, file cgca_m2rot.f90)
+                   COS(Intrinsic) (Line 143, file cgca_m2rot.f90)
+                   COS(Intrinsic) (Line 154, file cgca_m2rot.f90)
+                   SIN(Intrinsic) (Line 137, file cgca_m2rot.f90)
+                   SIN(Intrinsic) (Line 144, file cgca_m2rot.f90)
+                   SIN(Intrinsic) (Line 155, file cgca_m2rot.f90)
+                   MATMUL(Intrinsic) (Line 150, file cgca_m2rot.f90)
+                   MATMUL(Intrinsic) (Line 161, file cgca_m2rot.f90)
+
+Name  Messages
+----  --------
+COS(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_RT in CGCA_M2ROT (Line 136, file cgca_m2rot.f90)
+                   CGCA_RT in CGCA_M2ROT (Line 143, file cgca_m2rot.f90)
+                   CGCA_RT in CGCA_M2ROT (Line 154, file cgca_m2rot.f90)
+
+Name  Messages
+----  --------
+EPSILON(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_CKRT in CGCA_M2ROT (Line 214, file cgca_m2rot.f90)
+
+Name  Messages
+----  --------
+EXIT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH_8
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FTN_LIB_DEFINITIONS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+Name  Messages
+----  --------
+ICEIL
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL_J
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ISNAN(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_MIS in CGCA_M2ROT (Line 470, file cgca_m2rot.f90)
+
+Name  Messages
+----  --------
+LBOUND(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_RT in CGCA_M2ROT (Line 114, file cgca_m2rot.f90)
+
+Name  Messages
+----  --------
+LCOBOUND(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_RT in CGCA_M2ROT (Line 106, file cgca_m2rot.f90)
+
+Name  Messages
+----  --------
+MATMUL(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_RT in CGCA_M2ROT (Line 150, file cgca_m2rot.f90)
+                   CGCA_RT in CGCA_M2ROT (Line 161, file cgca_m2rot.f90)
+                   CGCA_CKRT in CGCA_M2ROT (Line 219, file cgca_m2rot.f90)
+                   CGCA_CKRT in CGCA_M2ROT (Line 220, file cgca_m2rot.f90)
+                   CGCA_MIS in CGCA_M2ROT (Line 461, file cgca_m2rot.f90)
+                   CGCA_MISCSYM in CGCA_M2ROT (Line 515, file cgca_m2rot.f90)
+
+Name  Messages
+----  --------
+RANDOM_NUMBER(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_RT in CGCA_M2ROT (Line 130, file cgca_m2rot.f90)
+
+Name  Messages
+----  --------
+REAL(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_RT in CGCA_M2ROT (Line 131, file cgca_m2rot.f90)
+
+Name  Messages
+----  --------
+RESHAPE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_CSYM in CGCA_M2ROT (Line 381, file cgca_m2rot.f90)
+
+Name  Messages
+----  --------
+RTPRINT in CGCA_M2ROT
+      Defined as:  Subroutine (line 288, file cgca_m2rot.f90)
+
+      Interface:   None
+
+      Called By:   CGCA_CKRT in CGCA_M2ROT (Line 223, file cgca_m2rot.f90)
+                   CGCA_CKRT in CGCA_M2ROT (Line 229, file cgca_m2rot.f90)
+                   CGCA_CKRT in CGCA_M2ROT (Line 235, file cgca_m2rot.f90)
+                   CGCA_CKRT in CGCA_M2ROT (Line 241, file cgca_m2rot.f90)
+                   CGCA_CKRT in CGCA_M2ROT (Line 247, file cgca_m2rot.f90)
+                   CGCA_CKRT in CGCA_M2ROT (Line 253, file cgca_m2rot.f90)
+                   CGCA_CKRT in CGCA_M2ROT (Line 259, file cgca_m2rot.f90)
+                   CGCA_CKRT in CGCA_M2ROT (Line 265, file cgca_m2rot.f90)
+                   CGCA_CKRT in CGCA_M2ROT (Line 271, file cgca_m2rot.f90)
+
+Name  Messages
+----  --------
+SIN(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_RT in CGCA_M2ROT (Line 137, file cgca_m2rot.f90)
+                   CGCA_RT in CGCA_M2ROT (Line 144, file cgca_m2rot.f90)
+                   CGCA_RT in CGCA_M2ROT (Line 155, file cgca_m2rot.f90)
+
+Name  Messages
+----  --------
+THIS_IMAGE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_RT in CGCA_M2ROT (Line 111, file cgca_m2rot.f90)
+                   CGCA_CSYM in CGCA_M2ROT (Line 417, file cgca_m2rot.f90)
+                   CGCA_MIS in CGCA_M2ROT (Line 471, file cgca_m2rot.f90)
+
+Name  Messages
+----  --------
+TRANSPOSE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_CKRT in CGCA_M2ROT (Line 219, file cgca_m2rot.f90)
+                   CGCA_CKRT in CGCA_M2ROT (Line 220, file cgca_m2rot.f90)
+                   CGCA_CKRT in CGCA_M2ROT (Line 223, file cgca_m2rot.f90)
+                   CGCA_CKRT in CGCA_M2ROT (Line 229, file cgca_m2rot.f90)
+                   CGCA_CKRT in CGCA_M2ROT (Line 235, file cgca_m2rot.f90)
+                   CGCA_CKRT in CGCA_M2ROT (Line 241, file cgca_m2rot.f90)
+                   CGCA_CKRT in CGCA_M2ROT (Line 247, file cgca_m2rot.f90)
+                   CGCA_CKRT in CGCA_M2ROT (Line 253, file cgca_m2rot.f90)
+                   CGCA_CKRT in CGCA_M2ROT (Line 259, file cgca_m2rot.f90)
+                   CGCA_CKRT in CGCA_M2ROT (Line 265, file cgca_m2rot.f90)
+                   CGCA_CKRT in CGCA_M2ROT (Line 271, file cgca_m2rot.f90)
+                   CGCA_MIS in CGCA_M2ROT (Line 461, file cgca_m2rot.f90)
+
+Name  Messages
+----  --------
+UBOUND(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_RT in CGCA_M2ROT (Line 115, file cgca_m2rot.f90)
+
+Name  Messages
+----  --------
+UCOBOUND(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_RT in CGCA_M2ROT (Line 107, file cgca_m2rot.f90)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

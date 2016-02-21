@@ -1,0 +1,20 @@
+.\"$Id: build.1 201 2016-01-29 11:05:47Z mexas $
+.NH 1
+.XN -N AAAC -- Building CGPACK
+.PP
+To build CGPACK do (adjust for your environment):
+.DS L
+.CW
+mkdir \[Do]HOME/cgpack
+mkdir \[Do]HOME/lib
+cd \[Do]HOME/cgpack
+svn co https://svn.code.sf.net/p/cgpack/code/ .
+cd head
+ln -s Makefile-archer Makefile
+make
+make install
+.DE
+This will build the library under
+.CW \[Do]HOME/cgpack
+and install it under
+.CW \[Do]HOME/lib/libcgpack.a .

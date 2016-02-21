@@ -1,0 +1,107 @@
+#$Id: Makefile-FreeBSD 183 2015-12-15 20:05:48Z mexas $
+
+#*robodoc*b* CGPACK/Makefile-gfortran
+#  NAME
+#    Makefile-gfortran
+#  SYNOPSIS
+
+FC=		gfortran6
+
+#  PURPOSE
+#    Build/install CGPACK on FreeBSD with gfortran.
+#  AUTHOR
+#    Anton Shterenlikht
+#  COPYRIGHT
+#    See CGPACK_Copyright
+#  SOURCE
+
+FFLAGS=		-c -fcoarray=lib -Wall -fPIC -fall-intrinsics
+
+CGPACK=		cgcapack
+MYLIB=		lib$(CGPACK).a
+LIBDIR=		$(HOME)/lib
+MODDIR=		$(HOME)/modules
+
+SRC_MOD_L1=	cgca_m1co.f90
+MOD_L1=		${SRC_MOD_L1:.f90=.mod}
+OBJ_L1=		${SRC_MOD_L1:.f90=.o}
+
+SRC_MOD_L2=	cgca_m2alloc.f90 cgca_m2gb.f90 cgca_m2geom.f90 cgca_m2glm.f90 \
+		cgca_m2hx.f90 cgca_m2lnklst.f90 cgca_m2out.f90 \
+		cgca_m2pck.f90 cgca_m2red.f90 cgca_m2rnd.f90 cgca_m2rot.f90 \
+		cgca_m2stat.f90
+# cgca_m2mpiio.f90
+MOD_L2=		${SRC_MOD_L2:.f90=.mod}
+OBJ_L2=		${SRC_MOD_L2:.f90=.o}
+
+SRC_MOD_L3_NOPRE=cgca_m3gbf.f90 cgca_m3nucl.f90 cgca_m3pfem.f90
+MOD_L3_NOPRE=	${SRC_MOD_L3_NOPRE:.f90=.mod}
+OBJ_L3_NOPRE=	${SRC_MOD_L3_NOPRE:.f90=.o}
+
+SRC_MOD_L3_PRE=	cgca_m3clvg.F90 cgca_m3sld.F90
+MOD_L3_PRE=	$(SRC_MOD_L3_PRE:.F90=.mod)
+OBJ_L3_PRE=	${SRC_MOD_L3_PRE:.F90=.o}
+
+MOD_L3=		$(MOD_L3_NOPRE) $(MOD_L3_PRE)
+OBJ_L3=		$(OBJ_L3_NOPRE) $(OBJ_L3_PRE)
+
+SRC_MOD_L4=	cgca_m4fr.f90
+MOD_L4=		${SRC_MOD_L4:.f90=.mod}
+OBJ_L4=		${SRC_MOD_L4:.f90=.o}
+
+SRC_MOD_LTOP=	cgca.f90
+MOD_LTOP=	${SRC_MOD_LTOP:.f90=.mod}
+OBJ_LTOP=	${SRC_MOD_LTOP:.f90=.o}
+
+ALL_MOD=	${MOD_L1} ${MOD_L2} ${MOD_L3} $(MOD_L4) ${MOD_LTOP}
+ALL_OBJ=	${OBJ_L1} ${OBJ_L2} ${OBJ_L3} $(OBJ_L4) ${OBJ_LTOP}
+
+.SUFFIXES:
+.SUFFIXES: .F90 .f90 .mod .o
+
+all: $(ALL_MOD) $(ALL_OBJ) $(MYLIB)
+
+.f90.mod:
+	$(FC) $(FFLAGS) $<
+	@touch $@
+
+.f90.o:
+	$(FC) $(FFLAGS) $<
+
+.F90.mod:
+	$(FC) $(FFLAGS) -DNO_CO_SUM=yes $<
+	@touch $@
+
+.F90.o:
+	$(FC) $(FFLAGS) -DNO_CO_SUM=yes $<
+
+# module dependencies
+
+$(MOD_L2) $(OBJ_L2): $(MOD_L1)
+$(MOD_L3) $(OBJ_L3): $(MOD_L2)
+$(MOD_L4) $(OBJ_L4): $(MOD_L3)
+$(MOD_LTOP) $(OBJ_LTOP): $(MOD_L4)
+
+$(MYLIB): $(ALL_OBJ)
+	@if [ -e $(MYLIB) ]; then \
+		rm $(MYLIB); \
+	fi
+	ar -r $(MYLIB) $(ALL_OBJ)
+
+install: $(MYLIB) $(ALL_MOD)
+	@if [ -e $(LIBDIR)/$(MYLIB) ]; then \
+		echo $(LIBDIR)/$(MYLIB) already exists; \
+		echo run \"make deinstall\" first; \
+		exit 1; \
+	fi
+	cp $(MYLIB) $(LIBDIR)
+	cp $(ALL_MOD) $(MODDIR)
+
+deinstall:
+	cd $(LIBDIR) && rm $(MYLIB)
+	cd $(MODDIR) && rm $(ALL_MOD)
+
+clean:
+	rm $(ALL_MOD) $(ALL_OBJ) $(MYLIB)
+
+#*roboend*

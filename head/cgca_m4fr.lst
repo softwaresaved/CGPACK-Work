@@ -1,0 +1,571 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S u m m a r y   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Compilation
+-----------
+File     : /home3/y14/y14/di1c13/cgpack/head/cgca_m4fr.f90
+Compiled : 02/18/16  16:36:42
+Compiler : Version 8.3.7
+Ftnlx    : Version 8318 (libcif 83016)
+Target   : x86-64
+Command  : ftn_driver.exe -hcpu=ivybridge -hstatic -D__CRAYXC
+           -D__CRAY_IVYBRIDGE -D__CRAYXT_COMPUTE_LINUX_TARGET -hnetwork=aries
+           -c -eacFn -dm -m2 -rl -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/mpt/7.1.1/gni/mpich2-cray/83/include
+           -I/opt/cray/libsci/13.0.1/CRAY/83/sandybridge/include
+           -I/opt/cray/rca/1.0.0-2.0502.57212.2.56.ari/include
+           -I/opt/cray/alps/5.2.3-2.0502.9295.14.14.ari/include
+           -I/opt/cray/xpmem/0.1-2.0502.57015.1.15.ari/include
+           -I/opt/cray/gni-headers/4.0-1.0502.10317.9.2.ari/include
+           -I/opt/cray/dmapp/7.0.1-1.0502.10246.8.47.ari/include
+           -I/opt/cray/pmi/5.0.6-1.0000.10439.140.2.ari/include
+           -I/opt/cray/ugni/6.0-1.0502.10245.9.9.ari/include
+           -I/opt/cray/udreg/2.3.2-1.0502.9889.2.20.ari/include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/pkgconfig/../include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/wlm_detect/1.0-1.0502.57063.1.1.ari/include
+           -I/opt/cray/krca/1.0.0-2.0502.57202.2.45.ari/include
+           -I/opt/cray-hss-devel/7.2.0/include cgca_m4fr.f90
+
+ftnlx report
+------------
+Source   : /home3/y14/y14/di1c13/cgpack/head/cgca_m4fr.f90
+Date     : 02/18/2016  16:36:42
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S o u r c e   L i s t i n g
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    1.    !$Id: cgca_m4fr.f90 144 2015-10-21 16:40:36Z mexas $
+    2.    
+    3.    !*robodoc*m* CGPACK/cgca_m4fr
+    4.    !  NAME
+    5.    !    cgca_m4fr
+    6.    !  SYNOPSIS
+    7.    
+    8.    module cgca_m4fr
+    9.    
+   10.    !  DESCRIPTION
+   11.    !    Module dealing with fracture
+   12.    !  AUTHOR
+   13.    !    Anton Shterenlikht
+   14.    !  COPYRIGHT
+   15.    !    See CGPACK_Copyright
+   16.    !  CONTAINS
+   17.    !  USES
+   18.    !    cgca_m1co, cgca_m2gb, cgca_
+   19.    !  USED BY
+   20.    !  SOURCE
+   21.    
+   22.    use cgca_m1co
+   23.    use cgca_m2gb
+   24.    use cgca_m3clvg
+   25.    use cgca_m3gbf
+   26.    implicit none
+   27.    
+   28.    contains
+   29.    
+   30.    !*roboend*
+   31.    
+   32.    
+   33.    !*robodoc*s* cgca_m4fr/cgca_fr
+   34.    !  NAME
+   35.    !    cgca_fr
+   36.    !  SYNOPSIS
+   37.    
+   38.    subroutine cgca_fr( coarray, rt, s1, scrit, periodicbc, iter, &
+   39.     heartbeat, debug )
+   40.    
+   41.    !  INPUTS
+   42.    
+   43.    integer( kind=iarr ), allocatable, intent( inout ) :: &
+   44.      coarray(:,:,:,:)[:,:,:]
+   45.    real( kind=rdef ), allocatable, intent(inout) :: rt(:,:,:)[:,:,:]
+   46.    real( kind=rdef ), intent(in) :: s1(3), scrit(3)
+   47.    logical(kind=ldef),intent(in) :: periodicbc
+   48.    integer(kind=idef),intent(in) :: iter,heartbeat
+   49.    logical(kind=ldef),intent(in) :: debug
+   50.    
+   51.    !  SIDE EFFECTS
+   52.    !    state of coarray changes
+   53.    !  DESCRIPTION
+   54.    !    This routine does one iteration of cleavage propagation, followed
+   55.    !    by an iteration of grain boundary fracture. It does the halo
+   56.    !    exchange when required. Then it repeats this cycle for the given
+   57.    !    number of iterations, "iter".
+   58.    
+   59.    !integer(kind=iarr),allocatable,save :: array(:,:,:)
+   60.    
+   61.    integer( kind=idef ) :: &
+   62.      lbv(4) ,& ! lower bounds of the complete (plus virtual) coarray
+   63.      ubv(4) ,& ! upper bounds of the complete (plus virtual) coarray
+   64.      lbr(4) ,& ! lower bounds of the "real" coarray, lower virtual+1
+   65.      ubr(4) ,& ! upper bounds of the "real" coarray, upper virtual-1
+   66.      x1     ,& ! local coordinates in an array, which are also
+   67.      x2     ,& ! do loop counters
+   68.      x3,     &
+   69.      iteration
+   70.    
+   71.    integer :: img, nimgs
+   72.    
+   73.      img = this_image()
+   74.    nimgs = num_images()
+   75.    
+   76.    ! Do not check coarray for allocated, as this wastes time.
+   77.    ! Instead let the code fail if coarray is not allocated.
+   78.    
+   79.    ! determine the extents
+   80.    lbv=lbound(coarray)
+   81.    ubv=ubound(coarray)
+   82.    lbr=lbv+1
+   83.    ubr=ubv-1
+   84.    
+   85.    ! dummy code to suppress the warnings
+   86.    if ( periodicbc ) then
+   87.      write (*,*) s1 * scrit * sum( rt )
+   88.    end if
+   89.    
+   90.    itera: do iteration = 1, iter
+ftn-6286 ftn: VECTOR File = cgca_m4fr.f90, Line = 90 
+  A loop starting at line 90 was not vectorized because it contains input/output operations at line 100.
+
+   91.    
+   92.    do x1 = lbr(1), ubr(1)
+ftn-6002 ftn: SCALAR File = cgca_m4fr.f90, Line = 92 
+  A loop starting at line 92 was eliminated by optimization.
+
+   93.    do x2 = lbr(2), ubr(2)
+ftn-6002 ftn: SCALAR File = cgca_m4fr.f90, Line = 93 
+  A loop starting at line 93 was eliminated by optimization.
+
+   94.    do x3 = lbr(3), ubr(3)
+ftn-6002 ftn: SCALAR File = cgca_m4fr.f90, Line = 94 
+  A loop starting at line 94 was eliminated by optimization.
+
+   95.    end do
+   96.    end do
+   97.    end do
+   98.    
+   99.    if ( mod( iteration, heartbeat ) .eq. 0 ) then
+  100.      write (*,'(a)') "INFO:"
+  101.    end if
+  102.    
+  103.    end do itera
+  104.    
+  105.    ! debug
+  106.    if ( debug ) then
+  107.    end if
+  108.    
+  109.    end subroutine cgca_fr
+ftn-5001 ftn: NOTE File = cgca_m4fr.f90, Line = 109 
+  Local variable "NIMGS" is assigned a value but never used.
+
+ftn-5001 ftn: NOTE File = cgca_m4fr.f90, Line = 109 
+  Local variable "IMG" is assigned a value but never used.
+
+  110.    
+  111.    !*roboend*
+  112.    
+  113.    end module cgca_m4fr
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                         E x t e r n a l   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Name  Messages
+----  --------
+ABORT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ABORT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CLVGP in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CLVGP1 in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CLVGP_NOCOSUM in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CLVGSD in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CLVGSP in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_DACF in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_DACF1 in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_DGC in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_FR in CGCA_M4FR
+      Defined as:  Subroutine (line 38, file cgca_m4fr.f90)
+
+      Interface:   None
+
+      Calls:       THIS_IMAGE(Intrinsic) (Line 73, file cgca_m4fr.f90)
+                   shmem_n_pes(Intrinsic) (Line 74, file cgca_m4fr.f90)
+                   LBOUND(Intrinsic) (Line 80, file cgca_m4fr.f90)
+                   UBOUND(Intrinsic) (Line 81, file cgca_m4fr.f90)
+                   SUM(Intrinsic) (Line 87, file cgca_m4fr.f90)
+                   MOD(Intrinsic) (Line 99, file cgca_m4fr.f90)
+
+Name  Messages
+----  --------
+CGCA_GBF1F in CGCA_M3GBF
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GBF1P in CGCA_M3GBF
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GBS in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GCF in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GCP in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GCR in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GCU in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_IGB in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_M1CO
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M4FR
+
+Name  Messages
+----  --------
+CGCA_M2GB
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M4FR
+
+Name  Messages
+----  --------
+CGCA_M3CLVG
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M4FR
+
+Name  Messages
+----  --------
+CGCA_M3GBF
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M4FR
+
+Name  Messages
+----  --------
+CGCA_M4FR
+      Defined as:  Module (line 8, file cgca_m4fr.f90)
+
+        Uses:      CGCA_M1CO
+                   ISO_FORTRAN_ENV  (indirectly)
+                   CGCA_M2GB
+                   CGCA_M3CLVG
+                   CGCA_M3GBF
+
+Name  Messages
+----  --------
+CGCA_TCHK in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+EXIT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH_8
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FTN_LIB_DEFINITIONS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+Name  Messages
+----  --------
+HUGE(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL_J
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ISO_FORTRAN_ENV
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M4FR  (indirectly)
+
+Name  Messages
+----  --------
+KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+LBOUND(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_FR in CGCA_M4FR (Line 80, file cgca_m4fr.f90)
+
+Name  Messages
+----  --------
+MOD(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_FR in CGCA_M4FR (Line 99, file cgca_m4fr.f90)
+
+Name  Messages
+----  --------
+SELECTED_INT_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SELECTED_REAL_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SIZE(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SUM(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_FR in CGCA_M4FR (Line 87, file cgca_m4fr.f90)
+
+Name  Messages
+----  --------
+THIS_IMAGE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_FR in CGCA_M4FR (Line 73, file cgca_m4fr.f90)
+
+Name  Messages
+----  --------
+UBOUND(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_FR in CGCA_M4FR (Line 81, file cgca_m4fr.f90)
+
+Name  Messages
+----  --------
+shmem_n_pes(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_FR in CGCA_M4FR (Line 74, file cgca_m4fr.f90)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,0 +1,1491 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S u m m a r y   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Compilation
+-----------
+File     : /home3/y14/y14/di1c13/cgpack/head/tests/testAAQ.f90
+Compiled : 02/18/16  16:38:47
+Compiler : Version 8.3.7
+Ftnlx    : Version 8318 (libcif 83016)
+Target   : x86-64
+Command  : ftn_driver.exe -hcpu=ivybridge -hstatic -D__CRAYXC
+           -D__CRAY_IVYBRIDGE -D__CRAYXT_COMPUTE_LINUX_TARGET -hnetwork=aries
+           -c -c -eacFn -dm -m1 -rl -I. -I/home/y14/y14/di1c13/lib
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/mpt/7.1.1/gni/mpich2-cray/83/include
+           -I/opt/cray/libsci/13.0.1/CRAY/83/sandybridge/include
+           -I/opt/cray/rca/1.0.0-2.0502.57212.2.56.ari/include
+           -I/opt/cray/alps/5.2.3-2.0502.9295.14.14.ari/include
+           -I/opt/cray/xpmem/0.1-2.0502.57015.1.15.ari/include
+           -I/opt/cray/gni-headers/4.0-1.0502.10317.9.2.ari/include
+           -I/opt/cray/dmapp/7.0.1-1.0502.10246.8.47.ari/include
+           -I/opt/cray/pmi/5.0.6-1.0000.10439.140.2.ari/include
+           -I/opt/cray/ugni/6.0-1.0502.10245.9.9.ari/include
+           -I/opt/cray/udreg/2.3.2-1.0502.9889.2.20.ari/include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/pkgconfig/../include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/wlm_detect/1.0-1.0502.57063.1.1.ari/include
+           -I/opt/cray/krca/1.0.0-2.0502.57202.2.45.ari/include
+           -I/opt/cray-hss-devel/7.2.0/include testAAQ.f90
+
+ftnlx report
+------------
+Source   : /home3/y14/y14/di1c13/cgpack/head/tests/testAAQ.f90
+Date     : 02/18/2016  16:38:47
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S o u r c e   L i s t i n g
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    1.    !$Id: testAAQ.f90 8 2014-12-01 09:13:54Z mexas $
+    2.    
+    3.    !*robodoc*u* tests/testAAQ
+    4.    !  NAME
+    5.    !    testAAQ
+    6.    !  SYNOPSIS
+    7.    
+    8.    program testAAQ
+    9.    
+   10.    !  PURPOSE
+   11.    !    Checking: cgca_rt, cgca_ckrt
+   12.    !  DESCRIPTION
+   13.    !    Checking rotation tensor calculation and orthogonality checking
+   14.    !    routine.
+   15.    !  AUTHOR
+   16.    !    Anton Shterenlikht
+   17.    !  COPYRIGHT
+   18.    !    See CGPACK_Copyright
+   19.    !  USES
+   20.    !    cgca testaux
+   21.    !  USED BY
+   22.    !    Part of CGPACK test suite
+   23.    !  SOURCE
+   24.    
+   25.    use testaux
+              ^       
+ftn-1193 ftn: CAUTION TESTAAQ, File = testAAQ.f90, Line = 25, Column = 5 
+  Module "CGCA_M4FR" is indirectly used in module "TESTAUX" and is from file "./cgca_m4fr.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAQ, File = testAAQ.f90, Line = 25, Column = 5 
+  Module "CGCA_M3SLD" is indirectly used in module "TESTAUX" and is from file "./cgca_m3sld.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAQ, File = testAAQ.f90, Line = 25, Column = 5 
+  Module "CGCA_M3PFEM" is indirectly used in module "TESTAUX" and is from file "./cgca_m3pfem.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAQ, File = testAAQ.f90, Line = 25, Column = 5 
+  Module "CGCA_M3NUCL" is indirectly used in module "TESTAUX" and is from file "./cgca_m3nucl.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAQ, File = testAAQ.f90, Line = 25, Column = 5 
+  Module "CGCA_M3GBF" is indirectly used in module "TESTAUX" and is from file "./cgca_m3gbf.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAQ, File = testAAQ.f90, Line = 25, Column = 5 
+  Module "CGCA_M3CLVG" is indirectly used in module "TESTAUX" and is from file "./cgca_m3clvg.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAQ, File = testAAQ.f90, Line = 25, Column = 5 
+  Module "CGCA_M2STAT" is indirectly used in module "TESTAUX" and is from file "./cgca_m2stat.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAQ, File = testAAQ.f90, Line = 25, Column = 5 
+  Module "CGCA_M2ROT" is indirectly used in module "TESTAUX" and is from file "./cgca_m2rot.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAQ, File = testAAQ.f90, Line = 25, Column = 5 
+  Module "CGCA_M2RND" is indirectly used in module "TESTAUX" and is from file "./cgca_m2rnd.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAQ, File = testAAQ.f90, Line = 25, Column = 5 
+  Module "CGCA_M2RED" is indirectly used in module "TESTAUX" and is from file "./cgca_m2red.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAQ, File = testAAQ.f90, Line = 25, Column = 5 
+  Module "CGCA_M2PHYS" is indirectly used in module "TESTAUX" and is from file "./cgca_m2phys.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAQ, File = testAAQ.f90, Line = 25, Column = 5 
+  Module "CGCA_M2PCK" is indirectly used in module "TESTAUX" and is from file "./cgca_m2pck.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAQ, File = testAAQ.f90, Line = 25, Column = 5 
+  Module "CGCA_M2OUT" is indirectly used in module "TESTAUX" and is from file "./cgca_m2out.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAQ, File = testAAQ.f90, Line = 25, Column = 5 
+  Module "CGCA_M2MPIIO" is indirectly used in module "TESTAUX" and is from file "./cgca_m2mpiio.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAQ, File = testAAQ.f90, Line = 25, Column = 5 
+  Module "CGCA_M2LNKLST" is indirectly used in module "TESTAUX" and is from file "./cgca_m2lnklst.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAQ, File = testAAQ.f90, Line = 25, Column = 5 
+  Module "CGCA_M2HX" is indirectly used in module "TESTAUX" and is from file "./cgca_m2hx.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAQ, File = testAAQ.f90, Line = 25, Column = 5 
+  Module "CGCA_M2GLM" is indirectly used in module "TESTAUX" and is from file "./cgca_m2glm.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAQ, File = testAAQ.f90, Line = 25, Column = 5 
+  Module "CGCA_M2GEOM" is indirectly used in module "TESTAUX" and is from file "./cgca_m2geom.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAQ, File = testAAQ.f90, Line = 25, Column = 5 
+  Module "CGCA_M2GB" is indirectly used in module "TESTAUX" and is from file "./cgca_m2gb.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAQ, File = testAAQ.f90, Line = 25, Column = 5 
+  Module "CGCA_M2ALLOC" is indirectly used in module "TESTAUX" and is from file "./cgca_m2alloc.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAQ, File = testAAQ.f90, Line = 25, Column = 5 
+  Module "CGCA_M1CO" is indirectly used in module "TESTAUX" and is from file "./cgca_m1co.o".  That file no longer exists.
+
+   26.    
+   27.    implicit none
+   28.    
+   29.     logical(kind=ldef),parameter :: yesdebug=.true., nodebug=.false., &
+   30.       periodicbc=.true.
+   31.     real,parameter :: gigabyte=real(2**30), resolution=1.0e-5
+   32.    
+   33.     real(kind=rdef),allocatable :: grt(:,:,:)[:,:,:]
+   34.    
+   35.     integer(kind=idef) :: l1,u1,l2,u2,l3,u3,col1,cou1,col2,cou2,col3, &
+   36.       cou3,   &
+   37.       nuc,    & ! number of nuclei in the model
+   38.       nimages,flag,codim(3)[*],i
+   39.     integer(kind=iarr),allocatable :: space(:,:,:,:)[:,:,:]
+   40.     integer(kind=ilrg),allocatable :: grainvol(:)[:,:,:]
+   41.     integer(kind=ilrg) :: icells,mcells
+   42.    
+   43.     logical(kind=ldef) :: solid,image1
+   44.    
+   45.     real :: image_storage
+   46.    
+   47.    !**********************************************************************73
+   48.    ! first executable statement
+   49.    
+   50.    nimages=num_images()
+   51.    image1=.false.
+   52.    if (this_image().eq.1) image1=.true.
+   53.    
+   54.    ! do a check on image 1
+   55.    if (image1) then
+   56.     call getcodim(nimages,codim)
+                ^                       
+ftn-3118 ftn: IPA TESTAAQ, File = testAAQ.f90, Line = 56, Column = 7 
+  "getcodim" (called from "testaaq") was not inlined because the call site will not flatten.  "_GET_COMMAND_ARGUMENT" is missing.
+
+   57.     ! print a banner
+   58.     call banner("AAQ")
+                ^             
+ftn-3001 ftn: IPA TESTAAQ, File = testAAQ.f90, Line = 58, Column = 7 
+  The call to leaf routine "banner" was textually inlined due to constant actual(s).
+
+   59.     ! print the parameter values
+   60.     call cgca_pdmp
+                ^         
+ftn-3021 ftn: IPA TESTAAQ, File = testAAQ.f90, Line = 60, Column = 7 
+  "cgca_pdmp" (called from "testaaq") was not inlined because the compiler was unable to locate the routine.
+
+   61.     write (*,'(a,i0,a)') "running on ", nimages, " images in a 3D grid"
+   62.     write (*,*) "codim:", codim
+   63.    end if
+   64.    
+   65.    sync all
+   66.    
+   67.    codim(:) = codim(:)[1]
+ftn-6202 ftn: VECTOR File = testAAQ.f90, Line = 67 
+  A loop starting at line 67 was replaced by a library call.
+
+   68.    
+   69.    if (image1) call system("sleep 1")
+                           ^                 
+ftn-3021 ftn: IPA TESTAAQ, File = testAAQ.f90, Line = 69, Column = 18 
+  "system" (called from "testaaq") was not inlined because the compiler was unable to locate the routine.
+
+   70.    
+   71.    l1=1
+   72.    l2=l1
+   73.    l3=l1
+   74.    
+   75.    ! The array size is only controlled by this value
+   76.    ! in this program.
+   77.    u1=100
+   78.    u2=u1
+   79.    u3=u1
+   80.    
+   81.    col1=1
+   82.    cou1=codim(1)-col1+1
+   83.    col2=1
+   84.    cou2=codim(2)-col2+1
+   85.    col3=1
+   86.    cou3=codim(3)-col3+1
+   87.    
+   88.    ! total number of cells in a coarray
+   89.    icells = int(u1-l1+1,kind=ilrg) * int(u2-l2+1,kind=ilrg) * &
+   90.      int(u3-l3+1,kind=ilrg)
+   91.    
+   92.    ! total number of cells in the model
+   93.    mcells = icells * int(codim(1),kind=ilrg) * int(codim(2),kind=ilrg) * &
+   94.      int(codim(3),kind=ilrg)
+   95.    
+   96.    ! total number of nuclei
+   97.    nuc = int( resolution * mcells)
+   98.    
+   99.    if (image1) then
+  100.      write (*,'(a,2(i0,":",i0,","),i0,":",i0,")")') &
+  101.        "bounds: (",l1,u1,l2,u2,l3,u3
+  102.      write (*,'(a,2(i0,":",i0,","),i0,":",i0,")")') &
+  103.        "cobounds: (",col1,cou1,col2,cou2,col3,cou3
+  104.    
+  105.      ! An absolute minimum of storage, in GB, per image.
+  106.      image_storage = real( &
+ftn-6010 ftn: SCALAR File = testAAQ.f90, Line = 106 
+  A divide was turned into a multiply by a reciprocal
+
+  107.        ! 2nd space array is allocated in _sld
+  108.        2 * icells*storage_size(space) &
+  109.        ! grain volumes
+  110.        + nuc*storage_size(grainvol) &
+  111.        ! rotation tensors
+  112.        + nuc*9*storage_size(grt))/8/gigabyte 
+  113.    
+  114.      write (*,'(a,i0,a)') "Each image has ",icells, " cells"
+  115.      write (*,'(a,i0,a)') "The model has ", mcells, " cells"
+  116.      write (*,'(a,i0,a)') "The model has ", nuc, " nuclei"
+  117.      write (*,'(a,es9.2,a)') "Each image will use at least ", &
+  118.        image_storage, " GB memory"
+  119.    end if
+  120.    
+  121.    ! initialise random number seed
+  122.    call cgca_irs(nodebug)
+               ^                 
+ftn-3021 ftn: IPA TESTAAQ, File = testAAQ.f90, Line = 122, Column = 6 
+  "cgca_irs" (called from "testaaq") was not inlined because the compiler was unable to locate the routine.
+
+  123.    
+  124.    ! allocate coarray
+  125.    call cgca_as(l1,u1,l2,u2,l3,u3,col1,cou1,col2,cou2,col3,1,space)
+               ^                                                           
+ftn-3021 ftn: IPA TESTAAQ, File = testAAQ.f90, Line = 125, Column = 6 
+  "cgca_as" (called from "testaaq") was not inlined because the compiler was unable to locate the routine.
+
+  126.    
+  127.    ! initialise coarray
+  128.    space = this_image()
+ftn-6066 ftn: SCALAR File = testAAQ.f90, Line = 128 
+   A loop nest at line 128 collapsed to a single loop.
+
+ftn-6202 ftn: VECTOR File = testAAQ.f90, Line = 128 
+  A loop starting at line 128 was replaced by a library call.
+
+  129.    solid = .true.
+  130.    
+  131.    ! allocate grain volume
+  132.    call cgca_av(1,nuc,col1,cou1,col2,cou2,col3,grainvol)
+               ^                                                
+ftn-3021 ftn: IPA TESTAAQ, File = testAAQ.f90, Line = 132, Column = 6 
+  "cgca_av" (called from "testaaq") was not inlined because the compiler was unable to locate the routine.
+
+  133.    
+  134.    ! calculate volumes, sync all inside
+  135.    call cgca_gv(space,grainvol)
+               ^                       
+ftn-3021 ftn: IPA TESTAAQ, File = testAAQ.f90, Line = 135, Column = 6 
+  "cgca_gv" (called from "testaaq") was not inlined because the compiler was unable to locate the routine.
+
+  136.    
+  137.    ! allocate rotation tensors
+  138.    call cgca_art(1,nuc,col1,cou1,col2,cou2,col3,grt)
+               ^                                            
+ftn-3021 ftn: IPA TESTAAQ, File = testAAQ.f90, Line = 138, Column = 6 
+  "cgca_art" (called from "testaaq") was not inlined because the compiler was unable to locate the routine.
+
+  139.    
+  140.    ! assign rotation tensors, sync all inside
+  141.    call cgca_rt(grt)
+               ^            
+ftn-3021 ftn: IPA TESTAAQ, File = testAAQ.f90, Line = 141, Column = 6 
+  "cgca_rt" (called from "testaaq") was not inlined because the compiler was unable to locate the routine.
+
+  142.    sync all
+  143.    
+  144.    ! check all rotation tensors on image 1
+  145.    if (image1) then
+  146.      write (*,*) "rotation tensors assigned"
+  147.      do i=1,nuc
+ftn-6286 ftn: VECTOR File = testAAQ.f90, Line = 147 
+  A loop starting at line 147 was not vectorized because it contains input/output operations at line 150.
+
+  148.        call cgca_ckrt(grt(i,:,:),yesdebug,flag)
+                   ^                                   
+ftn-3021 ftn: IPA TESTAAQ, File = testAAQ.f90, Line = 148, Column = 10 
+  "cgca_ckrt" (called from "testaaq") was not inlined because the compiler was unable to locate the routine.
+
+                                ^                      
+ftn-1438 ftn: CAUTION TESTAAQ, File = testAAQ.f90, Line = 148, Column = 23 
+  This argument produces a copy in to a temporary variable.
+
+  149.        if (flag .ne. 0) then
+  150.          write (*,*) "problem with grain: ", i
+  151.          write (*,*) "failed test: ", flag
+  152.          write (*,*) "stopping!"
+  153.          error stop
+  154.        end if
+  155.      end do
+  156.    end if
+  157.    sync all
+  158.    
+  159.    ! deallocate all arrays
+  160.    call cgca_ds(space)
+               ^              
+ftn-3021 ftn: IPA TESTAAQ, File = testAAQ.f90, Line = 160, Column = 6 
+  "cgca_ds" (called from "testaaq") was not inlined because the compiler was unable to locate the routine.
+
+  161.    call cgca_dv(grainvol)
+               ^                 
+ftn-3021 ftn: IPA TESTAAQ, File = testAAQ.f90, Line = 161, Column = 6 
+  "cgca_dv" (called from "testaaq") was not inlined because the compiler was unable to locate the routine.
+
+  162.    call cgca_drt(grt)
+               ^             
+ftn-3021 ftn: IPA TESTAAQ, File = testAAQ.f90, Line = 162, Column = 6 
+  "cgca_drt" (called from "testaaq") was not inlined because the compiler was unable to locate the routine.
+
+  163.    if (image1) write (*,*) "successfully deallocated rotation tensor coarray"
+  164.    
+  165.    end program testAAQ
+ftn-5001 ftn: NOTE File = testAAQ.f90, Line = 165 
+  Local variable "SOLID" is assigned a value but never used.
+
+ftn-5008 ftn: NOTE File = testAAQ.f90, Line = 165 
+  Named Constant "PERIODICBC" is not used.
+
+  166.    
+  167.    !*roboend*
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                         E x t e r n a l   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Name  Messages
+----  --------
+ABORT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ABORT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+BANNER in TESTAUX
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAQ (Line 58, file testAAQ.f90)
+
+Name  Messages
+----  --------
+CGCA
+      Defined as:  No definitions.
+
+      Used By:     TESTAAQ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_ADDHEAD in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_ADDMIDDLE in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_ART in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAQ (Line 138, file testAAQ.f90)
+
+Name  Messages
+----  --------
+CGCA_AS in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAQ (Line 125, file testAAQ.f90)
+
+Name  Messages
+----  --------
+CGCA_AV in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAQ (Line 132, file testAAQ.f90)
+
+Name  Messages
+----  --------
+CGCA_BOXSPLIT in CGCA_M2GEOM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CADIM in CGCA_M2PHYS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CKRT in CGCA_M2ROT
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAQ (Line 148, file testAAQ.f90)
+
+Name  Messages
+----  --------
+CGCA_CLVGP in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CLVGP1 in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CLVGP_NOCOSUM in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CLVGSD in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CLVGSP in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CSYM in CGCA_M2ROT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_DACF in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_DACF1 in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_DGC in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_DRT in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAQ (Line 162, file testAAQ.f90)
+
+Name  Messages
+----  --------
+CGCA_DS in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAQ (Line 160, file testAAQ.f90)
+
+Name  Messages
+----  --------
+CGCA_DV in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAQ (Line 161, file testAAQ.f90)
+
+Name  Messages
+----  --------
+CGCA_FR in CGCA_M4FR
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_FV in CGCA_M2STAT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GBF1F in CGCA_M3GBF
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GBF1P in CGCA_M3GBF
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GBS in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GCF in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GCP in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GCR in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GCU in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GDIM in CGCA_M2PHYS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GL in CGCA_M2GLM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GV in CGCA_M2STAT
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAQ (Line 135, file testAAQ.f90)
+
+Name  Messages
+----  --------
+CGCA_GVL in CGCA_M2STAT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_HXG in CGCA_M2HX
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_HXI in CGCA_M2HX
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_IGB in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_IMCO in CGCA_M2PHYS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_INITHEAD in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_IRS in CGCA_M2RND
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAQ (Line 122, file testAAQ.f90)
+
+Name  Messages
+----  --------
+CGCA_LG in CGCA_M2GLM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_LSTDMP in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_M1CO
+      Defined as:  No definitions.
+
+      Used By:     TESTAAQ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+      Used By:     TESTAAQ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2GB
+      Defined as:  No definitions.
+
+      Used By:     TESTAAQ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2GEOM
+      Defined as:  No definitions.
+
+      Used By:     TESTAAQ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2GLM
+      Defined as:  No definitions.
+
+      Used By:     TESTAAQ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2HX
+      Defined as:  No definitions.
+
+      Used By:     TESTAAQ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+      Used By:     TESTAAQ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2MPIIO
+      Defined as:  No definitions.
+
+      Used By:     TESTAAQ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2OUT
+      Defined as:  No definitions.
+
+      Used By:     TESTAAQ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2PCK
+      Defined as:  No definitions.
+
+      Used By:     TESTAAQ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2PHYS
+      Defined as:  No definitions.
+
+      Used By:     TESTAAQ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2RED
+      Defined as:  No definitions.
+
+      Used By:     TESTAAQ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2RND
+      Defined as:  No definitions.
+
+      Used By:     TESTAAQ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2ROT
+      Defined as:  No definitions.
+
+      Used By:     TESTAAQ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2STAT
+      Defined as:  No definitions.
+
+      Used By:     TESTAAQ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M3CLVG
+      Defined as:  No definitions.
+
+      Used By:     TESTAAQ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M3GBF
+      Defined as:  No definitions.
+
+      Used By:     TESTAAQ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M3NUCL
+      Defined as:  No definitions.
+
+      Used By:     TESTAAQ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M3PFEM
+      Defined as:  No definitions.
+
+      Used By:     TESTAAQ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M3SLD
+      Defined as:  No definitions.
+
+      Used By:     TESTAAQ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M4FR
+      Defined as:  No definitions.
+
+      Used By:     TESTAAQ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_MIS in CGCA_M2ROT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_MISCSYM in CGCA_M2ROT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_NR in CGCA_M3NUCL
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PC in CGCA_M2OUT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PDMP in CGCA_M2PCK
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAQ (Line 60, file testAAQ.f90)
+
+Name  Messages
+----  --------
+CGCA_PFEM_BOXIN in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_CELLIN in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_CENC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_CENDMP in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_CTALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_CTDALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_EALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_EDALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_INTCALC1 in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_INTEGALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_INTEGDALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_PARTIN in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_SALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_SDALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_SDMP in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_SIMG in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_UYM in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_WHOLEIN in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PSWCI in CGCA_M2MPIIO
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_REDAND in CGCA_M2RED
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_RMHEAD in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_RMMIDDLE in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_RT in CGCA_M2ROT
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAQ (Line 141, file testAAQ.f90)
+
+Name  Messages
+----  --------
+CGCA_SLD in CGCA_M3SLD
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_SLD1 in CGCA_M3SLD
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_SLD2 in CGCA_M3SLD
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_SLD3 in CGCA_M3SLD
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_SWCI in CGCA_M2OUT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_TCHK in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+EXIT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH_8
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FTN_LIB_DEFINITIONS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+Name  Messages
+----  --------
+GETCODIM in TESTAUX
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAQ (Line 56, file testAAQ.f90)
+
+Name  Messages
+----  --------
+HUGE(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL_J
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+INT(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAQ (Line 89, file testAAQ.f90)
+                   TESTAAQ (Line 89, file testAAQ.f90)
+                   TESTAAQ (Line 90, file testAAQ.f90)
+                   TESTAAQ (Line 93, file testAAQ.f90)
+                   TESTAAQ (Line 93, file testAAQ.f90)
+                   TESTAAQ (Line 94, file testAAQ.f90)
+                   TESTAAQ (Line 97, file testAAQ.f90)
+
+Name  Messages
+----  --------
+ISO_FORTRAN_ENV
+      Defined as:  No definitions.
+
+      Used By:     TESTAAQ  (indirectly)
+
+Name  Messages
+----  --------
+KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+REAL(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAQ (Line 31, file testAAQ.f90)
+                   TESTAAQ (Line 106, file testAAQ.f90)
+
+Name  Messages
+----  --------
+SELECTED_INT_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SELECTED_REAL_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SIZE(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+STORAGE_SIZE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAQ (Line 108, file testAAQ.f90)
+                   TESTAAQ (Line 110, file testAAQ.f90)
+                   TESTAAQ (Line 112, file testAAQ.f90)
+
+Name  Messages
+----  --------
+SYSTEM
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAQ (Line 69, file testAAQ.f90)
+
+Name  Messages
+----  --------
+TESTAAQ
+      Defined as:  Program (line 8, file testAAQ.f90)
+
+      Calls:       REAL(Intrinsic) (Line 31, file testAAQ.f90)
+                   REAL(Intrinsic) (Line 106, file testAAQ.f90)
+                   shmem_n_pes(Intrinsic) (Line 50, file testAAQ.f90)
+                   THIS_IMAGE(Intrinsic) (Line 52, file testAAQ.f90)
+                   THIS_IMAGE(Intrinsic) (Line 128, file testAAQ.f90)
+                   GETCODIM in TESTAUX (Line 56, file testAAQ.f90)
+                   BANNER in TESTAUX (Line 58, file testAAQ.f90)
+                   CGCA_PDMP in CGCA_M2PCK (Line 60, file testAAQ.f90)
+                   SYSTEM (Line 69, file testAAQ.f90)
+                   INT(Intrinsic) (Line 89, file testAAQ.f90)
+                   INT(Intrinsic) (Line 89, file testAAQ.f90)
+                   INT(Intrinsic) (Line 90, file testAAQ.f90)
+                   INT(Intrinsic) (Line 93, file testAAQ.f90)
+                   INT(Intrinsic) (Line 93, file testAAQ.f90)
+                   INT(Intrinsic) (Line 94, file testAAQ.f90)
+                   INT(Intrinsic) (Line 97, file testAAQ.f90)
+                   STORAGE_SIZE(Intrinsic) (Line 108, file testAAQ.f90)
+                   STORAGE_SIZE(Intrinsic) (Line 110, file testAAQ.f90)
+                   STORAGE_SIZE(Intrinsic) (Line 112, file testAAQ.f90)
+                   CGCA_IRS in CGCA_M2RND (Line 122, file testAAQ.f90)
+                   CGCA_AS in CGCA_M2ALLOC (Line 125, file testAAQ.f90)
+                   CGCA_AV in CGCA_M2ALLOC (Line 132, file testAAQ.f90)
+                   CGCA_GV in CGCA_M2STAT (Line 135, file testAAQ.f90)
+                   CGCA_ART in CGCA_M2ALLOC (Line 138, file testAAQ.f90)
+                   CGCA_RT in CGCA_M2ROT (Line 141, file testAAQ.f90)
+                   CGCA_CKRT in CGCA_M2ROT (Line 148, file testAAQ.f90)
+                   CGCA_DS in CGCA_M2ALLOC (Line 160, file testAAQ.f90)
+                   CGCA_DV in CGCA_M2ALLOC (Line 161, file testAAQ.f90)
+                   CGCA_DRT in CGCA_M2ALLOC (Line 162, file testAAQ.f90)
+
+        Uses:      TESTAUX
+                   ISO_FORTRAN_ENV  (indirectly)
+                   CGCA_M4FR  (indirectly)
+                   CGCA_M3SLD  (indirectly)
+                   CGCA_M3PFEM  (indirectly)
+                   CGCA_M3NUCL  (indirectly)
+                   CGCA_M3GBF  (indirectly)
+                   CGCA_M3CLVG  (indirectly)
+                   CGCA_M2STAT  (indirectly)
+                   CGCA_M2ROT  (indirectly)
+                   CGCA_M2RND  (indirectly)
+                   CGCA_M2RED  (indirectly)
+                   CGCA_M2PHYS  (indirectly)
+                   CGCA_M2PCK  (indirectly)
+                   CGCA_M2OUT  (indirectly)
+                   CGCA_M2MPIIO  (indirectly)
+                   CGCA_M2LNKLST  (indirectly)
+                   CGCA_M2HX  (indirectly)
+                   CGCA_M2GLM  (indirectly)
+                   CGCA_M2GEOM  (indirectly)
+                   CGCA_M2GB  (indirectly)
+                   CGCA_M2ALLOC  (indirectly)
+                   CGCA_M1CO  (indirectly)
+                   CGCA  (indirectly)
+
+Name  Messages
+----  --------
+TESTAUX
+      Defined as:  No definitions.
+
+      Used By:     TESTAAQ
+
+Name  Messages
+----  --------
+THIS_IMAGE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAQ (Line 52, file testAAQ.f90)
+                   TESTAAQ (Line 128, file testAAQ.f90)
+
+Name  Messages
+----  --------
+shmem_n_pes(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAQ (Line 50, file testAAQ.f90)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

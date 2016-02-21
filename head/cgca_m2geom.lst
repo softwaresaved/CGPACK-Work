@@ -1,0 +1,316 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S u m m a r y   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Compilation
+-----------
+File     : /home3/y14/y14/di1c13/cgpack/head/cgca_m2geom.f90
+Compiled : 02/18/16  16:36:32
+Compiler : Version 8.3.7
+Ftnlx    : Version 8318 (libcif 83016)
+Target   : x86-64
+Command  : ftn_driver.exe -hcpu=ivybridge -hstatic -D__CRAYXC
+           -D__CRAY_IVYBRIDGE -D__CRAYXT_COMPUTE_LINUX_TARGET -hnetwork=aries
+           -c -eacFn -dm -m2 -rl -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/mpt/7.1.1/gni/mpich2-cray/83/include
+           -I/opt/cray/libsci/13.0.1/CRAY/83/sandybridge/include
+           -I/opt/cray/rca/1.0.0-2.0502.57212.2.56.ari/include
+           -I/opt/cray/alps/5.2.3-2.0502.9295.14.14.ari/include
+           -I/opt/cray/xpmem/0.1-2.0502.57015.1.15.ari/include
+           -I/opt/cray/gni-headers/4.0-1.0502.10317.9.2.ari/include
+           -I/opt/cray/dmapp/7.0.1-1.0502.10246.8.47.ari/include
+           -I/opt/cray/pmi/5.0.6-1.0000.10439.140.2.ari/include
+           -I/opt/cray/ugni/6.0-1.0502.10245.9.9.ari/include
+           -I/opt/cray/udreg/2.3.2-1.0502.9889.2.20.ari/include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/pkgconfig/../include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/wlm_detect/1.0-1.0502.57063.1.1.ari/include
+           -I/opt/cray/krca/1.0.0-2.0502.57202.2.45.ari/include
+           -I/opt/cray-hss-devel/7.2.0/include cgca_m2geom.f90
+
+ftnlx report
+------------
+Source   : /home3/y14/y14/di1c13/cgpack/head/cgca_m2geom.f90
+Date     : 02/18/2016  16:36:32
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S o u r c e   L i s t i n g
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    1.    !$Id: cgca_m2geom.f90 152 2015-10-30 16:22:20Z mexas $
+    2.    
+    3.    !*robodoc*m* CGPACK/cgca_m2geom
+    4.    !  NAME
+    5.    !    cgca_m2geom
+    6.    !  SYNOPSIS
+    7.    
+    8.    module cgca_m2geom
+    9.    
+   10.    !  DESCRIPTION
+   11.    !    Module dealing with various 3D geometrical problems
+   12.    !  AUTHOR 
+   13.    !    Anton Shterenlikht
+   14.    !  COPYRIGHT
+   15.    !    See CGPACK_Copyright
+   16.    !  CONTAINS
+   17.    !    cgca_boxsplit
+   18.    !  USES
+   19.    !    cgca_m1co
+   20.    !  USED BY
+   21.    !    cgca_m3pfem
+   22.    !  SOURCE
+   23.    
+   24.    use cgca_m1co, only : idef
+   25.    implicit none
+   26.    
+   27.    private
+   28.    public :: cgca_boxsplit
+   29.    
+   30.    contains
+   31.    
+   32.    !*roboend*
+   33.    
+   34.    
+   35.    !*robodoc*s* cgca_m2geom/cgca_boxsplit
+   36.    !  NAME
+   37.    !    cgca_boxsplit
+   38.    !  SYNOPSIS
+   39.    
+   40.    subroutine cgca_boxsplit( lwr, upr, lwr1, upr1, lwr2, upr2 )
+   41.    
+   42.    !  INPUTS
+   43.    !    lwr(3) - integer, lower corner of the box
+   44.    !    upr(3) - integer, upper corner of the box
+   45.    
+   46.    integer( kind=idef ), intent( in ) :: lwr(3), upr(3)
+   47.    
+   48.    !  OUTPUTS
+   49.    !    lwr1(3) - integer, lower corner of new box 1
+   50.    !    upr1(3) - integer, upper corner of new box 1
+   51.    !    lwr2(3) - integer, lower corner of new box 2
+   52.    !    upr2(3) - integer, upper corner of new box 2
+   53.    
+   54.    integer( kind=idef ), intent( out ) :: lwr1(3), upr1(3), lwr2(3),      &
+   55.      upr2(3)
+   56.    
+   57.    !  DESCRIPTION
+   58.    !    This routine splits the box, specified by two corner
+   59.    !    coordinates into two smaller boxes, along the biggest dimension
+   60.    !    of the original box.
+   61.    !  SOURCE
+   62.    
+   63.    integer( kind=idef ) :: boxsize(3), splitdim
+   64.    
+   65.    ! If the box is only a single cell, return immediately
+   66.    if ( all( lwr .eq. upr ) ) then
+ftn-6334 ftn: VECTOR File = cgca_m2geom.f90, Line = 66 
+  A loop starting at line 66 was not vectorized because it contains multiple potential exits.
+
+   67.      lwr1 = lwr
+ftn-6271 ftn: VECTOR File = cgca_m2geom.f90, Line = 67 
+  A loop starting at line 67 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m2geom.f90, Line = 67 
+  A loop starting at line 67 was unwound.
+
+   68.      lwr2 = lwr
+ftn-6004 ftn: SCALAR File = cgca_m2geom.f90, Line = 68 
+  A loop starting at line 68 was fused with the loop starting at line 67.
+
+   69.      upr1 = upr
+ftn-6004 ftn: SCALAR File = cgca_m2geom.f90, Line = 69 
+  A loop starting at line 69 was fused with the loop starting at line 67.
+
+   70.      upr2 = upr
+ftn-6004 ftn: SCALAR File = cgca_m2geom.f90, Line = 70 
+  A loop starting at line 70 was fused with the loop starting at line 67.
+
+   71.      return
+   72.    end if
+   73.    
+   74.    ! Find the biggest dimension of the box.
+   75.    boxsize = upr - lwr + 1
+ftn-6271 ftn: VECTOR File = cgca_m2geom.f90, Line = 75 
+  A loop starting at line 75 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m2geom.f90, Line = 75 
+  A loop starting at line 75 was unwound.
+
+   76.    splitdim = maxloc( boxsize, dim=1 ) ! 1, 2 or 3 only
+ftn-6008 ftn: SCALAR File = cgca_m2geom.f90, Line = 76 
+  A loop starting at line 76 was unwound.
+
+ftn-6337 ftn: VECTOR File = cgca_m2geom.f90, Line = 76 
+  A loop starting at line 76 was not vectorized because it contains unsupported conditional constructs near line 76.
+
+   77.    
+   78.    ! Set the dimensions of each new box initially equal to
+   79.    ! the old box
+   80.      lwr1 = lwr
+ftn-6271 ftn: VECTOR File = cgca_m2geom.f90, Line = 80 
+  A loop starting at line 80 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m2geom.f90, Line = 80 
+  A loop starting at line 80 was unwound.
+
+   81.      upr1 = upr
+ftn-6004 ftn: SCALAR File = cgca_m2geom.f90, Line = 81 
+  A loop starting at line 81 was fused with the loop starting at line 80.
+
+   82.      lwr2 = lwr
+ftn-6004 ftn: SCALAR File = cgca_m2geom.f90, Line = 82 
+  A loop starting at line 82 was fused with the loop starting at line 80.
+
+   83.      upr2 = upr
+ftn-6004 ftn: SCALAR File = cgca_m2geom.f90, Line = 83 
+  A loop starting at line 83 was fused with the loop starting at line 80.
+
+   84.    
+   85.    ! Change only relevant dimensions
+   86.    if ( splitdim .eq. 1 ) then
+   87.      upr1(1) = ( lwr(1) + upr(1) ) / 2 ! new box 1
+   88.      lwr2(1) = upr1(1) + 1             ! new box 2
+   89.    else if ( splitdim .eq. 2 ) then
+   90.      upr1(2) = ( lwr(2) + upr(2) ) / 2 ! new box 1
+   91.      lwr2(2) = upr1(2) + 1             ! new box 2
+   92.    else if ( splitdim .eq. 3 ) then
+   93.      upr1(3) = ( lwr(3) + upr(3) ) / 2 ! new box 1
+   94.      lwr2(3) = upr1(3) + 1             ! new box 2
+   95.    end if
+   96.    
+   97.    end subroutine cgca_boxsplit
+   98.    
+   99.    !*roboend*
+  100.    
+  101.    end module cgca_m2geom
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                         E x t e r n a l   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Name  Messages
+----  --------
+ABORT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ABORT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ALL(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_BOXSPLIT in CGCA_M2GEOM (Line 66, file cgca_m2geom.f90)
+
+Name  Messages
+----  --------
+CGCA_BOXSPLIT in CGCA_M2GEOM
+      Defined as:  Subroutine (line 28, file cgca_m2geom.f90)
+
+      Interface:   None
+
+      Calls:       ALL(Intrinsic) (Line 66, file cgca_m2geom.f90)
+                   MAXLOC(Intrinsic) (Line 76, file cgca_m2geom.f90)
+
+Name  Messages
+----  --------
+CGCA_M1CO
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M2GEOM
+
+Name  Messages
+----  --------
+CGCA_M2GEOM
+      Defined as:  Module (line 8, file cgca_m2geom.f90)
+
+        Uses:      CGCA_M1CO
+
+Name  Messages
+----  --------
+EXIT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH_8
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FTN_LIB_DEFINITIONS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+Name  Messages
+----  --------
+ICEIL
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL_J
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+MAXLOC(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_BOXSPLIT in CGCA_M2GEOM (Line 76, file cgca_m2geom.f90)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

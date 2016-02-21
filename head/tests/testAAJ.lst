@@ -1,0 +1,1456 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S u m m a r y   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Compilation
+-----------
+File     : /home3/y14/y14/di1c13/cgpack/head/tests/testAAJ.f90
+Compiled : 02/18/16  16:38:45
+Compiler : Version 8.3.7
+Ftnlx    : Version 8318 (libcif 83016)
+Target   : x86-64
+Command  : ftn_driver.exe -hcpu=ivybridge -hstatic -D__CRAYXC
+           -D__CRAY_IVYBRIDGE -D__CRAYXT_COMPUTE_LINUX_TARGET -hnetwork=aries
+           -c -c -eacFn -dm -m1 -rl -I. -I/home/y14/y14/di1c13/lib
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/mpt/7.1.1/gni/mpich2-cray/83/include
+           -I/opt/cray/libsci/13.0.1/CRAY/83/sandybridge/include
+           -I/opt/cray/rca/1.0.0-2.0502.57212.2.56.ari/include
+           -I/opt/cray/alps/5.2.3-2.0502.9295.14.14.ari/include
+           -I/opt/cray/xpmem/0.1-2.0502.57015.1.15.ari/include
+           -I/opt/cray/gni-headers/4.0-1.0502.10317.9.2.ari/include
+           -I/opt/cray/dmapp/7.0.1-1.0502.10246.8.47.ari/include
+           -I/opt/cray/pmi/5.0.6-1.0000.10439.140.2.ari/include
+           -I/opt/cray/ugni/6.0-1.0502.10245.9.9.ari/include
+           -I/opt/cray/udreg/2.3.2-1.0502.9889.2.20.ari/include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/pkgconfig/../include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/wlm_detect/1.0-1.0502.57063.1.1.ari/include
+           -I/opt/cray/krca/1.0.0-2.0502.57202.2.45.ari/include
+           -I/opt/cray-hss-devel/7.2.0/include testAAJ.f90
+
+ftnlx report
+------------
+Source   : /home3/y14/y14/di1c13/cgpack/head/tests/testAAJ.f90
+Date     : 02/18/2016  16:38:45
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S o u r c e   L i s t i n g
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    1.    !$Id: testAAJ.f90 8 2014-12-01 09:13:54Z mexas $
+    2.    
+    3.    !*robodoc*u* tests/testAAJ
+    4.    !  NAME
+    5.    !    testAAJ
+    6.    !  SYNOPSIS
+    7.    
+    8.    program testAAJ
+    9.    
+   10.    !  PURPOSE
+   11.    !    Checking: cgca_sld, cgca_nr, cgca_irs, cgca_hxg
+   12.    !  DESCRIPTION
+   13.    !    Checking solidification with periodic BC and
+   14.    !    a single nucleus, where I want it:
+   15.    !     space1(l1+(u1-l1)/2, l2, l3+(u3-l3)/2, cgca_state_type_grain) &
+   16.    !     [col1+(cou1-col1)/2, col2, col3+(cou3-col3)/2] = 1
+   17.    !  AUTHOR
+   18.    !    Anton Shterenlikht
+   19.    !  COPYRIGHT
+   20.    !    See CGPACK_Copyright
+   21.    !  USES
+   22.    !    cgca testaux
+   23.    !  USED BY
+   24.    !    Part of CGPACK test suite
+   25.    !  SOURCE
+   26.    
+   27.    use testaux
+              ^       
+ftn-1193 ftn: CAUTION TESTAAJ, File = testAAJ.f90, Line = 27, Column = 5 
+  Module "CGCA_M4FR" is indirectly used in module "TESTAUX" and is from file "./cgca_m4fr.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAJ, File = testAAJ.f90, Line = 27, Column = 5 
+  Module "CGCA_M3SLD" is indirectly used in module "TESTAUX" and is from file "./cgca_m3sld.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAJ, File = testAAJ.f90, Line = 27, Column = 5 
+  Module "CGCA_M3PFEM" is indirectly used in module "TESTAUX" and is from file "./cgca_m3pfem.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAJ, File = testAAJ.f90, Line = 27, Column = 5 
+  Module "CGCA_M3NUCL" is indirectly used in module "TESTAUX" and is from file "./cgca_m3nucl.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAJ, File = testAAJ.f90, Line = 27, Column = 5 
+  Module "CGCA_M3GBF" is indirectly used in module "TESTAUX" and is from file "./cgca_m3gbf.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAJ, File = testAAJ.f90, Line = 27, Column = 5 
+  Module "CGCA_M3CLVG" is indirectly used in module "TESTAUX" and is from file "./cgca_m3clvg.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAJ, File = testAAJ.f90, Line = 27, Column = 5 
+  Module "CGCA_M2STAT" is indirectly used in module "TESTAUX" and is from file "./cgca_m2stat.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAJ, File = testAAJ.f90, Line = 27, Column = 5 
+  Module "CGCA_M2ROT" is indirectly used in module "TESTAUX" and is from file "./cgca_m2rot.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAJ, File = testAAJ.f90, Line = 27, Column = 5 
+  Module "CGCA_M2RND" is indirectly used in module "TESTAUX" and is from file "./cgca_m2rnd.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAJ, File = testAAJ.f90, Line = 27, Column = 5 
+  Module "CGCA_M2RED" is indirectly used in module "TESTAUX" and is from file "./cgca_m2red.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAJ, File = testAAJ.f90, Line = 27, Column = 5 
+  Module "CGCA_M2PHYS" is indirectly used in module "TESTAUX" and is from file "./cgca_m2phys.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAJ, File = testAAJ.f90, Line = 27, Column = 5 
+  Module "CGCA_M2PCK" is indirectly used in module "TESTAUX" and is from file "./cgca_m2pck.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAJ, File = testAAJ.f90, Line = 27, Column = 5 
+  Module "CGCA_M2OUT" is indirectly used in module "TESTAUX" and is from file "./cgca_m2out.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAJ, File = testAAJ.f90, Line = 27, Column = 5 
+  Module "CGCA_M2MPIIO" is indirectly used in module "TESTAUX" and is from file "./cgca_m2mpiio.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAJ, File = testAAJ.f90, Line = 27, Column = 5 
+  Module "CGCA_M2LNKLST" is indirectly used in module "TESTAUX" and is from file "./cgca_m2lnklst.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAJ, File = testAAJ.f90, Line = 27, Column = 5 
+  Module "CGCA_M2HX" is indirectly used in module "TESTAUX" and is from file "./cgca_m2hx.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAJ, File = testAAJ.f90, Line = 27, Column = 5 
+  Module "CGCA_M2GLM" is indirectly used in module "TESTAUX" and is from file "./cgca_m2glm.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAJ, File = testAAJ.f90, Line = 27, Column = 5 
+  Module "CGCA_M2GEOM" is indirectly used in module "TESTAUX" and is from file "./cgca_m2geom.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAJ, File = testAAJ.f90, Line = 27, Column = 5 
+  Module "CGCA_M2GB" is indirectly used in module "TESTAUX" and is from file "./cgca_m2gb.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAJ, File = testAAJ.f90, Line = 27, Column = 5 
+  Module "CGCA_M2ALLOC" is indirectly used in module "TESTAUX" and is from file "./cgca_m2alloc.o".  That file no longer exists.
+
+              ^       
+ftn-1193 ftn: CAUTION TESTAAJ, File = testAAJ.f90, Line = 27, Column = 5 
+  Module "CGCA_M1CO" is indirectly used in module "TESTAUX" and is from file "./cgca_m1co.o".  That file no longer exists.
+
+   28.    
+   29.    implicit none
+   30.    
+   31.     logical(kind=ldef),parameter :: yesdebug=.true., nodebug=.false., &
+   32.       periodicbc=.true.
+   33.     integer(kind=idef) :: l1,u1,l2,u2,l3,u3,col1,cou1,col2,cou2,col3, &
+   34.       cou3,ncells,nimages,myimage,codim(3)[*]
+   35.     integer(kind=iarr),allocatable :: space1(:,:,:,:)[:,:,:]
+   36.     logical(kind=ldef) :: solid
+   37.     real,parameter :: gigabyte=real(2**30)
+   38.     real :: image_storage
+   39.    
+   40.    !**********************************************************************73
+   41.    ! first executable statement
+   42.    
+   43.    nimages=num_images()
+   44.    myimage=this_image()
+   45.    
+   46.    ! do a check on image 1
+   47.    if (myimage .eq. 1) then
+   48.     call getcodim(nimages,codim)
+                ^                       
+ftn-3118 ftn: IPA TESTAAJ, File = testAAJ.f90, Line = 48, Column = 7 
+  "getcodim" (called from "testaaj") was not inlined because the call site will not flatten.  "_GET_COMMAND_ARGUMENT" is missing.
+
+   49.     ! print a banner
+   50.     call banner("AAJ")
+                ^             
+ftn-3001 ftn: IPA TESTAAJ, File = testAAJ.f90, Line = 50, Column = 7 
+  The call to leaf routine "banner" was textually inlined due to constant actual(s).
+
+   51.     ! print the parameter values
+   52.     call cgca_pdmp
+                ^         
+ftn-3021 ftn: IPA TESTAAJ, File = testAAJ.f90, Line = 52, Column = 7 
+  "cgca_pdmp" (called from "testaaj") was not inlined because the compiler was unable to locate the routine.
+
+   53.     write (*,'(a,i0,a)') "running on ", nimages, " images in a 3D grid"
+   54.     write (*,*) "codim:", codim
+   55.    end if
+   56.    
+   57.    sync all
+   58.    
+   59.    codim(:) = codim(:)[1]
+ftn-6202 ftn: VECTOR File = testAAJ.f90, Line = 59 
+  A loop starting at line 59 was replaced by a library call.
+
+   60.    
+   61.    if (myimage .eq. 2) call system("sleep 1")
+                                   ^                 
+ftn-3021 ftn: IPA TESTAAJ, File = testAAJ.f90, Line = 61, Column = 26 
+  "system" (called from "testaaj") was not inlined because the compiler was unable to locate the routine.
+
+   62.    
+   63.    l1=1
+   64.    u1=10
+   65.    l2=l1
+   66.    u2=u1
+   67.    l3=l1
+   68.    u3=u1
+   69.    col1=1
+   70.    cou1=codim(1)-col1+1
+   71.    col2=1
+   72.    cou2=codim(2)-col2+1
+   73.    col3=1
+   74.    cou3=codim(3)-col3+1
+   75.    
+   76.    if (myimage .eq. 1) then
+   77.      write (*,'(a,2(i0,":",i0,","),i0,":",i0,")")') &
+   78.        "bounds: (",l1,u1,l2,u2,l3,u3
+   79.      write (*,'(a,2(i0,":",i0,","),i0,":",i0,")")') &
+   80.        "cobounds: (",col1,cou1,col2,cou2,col3,cou3
+   81.    
+   82.      ! total number of cells in a coarray
+   83.      ncells=(u1-l1+1)*(u2-l2+1)*(u3-l3+1)
+   84.    
+   85.      ! An absolute minimum of storage, in GB, per image
+   86.      image_storage = real(ncells*storage_size(space1)/8)/gigabyte 
+ftn-6010 ftn: SCALAR File = testAAJ.f90, Line = 86 
+  A divide was turned into a multiply by a reciprocal
+
+   87.    
+   88.      write (*,'(a,i0,a)') "Each image has ",ncells, " cells"
+   89.      write (*,'(a,es9.2,a)') "Each image will use at least ", &
+   90.        image_storage, " GB memory"
+   91.    end if
+   92.    
+   93.    ! allocate coarray
+   94.    call cgca_as(l1,u1,l2,u2,l3,u3,col1,cou1,col2,cou2,col3,1,space1)
+               ^                                                            
+ftn-3021 ftn: IPA TESTAAJ, File = testAAJ.f90, Line = 94, Column = 6 
+  "cgca_as" (called from "testaaj") was not inlined because the compiler was unable to locate the routine.
+
+   95.    
+   96.    ! initialise coarray to liquid
+   97.    space1(:,:,:,cgca_state_type_grain) = cgca_liquid_state
+ftn-6066 ftn: SCALAR File = testAAJ.f90, Line = 97 
+   A loop nest at line 97 collapsed to a single loop.
+
+ftn-6202 ftn: VECTOR File = testAAJ.f90, Line = 97 
+  A loop starting at line 97 was replaced by a library call.
+
+   98.    
+   99.    ! initialise random number seed
+  100.    call cgca_irs(nodebug)
+               ^                 
+ftn-3021 ftn: IPA TESTAAJ, File = testAAJ.f90, Line = 100, Column = 6 
+  "cgca_irs" (called from "testaaj") was not inlined because the compiler was unable to locate the routine.
+
+  101.    
+  102.    sync all
+  103.    
+  104.    ! single nucleus, where I want it
+  105.    space1(l1+(u1-l1)/2, l2, l3+(u3-l3)/2, cgca_state_type_grain) &
+ftn-6077 ftn: SCALAR File = testAAJ.f90, Line = 105 
+  An implicit non-blocking operation was used for this statement.
+
+  106.      [col1+(cou1-col1)/2, col2, col3+(cou3-col3)/2] = 1
+  107.    
+  108.    call cgca_swci(space1,cgca_state_type_grain,10,"z0.raw")
+               ^                                                   
+ftn-3021 ftn: IPA TESTAAJ, File = testAAJ.f90, Line = 108, Column = 6 
+  "cgca_swci" (called from "testaaj") was not inlined because the compiler was unable to locate the routine.
+
+  109.    sync all
+  110.    
+  111.    ! solidify 1
+  112.    call cgca_sld(space1,periodicbc,10,1,solid)
+               ^                                      
+ftn-3021 ftn: IPA TESTAAJ, File = testAAJ.f90, Line = 112, Column = 6 
+  "cgca_sld" (called from "testaaj") was not inlined because the compiler was unable to locate the routine.
+
+  113.    
+  114.    call cgca_swci(space1,cgca_state_type_grain,10,"z10.raw")
+               ^                                                    
+ftn-3021 ftn: IPA TESTAAJ, File = testAAJ.f90, Line = 114, Column = 6 
+  "cgca_swci" (called from "testaaj") was not inlined because the compiler was unable to locate the routine.
+
+  115.    sync all
+  116.    
+  117.    ! if solid, issue a message from image 1 and stop
+  118.    if (myimage .eq. 1 .and. solid) write (*,*) "all solid, stop"
+  119.    if (solid) stop
+  120.    
+  121.    ! solidify 2
+  122.    call cgca_sld(space1,periodicbc,10,1,solid)
+               ^                                      
+ftn-3021 ftn: IPA TESTAAJ, File = testAAJ.f90, Line = 122, Column = 6 
+  "cgca_sld" (called from "testaaj") was not inlined because the compiler was unable to locate the routine.
+
+  123.    
+  124.    call cgca_swci(space1,cgca_state_type_grain,10,"z20.raw")
+               ^                                                    
+ftn-3021 ftn: IPA TESTAAJ, File = testAAJ.f90, Line = 124, Column = 6 
+  "cgca_swci" (called from "testaaj") was not inlined because the compiler was unable to locate the routine.
+
+  125.    sync all
+  126.    
+  127.    ! if solid, issue a message from image 1 and stop
+  128.    if (myimage .eq. 1 .and. solid) write (*,*) "all solid, stop"
+  129.    if (solid) stop
+  130.    
+  131.    ! solidify 3
+  132.    call cgca_sld(space1,periodicbc,10,1,solid)
+               ^                                      
+ftn-3021 ftn: IPA TESTAAJ, File = testAAJ.f90, Line = 132, Column = 6 
+  "cgca_sld" (called from "testaaj") was not inlined because the compiler was unable to locate the routine.
+
+  133.    
+  134.    call cgca_swci(space1,cgca_state_type_grain,10,"z30.raw")
+               ^                                                    
+ftn-3021 ftn: IPA TESTAAJ, File = testAAJ.f90, Line = 134, Column = 6 
+  "cgca_swci" (called from "testaaj") was not inlined because the compiler was unable to locate the routine.
+
+  135.    sync all
+  136.    
+  137.    ! if solid, issue a message from image 1 and stop
+  138.    if (myimage .eq. 1 .and. solid) write (*,*) "all solid, stop"
+  139.    if (solid) stop
+  140.    
+  141.    ! solidify last
+  142.    call cgca_sld(space1,periodicbc,0,10,solid)
+               ^                                      
+ftn-3021 ftn: IPA TESTAAJ, File = testAAJ.f90, Line = 142, Column = 6 
+  "cgca_sld" (called from "testaaj") was not inlined because the compiler was unable to locate the routine.
+
+  143.    
+  144.    call cgca_swci(space1,cgca_state_type_grain,10,"z9end.raw")
+               ^                                                      
+ftn-3021 ftn: IPA TESTAAJ, File = testAAJ.f90, Line = 144, Column = 6 
+  "cgca_swci" (called from "testaaj") was not inlined because the compiler was unable to locate the routine.
+
+  145.    
+  146.    call cgca_ds(space1)
+               ^               
+ftn-3021 ftn: IPA TESTAAJ, File = testAAJ.f90, Line = 146, Column = 6 
+  "cgca_ds" (called from "testaaj") was not inlined because the compiler was unable to locate the routine.
+
+  147.    
+  148.    end program testAAJ
+ftn-5008 ftn: NOTE File = testAAJ.f90, Line = 148 
+  Named Constant "YESDEBUG" is not used.
+
+  149.    
+  150.    !*roboend*
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                         E x t e r n a l   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Name  Messages
+----  --------
+ABORT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ABORT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+BANNER in TESTAUX
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAJ (Line 50, file testAAJ.f90)
+
+Name  Messages
+----  --------
+CGCA
+      Defined as:  No definitions.
+
+      Used By:     TESTAAJ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_ADDHEAD in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_ADDMIDDLE in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_ART in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_AS in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAJ (Line 94, file testAAJ.f90)
+
+Name  Messages
+----  --------
+CGCA_AV in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_BOXSPLIT in CGCA_M2GEOM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CADIM in CGCA_M2PHYS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CKRT in CGCA_M2ROT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CLVGP in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CLVGP1 in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CLVGP_NOCOSUM in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CLVGSD in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CLVGSP in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_CSYM in CGCA_M2ROT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_DACF in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_DACF1 in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_DGC in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_DRT in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_DS in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAJ (Line 146, file testAAJ.f90)
+
+Name  Messages
+----  --------
+CGCA_DV in CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_FR in CGCA_M4FR
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_FV in CGCA_M2STAT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GBF1F in CGCA_M3GBF
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GBF1P in CGCA_M3GBF
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GBS in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GCF in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GCP in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GCR in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GCU in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GDIM in CGCA_M2PHYS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GL in CGCA_M2GLM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GV in CGCA_M2STAT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_GVL in CGCA_M2STAT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_HXG in CGCA_M2HX
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_HXI in CGCA_M2HX
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_IGB in CGCA_M2GB
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_IMCO in CGCA_M2PHYS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_INITHEAD in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_IRS in CGCA_M2RND
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAJ (Line 100, file testAAJ.f90)
+
+Name  Messages
+----  --------
+CGCA_LG in CGCA_M2GLM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_LSTDMP in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_M1CO
+      Defined as:  No definitions.
+
+      Used By:     TESTAAJ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2ALLOC
+      Defined as:  No definitions.
+
+      Used By:     TESTAAJ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2GB
+      Defined as:  No definitions.
+
+      Used By:     TESTAAJ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2GEOM
+      Defined as:  No definitions.
+
+      Used By:     TESTAAJ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2GLM
+      Defined as:  No definitions.
+
+      Used By:     TESTAAJ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2HX
+      Defined as:  No definitions.
+
+      Used By:     TESTAAJ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+      Used By:     TESTAAJ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2MPIIO
+      Defined as:  No definitions.
+
+      Used By:     TESTAAJ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2OUT
+      Defined as:  No definitions.
+
+      Used By:     TESTAAJ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2PCK
+      Defined as:  No definitions.
+
+      Used By:     TESTAAJ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2PHYS
+      Defined as:  No definitions.
+
+      Used By:     TESTAAJ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2RED
+      Defined as:  No definitions.
+
+      Used By:     TESTAAJ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2RND
+      Defined as:  No definitions.
+
+      Used By:     TESTAAJ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2ROT
+      Defined as:  No definitions.
+
+      Used By:     TESTAAJ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M2STAT
+      Defined as:  No definitions.
+
+      Used By:     TESTAAJ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M3CLVG
+      Defined as:  No definitions.
+
+      Used By:     TESTAAJ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M3GBF
+      Defined as:  No definitions.
+
+      Used By:     TESTAAJ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M3NUCL
+      Defined as:  No definitions.
+
+      Used By:     TESTAAJ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M3PFEM
+      Defined as:  No definitions.
+
+      Used By:     TESTAAJ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M3SLD
+      Defined as:  No definitions.
+
+      Used By:     TESTAAJ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_M4FR
+      Defined as:  No definitions.
+
+      Used By:     TESTAAJ  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_MIS in CGCA_M2ROT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_MISCSYM in CGCA_M2ROT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_NR in CGCA_M3NUCL
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PC in CGCA_M2OUT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PDMP in CGCA_M2PCK
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAJ (Line 52, file testAAJ.f90)
+
+Name  Messages
+----  --------
+CGCA_PFEM_BOXIN in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_CELLIN in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_CENC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_CENDMP in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_CTALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_CTDALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_EALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_EDALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_INTCALC1 in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_INTEGALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_INTEGDALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_PARTIN in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_SALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_SDALLOC in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_SDMP in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_SIMG in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_UYM in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_WHOLEIN in CGCA_M3PFEM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PSWCI in CGCA_M2MPIIO
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_REDAND in CGCA_M2RED
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_RMHEAD in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_RMMIDDLE in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_RT in CGCA_M2ROT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_SLD in CGCA_M3SLD
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAJ (Line 112, file testAAJ.f90)
+                   TESTAAJ (Line 122, file testAAJ.f90)
+                   TESTAAJ (Line 132, file testAAJ.f90)
+                   TESTAAJ (Line 142, file testAAJ.f90)
+
+Name  Messages
+----  --------
+CGCA_SLD1 in CGCA_M3SLD
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_SLD2 in CGCA_M3SLD
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_SLD3 in CGCA_M3SLD
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_SWCI in CGCA_M2OUT
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAJ (Line 108, file testAAJ.f90)
+                   TESTAAJ (Line 114, file testAAJ.f90)
+                   TESTAAJ (Line 124, file testAAJ.f90)
+                   TESTAAJ (Line 134, file testAAJ.f90)
+                   TESTAAJ (Line 144, file testAAJ.f90)
+
+Name  Messages
+----  --------
+CGCA_TCHK in CGCA_M3CLVG
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+EXIT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH_8
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FTN_LIB_DEFINITIONS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+Name  Messages
+----  --------
+GETCODIM in TESTAUX
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAJ (Line 48, file testAAJ.f90)
+
+Name  Messages
+----  --------
+HUGE(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL_J
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ISO_FORTRAN_ENV
+      Defined as:  No definitions.
+
+      Used By:     TESTAAJ  (indirectly)
+
+Name  Messages
+----  --------
+KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+REAL(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAJ (Line 37, file testAAJ.f90)
+                   TESTAAJ (Line 86, file testAAJ.f90)
+
+Name  Messages
+----  --------
+SELECTED_INT_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SELECTED_REAL_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SIZE(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+STORAGE_SIZE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAJ (Line 86, file testAAJ.f90)
+
+Name  Messages
+----  --------
+SYSTEM
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAJ (Line 61, file testAAJ.f90)
+
+Name  Messages
+----  --------
+TESTAAJ
+      Defined as:  Program (line 8, file testAAJ.f90)
+
+      Calls:       REAL(Intrinsic) (Line 37, file testAAJ.f90)
+                   REAL(Intrinsic) (Line 86, file testAAJ.f90)
+                   shmem_n_pes(Intrinsic) (Line 43, file testAAJ.f90)
+                   THIS_IMAGE(Intrinsic) (Line 44, file testAAJ.f90)
+                   GETCODIM in TESTAUX (Line 48, file testAAJ.f90)
+                   BANNER in TESTAUX (Line 50, file testAAJ.f90)
+                   CGCA_PDMP in CGCA_M2PCK (Line 52, file testAAJ.f90)
+                   SYSTEM (Line 61, file testAAJ.f90)
+                   STORAGE_SIZE(Intrinsic) (Line 86, file testAAJ.f90)
+                   CGCA_AS in CGCA_M2ALLOC (Line 94, file testAAJ.f90)
+                   CGCA_IRS in CGCA_M2RND (Line 100, file testAAJ.f90)
+                   CGCA_SWCI in CGCA_M2OUT (Line 108, file testAAJ.f90)
+                   CGCA_SWCI in CGCA_M2OUT (Line 114, file testAAJ.f90)
+                   CGCA_SWCI in CGCA_M2OUT (Line 124, file testAAJ.f90)
+                   CGCA_SWCI in CGCA_M2OUT (Line 134, file testAAJ.f90)
+                   CGCA_SWCI in CGCA_M2OUT (Line 144, file testAAJ.f90)
+                   CGCA_SLD in CGCA_M3SLD (Line 112, file testAAJ.f90)
+                   CGCA_SLD in CGCA_M3SLD (Line 122, file testAAJ.f90)
+                   CGCA_SLD in CGCA_M3SLD (Line 132, file testAAJ.f90)
+                   CGCA_SLD in CGCA_M3SLD (Line 142, file testAAJ.f90)
+                   CGCA_DS in CGCA_M2ALLOC (Line 146, file testAAJ.f90)
+
+        Uses:      TESTAUX
+                   ISO_FORTRAN_ENV  (indirectly)
+                   CGCA_M4FR  (indirectly)
+                   CGCA_M3SLD  (indirectly)
+                   CGCA_M3PFEM  (indirectly)
+                   CGCA_M3NUCL  (indirectly)
+                   CGCA_M3GBF  (indirectly)
+                   CGCA_M3CLVG  (indirectly)
+                   CGCA_M2STAT  (indirectly)
+                   CGCA_M2ROT  (indirectly)
+                   CGCA_M2RND  (indirectly)
+                   CGCA_M2RED  (indirectly)
+                   CGCA_M2PHYS  (indirectly)
+                   CGCA_M2PCK  (indirectly)
+                   CGCA_M2OUT  (indirectly)
+                   CGCA_M2MPIIO  (indirectly)
+                   CGCA_M2LNKLST  (indirectly)
+                   CGCA_M2HX  (indirectly)
+                   CGCA_M2GLM  (indirectly)
+                   CGCA_M2GEOM  (indirectly)
+                   CGCA_M2GB  (indirectly)
+                   CGCA_M2ALLOC  (indirectly)
+                   CGCA_M1CO  (indirectly)
+                   CGCA  (indirectly)
+
+Name  Messages
+----  --------
+TESTAUX
+      Defined as:  No definitions.
+
+      Used By:     TESTAAJ
+
+Name  Messages
+----  --------
+THIS_IMAGE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAJ (Line 44, file testAAJ.f90)
+
+Name  Messages
+----  --------
+shmem_n_pes(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   TESTAAJ (Line 43, file testAAJ.f90)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

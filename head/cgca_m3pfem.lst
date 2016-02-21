@@ -1,0 +1,2241 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S u m m a r y   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Compilation
+-----------
+File     : /home3/y14/y14/di1c13/cgpack/head/cgca_m3pfem.f90
+Compiled : 02/18/16  16:36:38
+Compiler : Version 8.3.7
+Ftnlx    : Version 8318 (libcif 83016)
+Target   : x86-64
+Command  : ftn_driver.exe -hcpu=ivybridge -hstatic -D__CRAYXC
+           -D__CRAY_IVYBRIDGE -D__CRAYXT_COMPUTE_LINUX_TARGET -hnetwork=aries
+           -c -eacFn -dm -m2 -rl -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/mpt/7.1.1/gni/mpich2-cray/83/include
+           -I/opt/cray/libsci/13.0.1/CRAY/83/sandybridge/include
+           -I/opt/cray/rca/1.0.0-2.0502.57212.2.56.ari/include
+           -I/opt/cray/alps/5.2.3-2.0502.9295.14.14.ari/include
+           -I/opt/cray/xpmem/0.1-2.0502.57015.1.15.ari/include
+           -I/opt/cray/gni-headers/4.0-1.0502.10317.9.2.ari/include
+           -I/opt/cray/dmapp/7.0.1-1.0502.10246.8.47.ari/include
+           -I/opt/cray/pmi/5.0.6-1.0000.10439.140.2.ari/include
+           -I/opt/cray/ugni/6.0-1.0502.10245.9.9.ari/include
+           -I/opt/cray/udreg/2.3.2-1.0502.9889.2.20.ari/include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/pkgconfig/../include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/wlm_detect/1.0-1.0502.57063.1.1.ari/include
+           -I/opt/cray/krca/1.0.0-2.0502.57202.2.45.ari/include
+           -I/opt/cray-hss-devel/7.2.0/include cgca_m3pfem.f90
+
+ftnlx report
+------------
+Source   : /home3/y14/y14/di1c13/cgpack/head/cgca_m3pfem.f90
+Date     : 02/18/2016  16:36:39
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S o u r c e   L i s t i n g
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    1.    !$Id: cgca_m3pfem.f90 173 2015-11-04 16:52:16Z mexas $
+    2.    
+    3.    !*********************************************************************72
+    4.    
+    5.    !*robodoc*m* CGPACK/cgca_m3pfem
+    6.    !  NAME
+    7.    !    cgca_m3pfem
+    8.    !  SYNOPSIS
+    9.    
+   10.    module cgca_m3pfem
+   11.    
+   12.    !  DESCRIPTION
+   13.    !    Module dealing with interfacing CGPACK with ParaFEM.
+   14.    !  AUTHOR
+   15.    !    Anton Shterenlikht, Luis Cebamanos
+   16.    !  COPYRIGHT
+   17.    !    See CGPACK_Copyright
+   18.    !  CONTAINS
+   19.    !    Public coarray variables of derived types:
+   20.    !    cgca_pfem_centroid_tmp,
+   21.    !    cgca_pfem_integrity,
+   22.    !    cgca_pfem_stress.
+   23.    !
+   24.    !    Public *local*, non-coarray, variable:
+   25.    !    cgca_pfem_enew.
+   26.    !
+   27.    !    Private *local*, non-coarray, variables:
+   28.    !    lcentr.
+   29.    !
+   30.    !    Routines:
+   31.    !    cgca_pfem_boxin, cgca_pfem_cellin,
+   32.    !    cgca_pfem_cenc, cgca_pfem_cendmp, cgca_pfem_ctalloc,
+   33.    !    cgca_pfem_ctdalloc, cgca_pfem_ealloc, cgca_pfem_edalloc,
+   34.    !    cgca_pfem_intcalc1, cgca_pfem_integalloc, cgca_pfem_integdalloc,
+   35.    !    cgca_pfem_partin,
+   36.    !    cgca_pfem_salloc, cgca_pfem_sdalloc, cgca_pfem_sdmp,
+   37.    !    cgca_pfem_simg, cgca_pfem_uym, cgca_pfem_wholein
+   38.    !  USES
+   39.    !    Modules cgca_m1co, cgca_m2lnklst, cgca_m2geom
+   40.    !  USED BY
+   41.    !    end user?
+   42.    !  SOURCE
+   43.    
+   44.    use :: cgca_m1co, only : iarr, idef, ilrg, ldef, rdef,                 &
+   45.      cgca_state_null, cgca_state_type_frac
+   46.    use :: cgca_m2lnklst, only : cgca_lnklst_tpayld, cgca_lnklst_node,     &
+   47.      cgca_inithead, cgca_addhead, cgca_lstdmp, cgca_rmhead
+   48.    use :: cgca_m2geom, only : cgca_boxsplit
+   49.    
+   50.    implicit none
+   51.    
+   52.    private
+   53.    public ::                                                              &
+   54.    ! routines
+   55.      cgca_pfem_boxin, cgca_pfem_cellin, &
+   56.      cgca_pfem_cenc, cgca_pfem_cendmp, cgca_pfem_ctalloc,                 &
+   57.      cgca_pfem_ctdalloc, cgca_pfem_ealloc, cgca_pfem_edalloc,             &
+   58.      cgca_pfem_integalloc, cgca_pfem_integdalloc, cgca_pfem_intcalc1,     &
+   59.      cgca_pfem_partin, &
+   60.      cgca_pfem_salloc,  cgca_pfem_sdalloc, cgca_pfem_sdmp, cgca_pfem_simg,&
+   61.      cgca_pfem_uym, cgca_pfem_wholein,                         &
+   62.    ! variables 
+   63.      cgca_pfem_centroid_tmp, cgca_pfem_enew, cgca_pfem_integrity,         &
+   64.      cgca_pfem_stress
+   65.    
+   66.    ! corresponds to typical double precision real.
+   67.    integer, parameter :: cgca_pfem_iwp = selected_real_kind(15,300)
+   68.    
+   69.    !*roboend*
+   70.    
+   71.    
+   72.    !*robodoc*d* cgca_m3pfem/lcentr
+   73.    !  NAME
+   74.    !    lcentr
+   75.    !  SYNOPSIS
+   76.    
+   77.    type mcen
+   78.      integer( kind=idef ) :: image
+   79.      integer( kind=idef ) :: elnum
+   80.      real( kind=cgca_pfem_iwp ) :: centr(3)
+   81.    end type mcen
+   82.    type( mcen ), allocatable :: lcentr(:)
+   83.    
+   84.    !  DESCRIPTION
+   85.    !    A *private* *local* allocatable array of derived type with 3
+   86.    !    components: (1) image number (2) the local element number on that
+   87.    !    image and (3) centroid coordinates in CA CS.
+   88.    !    Each entry in this array
+   89.    !    corresponds to an FE with centroid coordinates within the coarray
+   90.    !    "box" on this image.
+   91.    !
+   92.    !    Assumption!! This is a 3D problems, so the centroid is
+   93.    !    defined by 3 coordinates, hence centr(3).
+   94.    !
+   95.    !    MCEN stands for Mixed CENtroid data type.
+   96.    !    LCENTR stands for *Local* array of CENTRoids.
+   97.    !  NOTE
+   98.    !    This is *private* array, hence the name does not start
+   99.    !    with "cgca_pfem".
+  100.    !  USED BY
+  101.    !    Many routines of this module.
+  102.    !*roboend*
+  103.    
+  104.    
+  105.    !*robodoc*d* cgca_m3pfem/cgca_pfem_centroid_tmp
+  106.    !  NAME
+  107.    !    cgca_pfem_centroid_tmp
+  108.    !  SYNOPSIS
+  109.      
+  110.    type rca
+  111.      real( kind=cgca_pfem_iwp ), allocatable :: r(:,:)
+  112.    end type rca
+  113.    type( rca ) :: cgca_pfem_centroid_tmp[*]
+  114.    
+  115.    !  DESCRIPTION
+  116.    !    RCA stands for Rugged CoArray.
+  117.    !    cgca_pfem_centroid_tmp is a temporary scalar *coarray* of derived
+  118.    !    type with allocatable array component, storing centroids of ParaFEM
+  119.    !    finite elements, in FE coord. system, on this image.
+  120.    !    The array might be of different length on different images,
+  121.    !    so have to use an allocatable component of a coarray variable
+  122.    !    of derived type.
+  123.    !  USED BY
+  124.    !    routines of this module + end user
+  125.    !*roboend*
+  126.    
+  127.    
+  128.    !*robodoc*d* cgca_m3pfem/cgca_pfem_stress
+  129.    !  NAME
+  130.    !    cgca_pfem_stress
+  131.    !  SYNOPSIS
+  132.    
+  133.    type type_stress
+  134.      real( kind=cgca_pfem_iwp ), allocatable :: stress(:,:,:)
+  135.    end type type_stress
+  136.    type( type_stress ) :: cgca_pfem_stress[*]
+  137.    
+  138.    !  DESCRIPTION
+  139.    !    This is a coarray with a single allocatable array component,
+  140.    !    to store all stress components for all integration points
+  141.    !    for all elements on an image. Have to use a derived type
+  142.    !    because cgca_pfem_stress%stress can be allocated to different
+  143.    !    length on different images.
+  144.    !    This data will be read by all images.
+  145.    !*roboend*
+  146.    
+  147.      
+  148.    !*robodoc*d* cgca_m3pfem/cgca_pfem_integrity
+  149.    !  NAME
+  150.    !    cgca_pfem_integrity
+  151.    !  SYNOPSIS
+  152.    
+  153.    type cgca_pfem_integ_type
+  154.     real( kind=rdef ), allocatable :: i(:)
+  155.    end type cgca_pfem_integ_type
+  156.    type( cgca_pfem_integ_type ) :: cgca_pfem_integrity[*]
+  157.    
+  158.    !  DESCRIPTION
+  159.    !    A derived type is needed because the length of the integrity
+  160.    !    array will differ from image to image. So this is a scalar coarray
+  161.    !    of derived type with a single component: allocatable array of
+  162.    !    integrity, i. i=1 means to damage, i=0 means no remaining load
+  163.    !    bearing capacity.
+  164.    !    This data will be used to update the Young's modulus
+  165.    !  NOTE
+  166.    !    Set i to 1 on allocation to avoid problems later.
+  167.    !    The reason is that in cases when some FE are not
+  168.    !    connected to CA, the integrity of these FE will never be
+  169.    !    set of changed. So setting i to 1 on allocation is fool proof.
+  170.    !  USED BY
+  171.    !    cgca_pfem_uym + end user?
+  172.    !*roboend*
+  173.      
+  174.      
+  175.    !*robodoc*d* cgca_m3pfem/cgca_pfem_enew
+  176.    !  NAME
+  177.    !    cgca_pfem_enew
+  178.    !  SYNOPSIS
+  179.      
+  180.    real( kind=cgca_pfem_iwp ), allocatable :: cgca_pfem_enew(:,:)
+  181.    
+  182.    !  DESCRIPTION
+  183.    !    Naming: E New as in new Young's modulus. This *local* array
+  184.    !    stores Young's moduli for each integration point of each
+  185.    !    FE on this image.
+  186.    !  USED BY
+  187.    !    cgca_pfem_uym + end user
+  188.    !*roboend*
+  189.    
+  190.    
+  191.    contains
+  192.    
+  193.    
+  194.    !*robodoc*s* cgca_m3pfem/cgca_pfem_integalloc
+  195.    !  NAME
+  196.    !    cgca_pfem_integalloc
+  197.    !  SYNOPSIS
+  198.    
+  199.    subroutine cgca_pfem_integalloc( nels_pp )
+  200.    
+  201.    !  INPUT
+  202.    !    nels_pp - elements per MPI process (per image).
+  203.    
+  204.    integer, intent(in) :: nels_pp
+  205.    
+  206.    !  SIDE EFFECTS
+  207.    !    Allocatable array component cgca_pfem_integrity%i becomes allocated
+  208.    !  DESCRIPTION
+  209.    !    This routine allocates cgca_pfem_integrity%i on this image.
+  210.    !    This is a *local*, non-coarray, array. Hence this routine can be
+  211.    !    called by any or all images. It should be called by all images,
+  212.    !    of course.
+  213.    !
+  214.    !    The array is allocated with the length equal to the number FE
+  215.    !    stored on *that* image.
+  216.    !
+  217.    !    Must set i to 1, to take care of cases when some FE are not
+  218.    !    linked to CA. integrity for such FESuch FE which are 
+  219.    !  USES
+  220.    !    cgca_pfem_integrity via host association.
+  221.    !  USED BY
+  222.    !    end user?
+  223.    !  SOURCE
+  224.    
+  225.    integer :: errstat=0
+  226.    
+  227.    allocate( cgca_pfem_integrity%i( nels_pp ),  source=1.0_rdef,          &
+  228.              stat=errstat )
+  229.    if ( errstat .ne. 0 ) then
+  230.      write (*,"(a,i0)")                                                   &
+  231.        "ERROR: cgca_pfem_integalloc: allocate( cgca_pfem_integrity%i )",  &
+  232.        errstat
+  233.      error stop
+  234.    end if
+  235.    
+  236.    end subroutine cgca_pfem_integalloc
+  237.    
+  238.    !*roboend*
+  239.     
+  240.    
+  241.    !*robodoc*s* cgca_m3pfem/cgca_pfem_integdalloc
+  242.    !  NAME
+  243.    !    cgca_pfem_integdalloc
+  244.    !  SYNOPSIS
+  245.    
+  246.    subroutine cgca_pfem_integdalloc
+  247.    
+  248.    !  SIDE EFFECTS
+  249.    !    Allocatable array component of cgca_pfem_integrity coarray becomes
+  250.    !    deallocated.
+  251.    !  DESCRIPTION
+  252.    !    This routine deallocates allocatable array component of integrity:
+  253.    !    cgca_pfem_integrity%i.
+  254.    !  USES
+  255.    !    cgca_pfem_integrity via host association
+  256.    !  USED BY
+  257.    !    end user?
+  258.    !  SOURCE
+  259.    
+  260.    integer :: errstat=0
+  261.    
+  262.    deallocate( cgca_pfem_integrity%i, stat=errstat )
+  263.    if ( errstat .ne. 0 ) then
+  264.      write (*,"(a,i0)")                                                   &
+  265.       "ERROR: cgca_pfem_integalloc: deallocate( cgca_pfem_integrity%i )", &
+  266.       errstat
+  267.      error stop
+  268.    end if
+  269.    
+  270.    end subroutine cgca_pfem_integdalloc
+  271.    
+  272.    !*roboend*
+  273.    
+  274.    
+  275.    !*robodoc*s* cgca_m3pfem/cgca_pfem_ealloc
+  276.    !  NAME
+  277.    !    cgca_pfem_ealloc
+  278.    !  SYNOPSIS
+  279.    
+  280.    subroutine cgca_pfem_ealloc( nip, nels_pp )
+  281.        
+  282.    !  INPUTS
+  283.    !    nip - integer, number of integration points
+  284.    !    nels_pp - elements per MPI process (per image).
+  285.    
+  286.    integer, intent( in ) :: nip, nels_pp
+  287.        
+  288.    !  SIDE EFFECTS
+  289.    !    Allocatable *local* array enew becomes allocated
+  290.    !  DESCRIPTION
+  291.    !    This routine allocates an allocatable *local* array.
+  292.    !    The allocatable array stores the Young's modulus
+  293.    !    per FE element and integration point, for all FE
+  294.    !    that are stored on this image.
+  295.    !  USED BY
+  296.    !    end user?
+  297.    !  SOURCE
+  298.    
+  299.    integer :: errstat=0
+  300.    
+  301.    allocate( cgca_pfem_enew( nip, nels_pp ), stat=errstat )
+  302.    if ( errstat .ne. 0 ) then
+  303.      write (*,"(a,i0)")                                                   &
+  304.       "ERROR: cgca_pfem_ealloc: allocate( cgca_pfem_enew ), err. status", &
+  305.        errstat
+  306.      error stop
+  307.    end if
+  308.    
+  309.    end subroutine cgca_pfem_ealloc
+  310.    
+  311.    !*roboend*
+  312.    
+  313.      
+  314.    !*robodoc*s* cgca_m3pfem/cgca_pfem_edalloc
+  315.    !  NAME
+  316.    !    cgca_pfem_edalloc
+  317.    !  SYNOPSIS
+  318.    
+  319.    subroutine cgca_pfem_edalloc
+  320.        
+  321.    !  SIDE EFFECTS
+  322.    !    Allocatable *local* array cgca_pfem_enew becomes deallocated.
+  323.    !  DESCRIPTION
+  324.    !    This routine deallocates an allocatable *local* array used to
+  325.    !    store the Young's modulus per FE element and integration point
+  326.    !  USES
+  327.    !    cgca_pfem_enew via host association.
+  328.    !  USED BY
+  329.    !    end user?
+  330.    !  SOURCE
+  331.    
+  332.    integer :: errstat=0
+  333.    
+  334.    deallocate( cgca_pfem_enew, stat=errstat )
+  335.    if ( errstat .ne. 0 ) error stop                                       &
+  336.      "ERROR: cgca_pfem_ealloc: deallocate( cgca_pfem_enew )"
+  337.        
+  338.    end subroutine cgca_pfem_edalloc
+  339.    
+  340.    !*roboend*
+  341.    
+  342.    
+  343.    !*robodoc*s* cgca_m3pfem/cgca_pfem_uym
+  344.    !  NAME
+  345.    !    cgca_pfem_uym
+  346.    !  SYNOPSIS
+  347.    
+  348.    subroutine cgca_pfem_uym( e_orig, nels_pp )
+  349.    
+  350.    !  INPUTS
+  351.    !     e_orig - *real* is the original Young's modulus.
+  352.    !    For now assume a single value, i.e. all int points
+  353.    !    have identical original value.
+  354.    !     nels_pp - number of FEs for this image.
+  355.    
+  356.    real( kind=cgca_pfem_iwp ), intent(in) :: e_orig
+  357.    integer, intent(in) :: nels_pp
+  358.    
+  359.    !  SIDE EFFECTS
+  360.    !    The Young's modulus gets updated with integrity
+  361.    !  DESCRIPTION
+  362.    !    UYM stands for Update Young's Modulus
+  363.    !    This routine updates the value of the Young's modulus, e,
+  364.    !    e = e_original * integrity.
+  365.    !    Integrity - integer, cell integrity (from 0.0 to 1.0)
+  366.    !  NOTES
+  367.    !    Purely local routine, no coarray operations.
+  368.    !    It seems the Young's modulus of 0 causes instability.
+  369.    !    So don't let it get to 0, use a small factor instead, e.g. 1.0e-3.
+  370.    !  USES
+  371.    !    cgca_pfem_enew, cgca_pfem_integrity, all via host association.
+  372.    !  USED BY
+  373.    !    end user?
+  374.    !  SOURCE
+  375.    
+  376.    real( kind=rdef ), parameter :: factor = 1.0e-3_rdef
+  377.    integer :: fe
+  378.    
+  379.    do fe = 1, nels_pp
+ftn-6294 ftn: VECTOR File = cgca_m3pfem.f90, Line = 379 
+  A loop starting at line 379 was not vectorized because a better candidate was found at line 381.
+
+ftn-6005 ftn: SCALAR File = cgca_m3pfem.f90, Line = 379 
+  A loop starting at line 379 was unrolled 4 times.
+
+  380.    
+  381.     cgca_pfem_enew( : , fe ) = max( factor*e_orig,                        &
+ftn-6005 ftn: SCALAR File = cgca_m3pfem.f90, Line = 381 
+  A loop starting at line 381 was unrolled 2 times.
+
+ftn-6204 ftn: VECTOR File = cgca_m3pfem.f90, Line = 381 
+  A loop starting at line 381 was vectorized.
+
+  382.                                 e_orig * cgca_pfem_integrity % i( fe ) )
+  383.    end do
+  384.    
+  385.    end subroutine cgca_pfem_uym
+  386.    
+  387.    !*roboend*
+  388.      
+  389.    
+  390.    !*robodoc*s* cgca_m3pfem/cgca_pfem_ctalloc
+  391.    !  NAME
+  392.    !    cgca_pfem_ctalloc
+  393.    !  SYNOPSIS
+  394.    
+  395.    subroutine cgca_pfem_ctalloc( ndim, nels_pp )
+  396.    
+  397.    !  INPUTS
+  398.    
+  399.    integer, intent( in ) :: ndim, nels_pp
+  400.    
+  401.    !    ndim - integer, number of DOF per node.
+  402.    !    nels_pp - elements per MPI process (per image).
+  403.    !  SIDE EFFECTS
+  404.    !    Allocatable array component cgca_pfem_centroid_tmp%r becomes
+  405.    !    allocated.
+  406.    !  DESCRIPTION
+  407.    !    CTA stands for Centroids Temporary Allocate.
+  408.    !    This routine allocates an allocatable array component of scalar
+  409.    !    coarray cgca_pfem_centroid_tmp.
+  410.    !    The allocatable array stores FE centroid coordinates
+  411.    !    together with their numbers and MPI ranks where these are stored.
+  412.    !  NOTES
+  413.    !    The array component can of different length on different images.
+  414.    !  USES
+  415.    !  USED BY
+  416.    !  SOURCE
+  417.    
+  418.    integer :: errstat=0
+  419.    
+  420.    allocate( cgca_pfem_centroid_tmp%r( ndim, nels_pp ),                   &
+  421.              source=0.0_cgca_pfem_iwp,                                    &
+  422.              stat=errstat )
+  423.    if ( errstat .ne. 0 ) error stop                                       &
+  424.      "ERROR: cgca_pfem_ctalloc: allocate( cgca_pfem_centroid_tmp%r )"
+  425.    
+  426.    end subroutine cgca_pfem_ctalloc
+  427.    
+  428.    !*roboend*
+  429.    
+  430.    
+  431.    !*robodoc*s* cgca_m3pfem/cgca_pfem_ctdalloc
+  432.    !  NAME
+  433.    !    cgca_pfem_ctdalloc
+  434.    !  SYNOPSIS
+  435.    
+  436.    subroutine cgca_pfem_ctdalloc
+  437.    
+  438.    !  SIDE EFFECTS
+  439.    !    Allocatable array component of cgca_pfem_centroid_tmp becomes
+  440.    !    deallocate
+  441.    !  DESCRIPTION
+  442.    !    CTD stands for Centroids Temporary Allocate.
+  443.    !    This routine deallocates an allocatable array component of coar.
+  444.    !    This must be done only after all images copied the contents of
+  445.    !    type( rca ) :: cgca_pfem_centroid_tmp[*] into their local,
+  446.    !    *not* coarray centroid arrays.
+  447.    !  USES
+  448.    !  USED BY
+  449.    !  SOURCE
+  450.    
+  451.    integer :: errstat=0
+  452.    
+  453.    deallocate( cgca_pfem_centroid_tmp%r, stat=errstat )
+  454.    if ( errstat .ne. 0 ) error stop                                       &
+  455.      "ERROR: cgca_pfem_ctd: deallocate( cgca_pfem_centroid_tmp%r )"
+  456.    
+  457.    end subroutine cgca_pfem_ctdalloc
+  458.    
+  459.    !*roboend*
+  460.    
+  461.    
+  462.    !*robodoc*s* cgca_m3pfem/cgca_pfem_cenc
+  463.    !  NAME
+  464.    !    cgca_pfem_cenc
+  465.    !  SYNOPSIS
+  466.    
+  467.    subroutine cgca_pfem_cenc( origin, rot, bcol, bcou )
+  468.    
+  469.    !  INPUTS
+  470.    
+  471.    real( kind=rdef ), intent( in ) ::                                     &
+  472.     origin(3),        & ! origin of the "box" cs, in FE cs
+  473.     rot(3,3),         & ! rotation tensor *from* FE cs *to* CA cs
+  474.     bcol(3),          & ! lower phys. coords of the coarray on image
+  475.     bcou(3)             ! upper phys. coords of the coarray on image
+  476.    
+  477.    !  SIDE EFFECTS
+  478.    !    Array lcentr is changed.
+  479.    !  DESCRIPTION
+  480.    !    CENC stands for CENtroids Collection.
+  481.    !    This routine reads centroids of all elements, in FE coord.
+  482.    !    system, from all MPI processes and adds those with centroids
+  483.    !    within its CA "box" to its lcentr array.
+  484.    !  NOTES
+  485.    !    This routine must be called only after coarray
+  486.    !    cgca_pfem_centroid_tmp has been established on all images.
+  487.    !    This routine *reads* coarrays on other images, hence
+  488.    !    sync must be used before calling this routine.
+  489.    !    However, the routine *does not* change coarrays, only reads.
+  490.    !    So no syncs are required inside this routine, as it constitutes
+  491.    !    a single execution segment.
+  492.    !  USES
+  493.    !    lcentr via host association.
+  494.    !  SOURCE
+  495.    
+  496.    ! initial length of lcentr array. A good choice will reduce the number
+  497.    ! of deallocate/allocate and will use the memory better.
+  498.    integer, parameter :: lclenini = 100
+  499.    
+  500.    integer :: errstat, i, j, nimgs, nelements, img_curr, ndims, rndint, &
+  501.     lclen, & ! current length of the lcentr array
+  502.     lcel     ! number of elements in lcentr array
+  503.    
+  504.    ! centroid coords in CA cs
+  505.    real( kind=cgca_pfem_iwp ) :: cen_ca(3) ! 3D case only
+  506.    real( kind=cgca_pfem_iwp ),allocatable :: tmp(:,:)
+  507.    real :: rnd
+  508.    
+  509.    ! temp array to expand/contract lcentr
+  510.    type( mcen ), allocatable :: lctmp(:)
+  511.    
+  512.    nimgs = num_images()
+  513.    
+  514.    ! Allocate lcentr to the initial guess size.
+  515.    lclen = lclenini
+  516.    allocate( lcentr( lclen ), stat=errstat )
+  517.    if ( errstat .ne. 0 ) then
+  518.      write (*,'(a,i0)')                                                   &
+  519.       "ERROR: cgca_pfem_cenc: allocate( lcentr ), error code: ", errstat
+  520.      error stop
+  521.    end if
+  522.    
+  523.    ! There are no elements yet in lcentr array
+  524.    lcel = 0
+  525.    
+  526.    ! choose the first image at random
+  527.    call random_number( rnd )   ! [ 0 .. 1 )
+  528.    rndint = int( rnd*nimgs )+1 ! [ 1 .. nimgs ]
+  529.    
+  530.    ! loop over all images, starting at a randomly chosen image
+  531.    images: do i=rndint, rndint+nimgs-1
+ftn-6262 ftn: VECTOR File = cgca_m3pfem.f90, Line = 531 
+  A loop starting at line 531 was not vectorized because it contains a call to a subroutine or function on line 543.
+
+  532.    
+  533.      ! Get the current image number.
+  534.      ! If it's > nimgs, subtract nimgs
+  535.      img_curr = i
+  536.      if ( img_curr .gt. nimgs ) img_curr = img_curr - nimgs
+  537.    
+  538.      ! how many elements
+  539.          ndims = size( cgca_pfem_centroid_tmp[ img_curr ] % r, dim=1 )
+  540.      nelements = size( cgca_pfem_centroid_tmp[ img_curr ] % r, dim=2 )
+  541.    
+  542.      ! use a temp array to pull all centroids data in one call
+  543.      allocate( tmp( ndims, nelements ), source=0.0_cgca_pfem_iwp,         &
+ftn-7418 ftn: CAUTION File = cgca_m3pfem.f90, Line = 543 
+  Fortran allocatable variable "tmp" may be used before being allocated.
+
+  544.                stat=errstat )
+  545.      if ( errstat .ne. 0 )                                                &
+  546.        error stop "ERROR: cgca_pfem_cenc: allocate( tmp )"
+  547.      tmp = cgca_pfem_centroid_tmp[ img_curr ] % r
+ftn-6066 ftn: SCALAR File = cgca_m3pfem.f90, Line = 547 
+   A loop nest at line 547 collapsed to a single loop.
+
+ftn-6354 ftn: VECTOR File = cgca_m3pfem.f90, Line = 547 
+  The assignment in the loop starting at line 547 was not replaced by a block remote data transfer operation because the right
+  object "(?)" is accessed using a non-constant stride.
+
+ftn-6333 ftn: VECTOR File = cgca_m3pfem.f90, Line = 547 
+  A loop starting at line 547 was not vectorized because it contains a definition or reference to a coarray variable on line 547.
+
+ftn-6077 ftn: SCALAR File = cgca_m3pfem.f90, Line = 547 
+  An implicit non-blocking operation was used for this statement.
+
+ftn-6005 ftn: SCALAR File = cgca_m3pfem.f90, Line = 547 
+  A loop starting at line 547 was unrolled 8 times.
+
+  548.    
+  549.      ! loop over all elements on that image
+  550.      elements: do j = 1, nelements
+ftn-6262 ftn: VECTOR File = cgca_m3pfem.f90, Line = 550 
+  A loop starting at line 550 was not vectorized because it contains a call to a subroutine or function on line 583.
+
+  551.    
+  552.        ! Convert centroid coordinates from FE cs to CA cs
+  553.        ! cgca_pfem_centroid_tmp[i]        - variable on image i
+  554.        ! cgca_pfem_centroid_tmp[i]%r      - component that is the centroids
+  555.        !                                    real array
+  556.        ! cgca_pfem_centroid_tmp[i]%r(:,j) - take finite element j, and all
+  557.        !                                    centroid coordinates for it.
+  558.        !
+  559.        ! old algorithm - lots of small remote calls:
+  560.        ! cen_ca = &
+  561.        !  matmul( rot, cgca_pfem_centroid_tmp[ img_curr ]%r(:,j) - origin )
+  562.        !
+  563.        cen_ca = matmul( rot, tmp(:,j) - origin )
+ftn-6008 ftn: SCALAR File = cgca_m3pfem.f90, Line = 563 
+  A loop starting at line 563 was unwound.
+
+ftn-6271 ftn: VECTOR File = cgca_m3pfem.f90, Line = 563 
+  A loop starting at line 563 was not vectorized because its trip count is too small.
+
+  564.    
+  565.        ! Check whether CA cs centroid is within the box.
+  566.        ! If all CA cs centroid coordinates are greater or equal to
+  567.        ! the lower bound of the box, and all of them are also
+  568.        ! less of equal to the upper bound of the box, then the centroid
+  569.        ! is inside. Then add the new entry.
+  570.        inside: if ( all( cen_ca .ge. bcol ) .and.                         &
+ftn-6334 ftn: VECTOR File = cgca_m3pfem.f90, Line = 570 
+  A loop starting at line 570 was not vectorized because it contains multiple potential exits.
+
+  571.                     all( cen_ca .le. bcou ) ) then
+  572.    
+  573.          ! Increment the number of elements
+  574.          lcel = lcel + 1
+  575.    
+  576.          ! Expand the array if there is no space left to add the new entry.
+  577.          expand: if ( lclen .lt. lcel ) then 
+  578.    
+  579.            ! Double the length of the array
+  580.            lclen = 2 * lclen
+  581.    
+  582.            ! Allocate a temp array of this length
+  583.            allocate( lctmp( lclen ), stat=errstat )
+ftn-7418 ftn: CAUTION File = cgca_m3pfem.f90, Line = 583 
+  Fortran allocatable variable "lctmp" may be used before being allocated.
+
+  584.            if ( errstat .ne. 0 ) error stop                               &
+  585.              "ERROR: cgca_pfem_cenc: allocate( lctmp ) 1"
+  586.    
+  587.            ! copy lcentr into the beginning of lctmp
+  588.            lctmp( 1:size( lcentr ) ) = lcentr
+ftn-6005 ftn: SCALAR File = cgca_m3pfem.f90, Line = 588 
+  A loop starting at line 588 was unrolled 2 times.
+
+ftn-6204 ftn: VECTOR File = cgca_m3pfem.f90, Line = 588 
+  A loop starting at line 588 was vectorized.
+
+  589.    
+  590.            ! move allocation from the temp array back to lcentr
+  591.            call move_alloc( lctmp, lcentr )
+  592.    
+  593.          end if expand
+  594.    
+  595.          ! Add new entry
+  596.          lcentr( lcel ) = mcen( img_curr, j, cen_ca )
+  597.    
+  598.        end if inside
+  599.    
+  600.      end do elements
+  601.    
+  602.      deallocate( tmp, stat=errstat )
+  603.      if ( errstat .ne. 0 )                                                &
+  604.        error stop "ERROR: cgca_pfem_cenc: deallocate( tmp )"
+  605.    
+  606.    end do images
+  607.    
+  608.    ! Trim lcentr if it is longer than the number of elements
+  609.    if ( lclen .gt. lcel ) then
+  610.    
+  611.      ! Allocate temp array to the number of elements
+  612.      allocate( lctmp( lcel ), stat=errstat )
+  613.      if ( errstat .ne. 0 ) error stop                                     &
+  614.        "ERROR: cgca_pfem_cenc: allocate( lctmp ) 2"
+  615.    
+  616.      ! Copy lcentr elements to the temp array
+  617.      lctmp = lcentr( 1 : lcel )
+ftn-6005 ftn: SCALAR File = cgca_m3pfem.f90, Line = 617 
+  A loop starting at line 617 was unrolled 2 times.
+
+ftn-6204 ftn: VECTOR File = cgca_m3pfem.f90, Line = 617 
+  A loop starting at line 617 was vectorized.
+
+                  ^                    
+ftn-3021 ftn: IPA CGCA_PFEM_CENC, File = cgca_m3pfem.f90, Line = 617, Column = 9 
+  "_F90_COPY_POLYMORPHIC" (called from "cgca_pfem_cenc") was not inlined because the compiler was unable to locate the routine.
+
+  618.    
+  619.      ! move allocation from lctmp back to lcentr
+  620.      call move_alloc( lctmp, lcentr )
+  621.    end if
+  622.    
+  623.    end subroutine cgca_pfem_cenc
+  624.    
+  625.    !*roboend*
+  626.    
+  627.    
+  628.    !*robodoc*s* cgca_m3pfem/cgca_pfem_cendmp
+  629.    !  NAME
+  630.    !    cgca_pfem_cendmp
+  631.    !  SYNOPSIS
+  632.    
+  633.    subroutine cgca_pfem_cendmp
+  634.    
+  635.    !  SIDE EFFECTS
+  636.    !    Dumps some data to stdout
+  637.    !  DESCRIPTION
+  638.    !    CENDMP stands for CENtroids array dump.
+  639.    !    This routine dumps lcentr to stdout.
+  640.    !  NOTES
+  641.    !    Must call from all images.
+  642.    !  SOURCE
+  643.    
+  644.    integer :: i, img
+  645.    
+  646.    img = this_image()
+  647.    
+  648.    do i = 1, size( lcentr )
+ftn-6286 ftn: VECTOR File = cgca_m3pfem.f90, Line = 648 
+  A loop starting at line 648 was not vectorized because it contains input/output operations at line 649.
+
+  649.      write (*,"(3(a,i0),a,3(es10.2,tr1))")                                &
+  650.                  "CA on img "       , img             ,                   &
+  651.                  " <-> FE "         , lcentr(i)%elnum ,                   &
+  652.                  " on img "         , lcentr(i)%image ,                   &
+  653.                  " centr. in CA cs" , lcentr(i)%centr
+  654.    end do
+  655.    
+  656.    end subroutine cgca_pfem_cendmp
+  657.    
+  658.    !*roboend*
+  659.    
+  660.    
+  661.    !*robodoc*s* cgca_m3pfem/cgca_pfem_salloc
+  662.    !  NAME
+  663.    !    cgca_pfem_salloc
+  664.    !  SYNOPSIS
+  665.    
+  666.    subroutine cgca_pfem_salloc( nels_pp, intp, comp )
+  667.    
+  668.    !  INPUTS
+  669.    !    nels_pp - number of elements on this image
+  670.    !    intp - number of integration points per element
+  671.    !    comp - number of stress tensor components
+  672.    
+  673.    integer, intent( in ) :: nels_pp, intp, comp
+  674.    
+  675.    !  SIDE EFFECTS
+  676.    !    Allocatable component array cgca_pfem_stress%stress becomes
+  677.    !    allocated
+  678.    !  DESCRIPTION
+  679.    !    SALLOC stands for Allocate Stress tensor array.
+  680.    !    This routine allocates an allocatable array component of coar.
+  681.    !    The allocatable array stores all stress tensor components,
+  682.    !    for all integration points on all elements on an image.
+  683.    !  USES
+  684.    !    cgca_pfem_iwp, host association
+  685.    !  USED BY
+  686.    !    end user
+  687.    !  SOURCE
+  688.    
+  689.    integer :: errstat=0
+  690.    
+  691.    allocate( cgca_pfem_stress%stress( nels_pp, intp, comp ),              &
+  692.              source=0.0_cgca_pfem_iwp, stat=errstat )
+  693.    if ( errstat .ne. 0 ) then
+  694.      write (*,"(a,i0)") "ERROR: cgca_pfem_salloc: allocate( &
+  695.        &cgca_pfem_stress%stress ), err. status: ", errstat
+  696.      error stop
+  697.    end if
+  698.    
+  699.    end subroutine cgca_pfem_salloc
+  700.    
+  701.    !*roboend*
+  702.    
+  703.    
+  704.    !*robodoc*s* cgca_m3pfem/cgca_pfem_sdalloc
+  705.    !  NAME
+  706.    !    cgca_pfem_sdalloc
+  707.    !  SYNOPSIS
+  708.    
+  709.    subroutine cgca_pfem_sdalloc
+  710.    
+  711.    !  SIDE EFFECTS
+  712.    !    allocatable array cgca_pfem_stress%stress become deallocated
+  713.    !  DESCRIPTION
+  714.    !    SDALLOC stands for Deallocate Stress tensor array.
+  715.    !    This routine deallocates allocatable array component of coar.
+  716.    !    This routine should be called only when the analysis is complete.
+  717.    !    Any and every image can call this routine.
+  718.    !  USES
+  719.    !    cgca_pfem_stress%stress, host association
+  720.    !  USED BY
+  721.    !  SOURCE
+  722.    
+  723.    integer :: errstat=0
+  724.    
+  725.    deallocate( cgca_pfem_stress%stress, stat=errstat )
+  726.    if ( errstat .ne. 0 ) then
+  727.      write (*,"(a,i0)") "ERROR: cgca_pfem_sdalloc: deallocate( &
+  728.        &cgca_pfem_stress%stress ), err. status: ", errstat
+  729.      error stop
+  730.    end if
+  731.    
+  732.    end subroutine cgca_pfem_sdalloc
+  733.    
+  734.    !*roboend*
+  735.    
+  736.    
+  737.    !*robodoc*s* cgca_m3pfem/cgca_pfem_sdmp
+  738.    !  NAME
+  739.    !    cgca_pfem_sdmp
+  740.    !  SYNOPSIS
+  741.    
+  742.    subroutine cgca_pfem_sdmp
+  743.    
+  744.    !  SIDE EFFECTS
+  745.    !    Dumps some data to stdout
+  746.    !  DESCRIPTION
+  747.    !    SDMP stands for Stress tensor dump.
+  748.    !    This routine dumps stress tensors to stdout.
+  749.    !  NOTES
+  750.    !    Must call from all images.
+  751.    !  SOURCE
+  752.    
+  753.    integer :: img, nel, nintp, el, intp
+  754.    
+  755.      img = this_image()
+  756.      nel = size( cgca_pfem_stress%stress, dim=1 )
+  757.    nintp = size( cgca_pfem_stress%stress, dim=2 )
+  758.    
+  759.    do el = 1, nel
+ftn-6263 ftn: VECTOR File = cgca_m3pfem.f90, Line = 759 
+  A loop starting at line 759 was not vectorized because it contains a reference to a non-vector intrinsic on line 762.
+
+  760.      do intp = 1, nintp
+ftn-6263 ftn: VECTOR File = cgca_m3pfem.f90, Line = 760 
+  A loop starting at line 760 was not vectorized because it contains a reference to a non-vector intrinsic on line 762.
+
+  761.        write (*,*) "img", img, "FE", el, "int p.", intp, "stress",        &
+  762.                    cgca_pfem_stress%stress( el, intp, : )
+  763.      end do
+  764.    end do
+  765.    
+  766.    end subroutine cgca_pfem_sdmp
+  767.    !*roboend*
+  768.    
+  769.    
+  770.    !*robodoc*s* cgca_m3pfem/cgca_pfem_simg
+  771.    !  NAME
+  772.    !    cgca_pfem_simg
+  773.    !  SYNOPSIS
+  774.    
+  775.    subroutine cgca_pfem_simg( simg )
+  776.    
+  777.    !  OUTPUT
+  778.    !    simg - mean stress tensor over all integration points on all
+  779.    !    finite elements linked to CA on this image.
+  780.    !    Note that I use CGPACK kind, because this var will be input to
+  781.    !    a CGPACK routine.
+  782.    
+  783.    real( kind=rdef ), intent(out) :: simg(3,3)
+  784.    
+  785.    !  DESCRIPTION
+  786.    !    SIMG stands for mean Stress on an Image.
+  787.    !    The routine reads all stress tensors from all integration
+  788.    !    points for all elements which are linked to CA on this image,
+  789.    !    i.e. from lcentr array, and calculates the mean value.
+  790.    !    This value is then used to pass to the cleavage routine.
+  791.    !  NOTE
+  792.    !    If size( lcentr ) .eq. 0, then there are no FE associated
+  793.    !    with coarray on this image. The set simg to 0.
+  794.    !  SOURCE
+  795.    
+  796.    integer, parameter :: comp=6 ! number of stress components
+  797.    
+  798.    ! Running total stress array
+  799.    real( kind=rdef ) :: stot( comp )
+  800.    
+  801.    ! Temp stress array, to store remotely read values
+  802.    real( kind=rdef ), allocatable :: str_tmp( : , : )
+  803.    
+  804.    integer :: el, nel, rel, nintp, rimg, errstat
+  805.    
+  806.    ! Assertion check
+  807.    ! The number of stress components (6) is the same as dimension 3 of
+  808.    ! cgca_pfem_stress%stress
+  809.    if ( size( cgca_pfem_stress%stress, dim=3 ) .ne. comp )                &
+  810.      error stop "ERROR: cgca_pfem_simg: &
+  811.       &size( cgca_pfem_stress%stress, dim=3 ) .ne. comp"
+  812.    
+  813.    ! Total number of elements linked to CA model on this image
+  814.    ! Total number of int. points per element
+  815.      nel = size( lcentr )
+  816.    nintp = size( cgca_pfem_stress%stress, dim=2 )
+  817.    
+  818.    ! If there are no FE linked to this image, set simg to 0
+  819.    ! and return immediately.
+  820.    if ( nel .eq. 0 ) then
+  821.      simg = 0.0_rdef
+ftn-6066 ftn: SCALAR File = cgca_m3pfem.f90, Line = 821 
+   A loop nest at line 821 collapsed to a single loop.
+
+ftn-6204 ftn: VECTOR File = cgca_m3pfem.f90, Line = 821 
+  A loop starting at line 821 was vectorized.
+
+  822.      return
+  823.    end if
+  824.    
+  825.    ! Allocate tmp stress array
+  826.    allocate( str_tmp( nintp, comp ), source=0.0_rdef, stat=errstat )
+ftn-7418 ftn: CAUTION File = cgca_m3pfem.f90, Line = 826 
+  Fortran allocatable variable "str_tmp" may be used before being allocated.
+
+  827.    if ( errstat .ne. 0 )                                                  &
+  828.      error stop "ERROR: cgca_pfem_simg: allocate( str_tmp )"
+  829.    
+  830.    ! Add all stress tensors together. Loop over all elements linked
+  831.    ! to CA on this image and over all int. points.
+  832.    stot = 0.0_rdef
+ftn-6204 ftn: VECTOR File = cgca_m3pfem.f90, Line = 832 
+  A loop starting at line 832 was vectorized.
+
+  833.    do el=1, nel
+ftn-6262 ftn: VECTOR File = cgca_m3pfem.f90, Line = 833 
+  A loop starting at line 833 was not vectorized because it contains a call to a subroutine or function on line 841.
+
+  834.    
+  835.      ! Calculate the image and the element numbers to read the stress
+  836.      ! data from.
+  837.      rimg = lcentr(el) % image
+  838.       rel = lcentr(el) % elnum
+  839.    
+  840.      ! Remote read of all stress values for this element
+  841.      str_tmp =                                                            & 
+ftn-6354 ftn: VECTOR File = cgca_m3pfem.f90, Line = 841 
+  The assignment in the loop starting at line 841 was not replaced by a block remote data transfer operation because the right
+  object "(?)" is accessed using a non-constant stride.
+
+ftn-6077 ftn: SCALAR File = cgca_m3pfem.f90, Line = 841 
+  An implicit non-blocking operation was used for this statement.
+
+ftn-6005 ftn: SCALAR File = cgca_m3pfem.f90, Line = 841 
+  A loop starting at line 841 was unrolled 8 times.
+
+ftn-6209 ftn: VECTOR File = cgca_m3pfem.f90, Line = 841 
+  A loop starting at line 841 was partially vectorized.
+
+  842.        real( cgca_pfem_stress[ rimg ] % stress( rel, : , : ), kind=rdef )
+  843.    
+  844.      ! Sum over all int. points, i.e. 1st dimension
+  845.      stot = stot + sum( str_tmp( : , : ), dim=1 )
+ftn-6005 ftn: SCALAR File = cgca_m3pfem.f90, Line = 845 
+  A loop starting at line 845 was unrolled 4 times.
+
+ftn-6213 ftn: VECTOR File = cgca_m3pfem.f90, Line = 845 
+  A loop starting at line 845 was conditionally vectorized.
+
+  846.    
+  847.    end do
+  848.    
+  849.    ! Construct a (3,3) matrix from (6) vector.
+  850.    ! Observe the component order of ParaFEM
+  851.    !   sx=stress(1)
+  852.    !   sy=stress(2)
+  853.    !   sz=stress(3)
+  854.    !   txy=stress(4)
+  855.    !   tyz=stress(5)
+  856.    !   tzx=stress(6)
+  857.    !   sigm=(sx+sy+sz)/three
+  858.    !https://code.google.com/p/parafem/source/browse/trunk/parafem/src/modules/shared/new_library.f90
+  859.    simg(1,1) = stot(1)
+  860.    simg(2,2) = stot(2)
+  861.    simg(3,3) = stot(3)
+  862.    simg(1,2) = stot(4)
+  863.    simg(2,3) = stot(5)
+  864.    simg(3,1) = stot(6)
+  865.    simg(2,1) = simg(1,2)
+  866.    simg(3,2) = simg(2,3)
+  867.    simg(1,3) = simg(3,1)
+  868.    
+  869.    ! calculate the mean
+  870.    simg = simg / real( nel*nintp, kind=rdef )
+ftn-6066 ftn: SCALAR File = cgca_m3pfem.f90, Line = 870 
+   A loop nest at line 870 collapsed to a single loop.
+
+ftn-6010 ftn: SCALAR File = cgca_m3pfem.f90, Line = 870 
+  A divide was turned into a multiply by a reciprocal
+
+ftn-6204 ftn: VECTOR File = cgca_m3pfem.f90, Line = 870 
+  A loop starting at line 870 was vectorized.
+
+  871.    
+  872.    ! deallocate temp stress array
+  873.    deallocate( str_tmp, stat=errstat )
+  874.    if ( errstat .ne. 0 ) then
+  875.      write (*,'(a,i0)')                                                   &
+  876.        "ERROR: cgca_pfem_simg: deallocate( str_tmp ), err. code: ", errstat
+  877.      error stop
+  878.    end if
+  879.    
+  880.    end subroutine cgca_pfem_simg
+  881.    
+  882.    !*roboend*
+  883.    
+  884.    
+  885.    !*robodoc*s* cgca_m3pfem/cgca_pfem_intcalc1
+  886.    !  NAME
+  887.    !    cgca_pfem_intcalc1
+  888.    !  SYNOPSIS
+  889.    
+  890.    subroutine cgca_pfem_intcalc1( arrsize, fracvol )
+  891.    
+  892.    !  INPUTS
+  893.    !     arrsize - contains the 3 sizes of the space coarray.
+  894.    !    Using the coarray sizes, the characteristic coarray
+  895.    !    area is calculated.
+  896.    !     fracvol - *real*, the number of failed (fractured) cells for each
+  897.    !    image. It is calculated by cgca_fv, which *must* be called prior to
+  898.    !    calling this routine.
+  899.    
+  900.    integer( kind=iarr ), intent( in ) :: arrsize(3)
+  901.    real( kind=rdef), intent( in ) :: fracvol
+  902.    
+  903.    !  SIDE EFFECTS
+  904.    !    cgca_pfem_integrity array changes
+  905.    !  DESCRIPTION
+  906.    !    All FEs linked to this image get the same value of integrity.
+  907.    !    These are all FEs in lcentr array. For entry i in this
+  908.    !    array this is FE cgca_pfem_integrity( lcentr(i)%elnum )
+  909.    !    on image lcentr(i)%image.
+  910.    !
+  911.    !    The integrity is 1 minus the ratio of number of
+  912.    !    failed cells to the cracteristic coarray area.
+  913.    !    If integrity < 0, set it to zero.
+  914.    !  USES
+  915.    !    lcentr via host association
+  916.    !  USED BY
+  917.    !    end user?
+  918.    !  SOURCE
+  919.    
+  920.    real :: carea ! characteristic area
+  921.    integer, parameter :: kind_integ = kind( cgca_pfem_integrity % i )
+  922.    real( kind=kind_integ ), parameter :: one = 1_kind_integ
+  923.    integer( kind=idef ) :: i
+  924.    
+  925.    ! Volume, in cells, is the product of 3 coarray sizes.
+  926.    ! Don't forget to remove the halo cells! 
+  927.    ! Characteristic area is volume ** 2/3
+  928.    carea = product( real( arrsize-2 ) ) ** 0.66666666666666666667
+ftn-6271 ftn: VECTOR File = cgca_m3pfem.f90, Line = 928 
+  A loop starting at line 928 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3pfem.f90, Line = 928 
+  A loop starting at line 928 was unwound.
+
+  929.    
+  930.    do i = 1, size( lcentr )
+ftn-6333 ftn: VECTOR File = cgca_m3pfem.f90, Line = 930 
+  A loop starting at line 930 was not vectorized because it contains a definition or reference to a coarray variable on line 938.
+
+ftn-6005 ftn: SCALAR File = cgca_m3pfem.f90, Line = 930 
+  A loop starting at line 930 was unrolled 8 times.
+
+  931.    
+  932.     ! integrity is calculate as: i = 1 - min(1,f),
+  933.     ! Integrity has the range [1..0], where i=1 for f=0, i=0 for f=1.  
+  934.     ! f=fracvol / carea   - Fraction of failed cells, 0 if no fracture,
+  935.     !                       1 or above when I consider the CA to have no
+  936.     !                       load bearing capacity. 
+  937.     ! min( 1, fraction) - To make sure fraction is [0..1].
+  938.     cgca_pfem_integrity[ lcentr(i)%image ] % i( lcentr(i)%elnum ) =       &
+ftn-6239 ftn: VECTOR File = cgca_m3pfem.f90, Line = 938 
+  The coarray assignment in the loop starting at line 930 was not replaced by a block remote data transfer operation because it is
+  not recognizable as a supported pattern.
+
+ftn-6077 ftn: SCALAR File = cgca_m3pfem.f90, Line = 938 
+  An implicit non-blocking operation was used for this statement.
+
+  939.              one - min( one, fracvol / carea )
+  940.    end do
+  941.    
+  942.    end subroutine cgca_pfem_intcalc1
+  943.    
+  944.    !*roboend*
+  945.    
+  946.    
+  947.    !*robodoc*s* cgca_m3pfem/cgca_pfem_cellin
+  948.    !  NAME
+  949.    !    cgca_pfem_cellin
+  950.    !  SYNOPSIS
+  951.    
+  952.    subroutine cgca_pfem_cellin( lc, lres, bcol, charlen, debug, flag )
+  953.    
+  954.    !  INPUTS
+  955.    !     lc(3) - integer, local coordinates of a cell in the space
+  956.    !    coarray on *this* image.
+  957.    !     lres - real, linear resolution of the model, how many cells per
+  958.    !    linear physical unit of length. 
+  959.    !     bcol(3) - real, coordinates of the coarray box on this image
+  960.    !    in physical units, in CA coord. system.
+  961.    !     charlen - real, characteristic length of an FE in the model.
+  962.    !    This parameter is used to determine whether a cell is "close
+  963.    !    enough" to a centroid of an FE.
+  964.    !     debug - logical. If .true. will dump some debug info
+  965.    
+  966.    integer( kind=idef ), intent( in ) :: lc(3)
+  967.    real( kind=rdef ), intent( in ) :: lres, bcol(3), charlen
+  968.    logical( kind=ldef ), intent( in ) :: debug
+  969.    
+  970.    !  OUTPUTS
+  971.    !     flag - logical, .true. if the cell in "inside" the FE model,
+  972.    !    .false. otherwise
+  973.    
+  974.    logical( kind=ldef ), intent( out ) :: flag
+  975.    
+  976.    !  SIDE EFFECTS
+  977.    !    if debug is .true. dumps some output to stdout. Othewise none.
+  978.    !  DESCRIPTION
+  979.    !    Scan all FE in lcentr array. If the coordinates of the cell in FE
+  980.    !    coord. system are close enough to the centroid of at least one
+  981.    !    element, then the cell is "inside" the FE model. Otherwise it
+  982.    !    is outside.
+  983.    !  SOURCE
+  984.    
+  985.    real( kind=rdef ) :: cacoord(3), cl2
+  986.    integer( kind=idef ) :: i
+  987.    
+  988.    ! Assume the cell is outside by default. Only if it is proven to be in,
+  989.    ! change the flag to .true.
+  990.    flag = .false.
+  991.    
+  992.    ! I need characteristic length squared for comparison
+  993.    cl2 = charlen * charlen
+  994.    
+  995.    ! Calculate the global CA coord. of the given cell from the
+  996.    ! input local coord.
+  997.    ! lc / lres - distance in phys. units from the box lower corner 
+  998.    ! lc / lres + bcol - coord. in phys units in CA CS
+  999.    cacoord = lc / lres + bcol
+ftn-6271 ftn: VECTOR File = cgca_m3pfem.f90, Line = 999 
+  A loop starting at line 999 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3pfem.f90, Line = 999 
+  A loop starting at line 999 was unwound.
+
+ftn-6010 ftn: SCALAR File = cgca_m3pfem.f90, Line = 999 
+  A divide was turned into a multiply by a reciprocal
+
+ 1000.    
+ 1001.    if ( debug ) write (*,"(a,i0,a,3(es9.2,a))")                           &
+ 1002.      "DEBUG: cgca_pfem_cellin: img: ", this_image(),                      &
+ 1003.      " cacoord (",  cacoord(1), ",", cacoord(2), ",", cacoord(3), ")"
+ 1004.    
+ 1005.    ! Loop over all elements in lcentr
+ 1006.    elements: do i = 1, size( lcentr )
+ftn-6250 ftn: VECTOR File = cgca_m3pfem.f90, Line = 1006 
+  A loop starting at line 1006 was not vectorized for an unspecified reason.
+
+ 1007.      if ( sum( (cacoord - lcentr(i)%centr(:) )**2 ) .lt. cl2 ) then
+ftn-6271 ftn: VECTOR File = cgca_m3pfem.f90, Line = 1007 
+  A loop starting at line 1007 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3pfem.f90, Line = 1007 
+  A loop starting at line 1007 was unwound.
+
+ 1008.        ! cell is in 
+ 1009.        flag = .true.
+ 1010.        exit elements
+ 1011.      end if
+ 1012.    end do elements
+ 1013.    
+ 1014.    end subroutine cgca_pfem_cellin
+ 1015.    
+ 1016.    !*roboend*
+ 1017.    
+ 1018.    
+ 1019.    !*robodoc*s* cgca_m3pfem/cgca_pfem_boxin
+ 1020.    !  NAME
+ 1021.    !    cgca_pfem_boxin
+ 1022.    !  SYNOPSIS
+ 1023.    
+ 1024.    subroutine cgca_pfem_boxin( lowr, uppr, lres, bcol, charlen, debug,    &
+ 1025.      iflag )
+ 1026.    
+ 1027.    !  INPUTS
+ 1028.    !      lowr(3) - integer, local coordinates of the lower corner cell
+ 1029.    !                in the space coarray on *this* image.
+ 1030.    !      uppr(3) - integer, local coordinates of the upper corner cell
+ 1031.    !                in the space coarray on *this* image.
+ 1032.    !         lres - real, linear resolution of the model, how many cells
+ 1033.    !                per linear physical unit of length. 
+ 1034.    !      bcol(3) - real, coordinates of the coarray box on this image
+ 1035.    !                in physical units, in CA coord. system.
+ 1036.    !      charlen - real, characteristic length of an FE in the model.
+ 1037.    !                This parameter is used to determine whether a cell
+ 1038.    !                is "close enough" to a centroid of an FE.
+ 1039.    !        debug - logical. If .true. will dump some dubug output
+ 1040.    
+ 1041.    integer( kind=idef ), intent( in ) :: lowr(3), uppr(3)
+ 1042.    real( kind=rdef ), intent( in ) :: lres, bcol(3), charlen
+ 1043.    logical( kind=ldef ), intent( in ) :: debug
+ 1044.    
+ 1045.    !  OUTPUT
+ 1046.    !    iflag - integer, 1 if all 8 corner cells of the box are inside
+ 1047.    !            FE, 2 if all 8 corner cells of the box are outside of FE,
+ 1048.    !            3 otherwise.
+ 1049.    
+ 1050.    integer( kind=idef ), intent( out ) :: iflag
+ 1051.    
+ 1052.    !  DESCRIPTION
+ 1053.    !    This routine calculates whether 8 corner cells of the given box
+ 1054.    !    are inside FE or not. There are 3 possibilities:
+ 1055.    !    (1) all 8 cells are inside FE. In this case iflag is set to 1.
+ 1056.    !    (2) all 8 cells are outside FE. In this case iflag is set to 2.
+ 1057.    !    (3) some cells are inside and others are outside.
+ 1058.    !    In this case iflag is set to 3. iflag will be used by a calling
+ 1059.    !    routine to decide what to do next.
+ 1060.    !
+ 1061.    !    The cells in a box are numbered according the Fortran convention,
+ 1062.    !    the leftmost index changes first:
+ 1063.    !
+ 1064.    !                  1                  3
+ 1065.    !                  x------------------x   --> 2
+ 1066.    !                 /.                 /|
+ 1067.    !                / .                / |
+ 1068.    !               /  .               /  |
+ 1069.    !              /   .              /   |
+ 1070.    !          5  /    .           7 /    |
+ 1071.    !            x------------------x     | 
+ 1072.    !            |     .            |     |
+ 1073.    !          / |     x . . . . . .|. . .x 4
+ 1074.    !         /  |    . 2           |    /
+ 1075.    !        /   |   . .            |   /
+ 1076.    !       3    |  .  .            |  /
+ 1077.    !            | .   .            | /
+ 1078.    !            |.    .            |/
+ 1079.    !            x------------------x 
+ 1080.    !          6       |              8
+ 1081.    !                  |
+ 1082.    !                  v
+ 1083.    !                  1
+ 1084.    !
+ 1085.    !    This cell numbering convention is used for very small boxes,
+ 1086.    !    i.e. when the box size is 1 along some direction.
+ 1087.    !    So if the box size is 1 along 1, then following cells coincide:
+ 1088.    !    2 as 1, 4 as 3, 6 as 5 and 8 as 7.
+ 1089.    !    If the box size is 1 along 2, then following cells coincide:
+ 1090.    !    3 as 1, 4 as 2, 7 as 5 and 8 as 6.
+ 1091.    !    If the box size is 1 along 3, then following cells coincide:
+ 1092.    !    5 as 1, 6 as 2, 7 as 3 and 8 as 4.
+ 1093.    !    This logic is used in the code. Logical array same(3) is used
+ 1094.    !    to show which box size is 1. same(i) is .true. if the box
+ 1095.    !    is of size 1 cell along dimension i. The box size is 1 when
+ 1096.    !    the lower cood. matches the upper coord. So same is calculated
+ 1097.    !    simly as: same = lowr .eq. uppr.
+ 1098.    !  SIDE EFFECTS
+ 1099.    !    If debug is .true. dumps some output to stdout. Othewise none.
+ 1100.    !  USES
+ 1101.    !    cgca_pfem_cellin
+ 1102.    !  SOURCE
+ 1103.    
+ 1104.    integer( kind=idef ) :: i, local(8,3), img
+ 1105.    logical( kind=ldef ) :: same(3), flagarr(8)
+ 1106.    
+ 1107.    img = this_image()
+ 1108.    
+ 1109.    ! From given corner cells, calculate 8 corner local coordinates
+ 1110.    local( 1, : ) = (/ lowr(1), lowr(2), lowr(3) /)
+ftn-6271 ftn: VECTOR File = cgca_m3pfem.f90, Line = 1110 
+  A loop starting at line 1110 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3pfem.f90, Line = 1110 
+  A loop starting at line 1110 was unwound.
+
+ 1111.    local( 2, : ) = (/ uppr(1), lowr(2), lowr(3) /)
+ftn-6004 ftn: SCALAR File = cgca_m3pfem.f90, Line = 1111 
+  A loop starting at line 1111 was fused with the loop starting at line 1110.
+
+ 1112.    local( 3, : ) = (/ lowr(1), uppr(2), lowr(3) /)
+ftn-6004 ftn: SCALAR File = cgca_m3pfem.f90, Line = 1112 
+  A loop starting at line 1112 was fused with the loop starting at line 1110.
+
+ 1113.    local( 4, : ) = (/ uppr(1), uppr(2), lowr(3) /)
+ftn-6004 ftn: SCALAR File = cgca_m3pfem.f90, Line = 1113 
+  A loop starting at line 1113 was fused with the loop starting at line 1110.
+
+ 1114.    local( 5, : ) = (/ lowr(1), lowr(2), uppr(3) /)
+ftn-6004 ftn: SCALAR File = cgca_m3pfem.f90, Line = 1114 
+  A loop starting at line 1114 was fused with the loop starting at line 1110.
+
+ 1115.    local( 6, : ) = (/ uppr(1), lowr(2), uppr(3) /)
+ftn-6004 ftn: SCALAR File = cgca_m3pfem.f90, Line = 1115 
+  A loop starting at line 1115 was fused with the loop starting at line 1110.
+
+ 1116.    local( 7, : ) = (/ lowr(1), uppr(2), uppr(3) /)
+ftn-6004 ftn: SCALAR File = cgca_m3pfem.f90, Line = 1116 
+  A loop starting at line 1116 was fused with the loop starting at line 1110.
+
+ 1117.    local( 8, : ) = (/ uppr(1), uppr(2), uppr(3) /)
+ftn-6004 ftn: SCALAR File = cgca_m3pfem.f90, Line = 1117 
+  A loop starting at line 1117 was fused with the loop starting at line 1110.
+
+ 1118.    
+ 1119.    ! Take care of repeated cells, i.e. when one or more box dimensions
+ 1120.    ! is 1. same(i) is .true. if the box lower and upper coord. are
+ 1121.    ! the same along dimension i.
+ 1122.    same = lowr .eq. uppr
+ftn-6004 ftn: SCALAR File = cgca_m3pfem.f90, Line = 1122 
+  A loop starting at line 1122 was fused with the loop starting at line 1110.
+
+ 1123.    
+ 1124.    ! Call cgca_pfem_cellin for each corner cell.
+ 1125.    main: do i = 1, 8
+ftn-6286 ftn: VECTOR File = cgca_m3pfem.f90, Line = 1125 
+  A loop starting at line 1125 was not vectorized because it contains input/output operations at line 1169.
+
+ 1126.    
+ 1127.      ! Cell 1 will always be evaluated, i.e. will call cgca_pfem_cellin.
+ 1128.      ! All other cells will be evaluated only if they are unique.
+ 1129.    
+ 1130.      ! Check direction 1
+ 1131.      dir1: if ( same(1) ) then
+ 1132.        ! Box is single cell long along 1. This means the following
+ 1133.        ! cells have the same flag: 2 as 1, 4 as 3, 6 as 5, 8 as 7.
+ 1134.        if ( ( i .eq. 2 ) .or. ( i .eq. 4 ) .or.                           &
+ 1135.             ( i .eq. 6 ) .or. ( i .eq. 8 ) ) then
+ 1136.          flagarr(i) = flagarr(i-1)
+ 1137.          cycle main
+ 1138.        end if 
+ 1139.      end if dir1
+ 1140.      
+ 1141.      ! Check direction 2
+ 1142.      dir2: if ( same(2) ) then
+ 1143.        ! Box is single cell long along 2. This means the following
+ 1144.        ! cells have the same flag: 3 as 1, 4 as 2, 7 as 5, 8 as 6.
+ 1145.        if ( ( i .eq. 3 ) .or. ( i .eq. 4 ) .or.                           &
+ 1146.             ( i .eq. 7 ) .or. ( i .eq. 8 ) ) then
+ 1147.          flagarr(i) = flagarr(i-2)
+ 1148.          cycle main
+ 1149.        end if 
+ 1150.      end if dir2
+ 1151.    
+ 1152.      ! Check direction 3
+ 1153.      dir3: if ( same(3) ) then
+ 1154.        ! Box is single cell long along 3. This means the following
+ 1155.        ! cells have the same flag: 5 as 1, 6 as 2, 7 as 3, 8 as 4.
+ 1156.        if ( ( i .eq. 5 ) .or. ( i .eq. 6 ) .or.                           &
+ 1157.             ( i .eq. 7 ) .or. ( i .eq. 8 ) ) then
+ 1158.          flagarr(i) = flagarr(i-4)
+ 1159.          cycle main
+ 1160.        end if 
+ 1161.      end if dir3
+ 1162.    
+ 1163.      ! subroutine cgca_pfem_cellin( lc, lres, bcol, charlen, debug, flag )
+ 1164.      ! flag .eq. .true. if inside FE
+ 1165.      ! flag .eq. .false. if outside FE
+ 1166.      call cgca_pfem_cellin( local( i, : ), lres, bcol, charlen, debug,    &
+                 ^                                                                 
+ftn-3095 ftn: IPA CGCA_PFEM_BOXIN, File = cgca_m3pfem.f90, Line = 1166, Column = 8 
+  "cgca_pfem_cellin" (called from "cgca_pfem_boxin") was not inlined because the containing loop does I/O.
+
+                                        ^                                          
+ftn-1438 ftn: CAUTION CGCA_PFEM_BOXIN, File = cgca_m3pfem.f90, Line = 1166, Column = 31 
+  This argument produces a copy in to a temporary variable.
+
+ 1167.        flagarr(i) )
+ 1168.    
+ 1169.      if ( debug ) write (*,"(4(a,i0),a,l1)")                              &
+ 1170.        "DEBUG: cgca_pfem_boxin: img: ", img, " local cell coord (",       &
+ 1171.         local( i, 1 ), ",", local( i, 2 ), ",", local( i, 3 ),            &
+ 1172.         ") flag: ", flagarr(i)
+ 1173.    
+ 1174.    end do main
+ 1175.    
+ 1176.    ! If all flags are .true. then the box is inside, set iflag to 1
+ 1177.    ! If all flags are .false. then the box is outside, set iflag to 2
+ 1178.    ! Otherwise, part of the box is in and part is out, set iflag to 3
+ 1179.    if ( all( flagarr ) ) then
+ftn-6334 ftn: VECTOR File = cgca_m3pfem.f90, Line = 1179 
+  A loop starting at line 1179 was not vectorized because it contains multiple potential exits.
+
+ 1180.      iflag = 1
+ 1181.    elseif ( all( .not. flagarr ) ) then
+ftn-6334 ftn: VECTOR File = cgca_m3pfem.f90, Line = 1181 
+  A loop starting at line 1181 was not vectorized because it contains multiple potential exits.
+
+ 1182.      iflag = 2
+ 1183.    else
+ 1184.      iflag = 3
+ 1185.    end if
+ 1186.    
+ 1187.    end subroutine cgca_pfem_boxin
+ 1188.    
+ 1189.    !*roboend*
+ 1190.    
+ 1191.    
+ 1192.    !*robodoc*s* cgca_m3pfem/cgca_pfem_wholein
+ 1193.    !  NAME
+ 1194.    !    cgca_pfem_wholein
+ 1195.    !  SYNOPSIS
+ 1196.    
+ 1197.    subroutine cgca_pfem_wholein( coarray )
+ 1198.    
+ 1199.    !  INPUT
+ 1200.    !    coarray - main model coarray
+ 1201.    
+ 1202.    integer( kind=iarr ), allocatable, intent( inout ) ::                  &
+ 1203.      coarray( : , : , : , : ) [ : , : , : ]
+ 1204.    
+ 1205.    !  SIDE EFFECTS
+ 1206.    !    state of coarray changed
+ 1207.    !  DESCRIPTION
+ 1208.    !    This is a very primitive routine to decide if cells are "inside"
+ 1209.    !    the FE model or not. It work on the whole coarray on an image.
+ 1210.    !    If there are no FE linked to coarray on this image, i.e. if
+ 1211.    !    lcentr array is of zero length, then all cells
+ 1212.    !    in the fracture layer of the coarray on this image are turned to
+ 1213.    !    cgca_state_null.
+ 1214.    !  SOURCE     
+ 1215.    
+ 1216.    if ( size( lcentr ) .eq. 0 )                                           &
+ 1217.      coarray( : , : , : , cgca_state_type_frac ) = cgca_state_null
+ftn-6066 ftn: SCALAR File = cgca_m3pfem.f90, Line = 1217 
+   A loop nest at line 1217 collapsed to a single loop.
+
+ftn-6202 ftn: VECTOR File = cgca_m3pfem.f90, Line = 1217 
+  A loop starting at line 1217 was replaced by a library call.
+
+ 1218.    end subroutine cgca_pfem_wholein
+ 1219.    
+ 1220.    !*roboend*
+ 1221.    
+ 1222.    
+ 1223.    !*robodoc*s* cgca_m3pfem/cgca_pfem_partin
+ 1224.    !  NAME
+ 1225.    !    cgca_pfem_partin
+ 1226.    !  SYNOPSIS
+ 1227.    
+ 1228.    subroutine cgca_pfem_partin( coarray, cadim, lres, bcol, charlen, debug)
+ 1229.    
+ 1230.    !  INPUT
+ 1231.    !      coarray - main model coarray
+ 1232.    !        cadim - coarray dimensions. Can calculate from coarray, but
+ 1233.    !                these will be known already anyway, so makes sense
+ 1234.    !                to pass as input
+ 1235.    !         lres - real, linear resolution of the model, how many cells
+ 1236.    !                per linear physical unit of length. 
+ 1237.    !      bcol(3) - real, coordinates of the coarray box on this image
+ 1238.    !                in physical units, in CA coord. system.
+ 1239.    !      charlen - real, characteristic length of an FE in the model.
+ 1240.    !                This parameter is used to determine whether a cell
+ 1241.    !                is "close enough" to a centroid of an FE.
+ 1242.    !        debug - logical. If .true. will dump some dubug output
+ 1243.    
+ 1244.    integer( kind=iarr ), allocatable, intent( inout ) ::                  &
+ 1245.      coarray( : , : , : , : ) [ : , : , : ]
+ 1246.    integer( kind=iarr ), intent( in ) :: cadim(3)
+ 1247.    real( kind=rdef ), intent( in ) :: lres, bcol(3), charlen
+ 1248.    logical( kind=ldef ), intent( in ) :: debug
+ 1249.    
+ 1250.    !  SIDE EFFECTS
+ 1251.    !    state of coarray changed
+ 1252.    !  DESCRIPTION
+ 1253.    !    This is the most thorough routine to decide if cells are "inside"
+ 1254.    !    the FE model or not. It starts by checking boxes the size of the
+ 1255.    !    whole coarray on this image. If a box in partially in and
+ 1256.    !    partially out, it is split into two smaller boxes and the process
+ 1257.    !    continues until each box is either fully in, or fully out.
+ 1258.    !    If it is fully out, all fracture level cells of this box are
+ 1259.    !    set to state cgca_state_null.
+ 1260.    !  NOTES
+ 1261.    !    This routine calls cgca_pfem_boxin, which in turn calls
+ 1262.    !    cgca_pfem_cellin, which accesses lcentr array on its own image.
+ 1263.    !    This routine updates coarray *locally*, on its own image only.
+ 1264.    !    So there are no remote read or write operations in this routine.
+ 1265.    !    No sync is needed inside this routine. Sync is likely needed
+ 1266.    !    before and after. In particular, the coarray and
+ 1267.    !    lcentr array must be defined on all images
+ 1268.    !    prior to calling this routine on any image.
+ 1269.    !  USES
+ 1270.    !    cgca_pfem_boxin, cgca_boxsplit, cgca_inithead, cgca_addhead,
+ 1271.    !    cgca_rmhead, cgca_lstdmp
+ 1272.    !  USED BY
+ 1273.    !    end user?
+ 1274.    !  SOURCE     
+ 1275.    
+ 1276.    integer( kind=idef ) :: lwr(3), upr(3), iflag, stat, lwr1(3),          &
+ 1277.      upr1(3), lwr2(3), upr2(3)
+ 1278.    type( cgca_lnklst_tpayld ) :: payload
+ 1279.    type( cgca_lnklst_node ), pointer :: head
+ 1280.    
+ 1281.    integer :: iter, img
+ 1282.    
+ 1283.    img = this_image()
+ 1284.    
+ 1285.    ! Start with a box the size of the whole coarray on this image
+ 1286.    ! Note a conversion from iarr to idef
+ 1287.    lwr = 1
+ftn-6271 ftn: VECTOR File = cgca_m3pfem.f90, Line = 1287 
+  A loop starting at line 1287 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3pfem.f90, Line = 1287 
+  A loop starting at line 1287 was unwound.
+
+ 1288.    upr = int( cadim, kind=idef )
+ftn-6004 ftn: SCALAR File = cgca_m3pfem.f90, Line = 1288 
+  A loop starting at line 1288 was fused with the loop starting at line 1287.
+
+ 1289.    
+ 1290.    ! Initialise the linked list with this box as the head node
+ 1291.    ! Returns the pointer to the head node
+ 1292.    payload%lwr = lwr
+ftn-6004 ftn: SCALAR File = cgca_m3pfem.f90, Line = 1292 
+  A loop starting at line 1292 was fused with the loop starting at line 1287.
+
+ 1293.    payload%upr = upr
+ftn-6004 ftn: SCALAR File = cgca_m3pfem.f90, Line = 1293 
+  A loop starting at line 1293 was fused with the loop starting at line 1287.
+
+ 1294.    call cgca_inithead( head, payload )
+ftn-7405 ftn: CAUTION File = cgca_m3pfem.f90, Line = 1294 
+  Variable "payload" may be used before it is defined.
+
+ftn-7409 ftn: CAUTION File = cgca_m3pfem.f90, Line = 1294 
+  Fortran pointer variable "head" may be used before being pointer assigned or allocated.
+
+               ^                              
+ftn-3001 ftn: IPA CGCA_PFEM_PARTIN, File = cgca_m3pfem.f90, Line = 1294, Column = 6 
+  The call to tiny leaf routine "cgca_inithead" was textually inlined.
+
+ 1295.    
+ 1296.    ! Start iteration counter
+ 1297.    iter = 1
+ 1298.    
+ 1299.    ! Check all nodes on the list
+ 1300.    list: do
+ftn-6286 ftn: VECTOR File = cgca_m3pfem.f90, Line = 1300 
+  A loop starting at line 1300 was not vectorized because it contains input/output operations at line 1304.
+
+ 1301.    
+ 1302.      ! debug output
+ 1303.      if ( debug ) then
+ 1304.        write (*,'(2(a,i0),a)') "DEBUG: cgca_pfem_partin: img: ", img,     &
+ 1305.                             " iter: ", iter, " linked list dump:"
+ 1306.        call cgca_lstdmp( head )
+                   ^                   
+ftn-3095 ftn: IPA CGCA_PFEM_PARTIN, File = cgca_m3pfem.f90, Line = 1306, Column = 10 
+  "cgca_lstdmp" (called from "cgca_pfem_partin") was not inlined because the containing loop does I/O.
+
+ 1307.      end if
+ 1308.    
+ 1309.      ! Get the payload from the head node on the list
+ 1310.      payload = head%value
+ 1311.      lwr = payload%lwr
+ftn-6271 ftn: VECTOR File = cgca_m3pfem.f90, Line = 1311 
+  A loop starting at line 1311 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3pfem.f90, Line = 1311 
+  A loop starting at line 1311 was unwound.
+
+ 1312.      upr = payload%upr 
+ftn-6004 ftn: SCALAR File = cgca_m3pfem.f90, Line = 1312 
+  A loop starting at line 1312 was fused with the loop starting at line 1311.
+
+ 1313.    
+ 1314.      ! Check if this box is in/out
+ 1315.      !subroutine cgca_pfem_boxin( lowr, uppr, lres, bcol, charlen, debug,
+ 1316.      !   iflag )
+ 1317.      call cgca_pfem_boxin( lwr, upr, lres, bcol, charlen, debug, iflag )
+                 ^                                                              
+ftn-3095 ftn: IPA CGCA_PFEM_PARTIN, File = cgca_m3pfem.f90, Line = 1317, Column = 8 
+  "cgca_pfem_boxin" (called from "cgca_pfem_partin") was not inlined because the containing loop does I/O.
+
+ 1318.    
+ 1319.      ! Remove this box from the linked list in any case
+ 1320.      ! Check stat value later.
+ 1321.      call cgca_rmhead( head, stat )
+                 ^                         
+ftn-3001 ftn: IPA CGCA_PFEM_PARTIN, File = cgca_m3pfem.f90, Line = 1321, Column = 8 
+  The call to tiny leaf routine "cgca_rmhead" was textually inlined.
+
+ 1322.    
+ 1323.      ! The whole box in, iflag=1
+ 1324.      chkiflag: if ( iflag .eq. 1 ) then
+ftn-7405 ftn: CAUTION File = cgca_m3pfem.f90, Line = 1324 
+  Variable "iflag" may be used before it is defined.
+
+ 1325.    
+ 1326.        ! Exit if the list has zero nodes
+ 1327.        if ( stat .eq. 1 ) exit list
+ 1328.    
+ 1329.      ! The whole box out, iflag=2
+ 1330.      else if ( iflag .eq. 2 ) then
+ 1331.     
+ 1332.        ! Mark all cells of this box, on *this* image, in the fracture
+ 1333.        ! layer as cgca_state_null.
+ 1334.        coarray( lwr(1):upr(1) , lwr(2):upr(2), lwr(3):upr(3) ,            &
+ftn-6202 ftn: VECTOR File = cgca_m3pfem.f90, Line = 1334 
+  A loop starting at line 1334 was replaced by a library call.
+
+ 1335.                 cgca_state_type_frac ) = cgca_state_null
+ 1336.    
+ 1337.        ! Exit if the list has zero nodes
+ 1338.        if ( stat .eq. 1 ) exit list
+ 1339.    
+ 1340.      ! Part in/part out
+ 1341.      else if ( iflag .eq. 3 ) then
+ 1342.    
+ 1343.        ! Split the box in two along the biggest dimension of the box
+ 1344.        call cgca_boxsplit( lwr, upr, lwr1, upr1, lwr2, upr2 )
+                   ^                                                 
+ftn-3095 ftn: IPA CGCA_PFEM_PARTIN, File = cgca_m3pfem.f90, Line = 1344, Column = 10 
+  "cgca_boxsplit" (called from "cgca_pfem_partin") was not inlined because the containing loop does I/O.
+
+ 1345.    
+ 1346.        ! Add two new boxes on top of head.
+ 1347.        ! The first box.
+ 1348.        payload%lwr = lwr1
+ftn-6271 ftn: VECTOR File = cgca_m3pfem.f90, Line = 1348 
+  A loop starting at line 1348 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3pfem.f90, Line = 1348 
+  A loop starting at line 1348 was unwound.
+
+ 1349.        payload%upr = upr1
+ftn-6004 ftn: SCALAR File = cgca_m3pfem.f90, Line = 1349 
+  A loop starting at line 1349 was fused with the loop starting at line 1348.
+
+ 1350.    
+ 1351.        ! For the first node, if the head is not associated, i.e.
+ 1352.        ! stat is 1, then use cgca_inithead instead of cgca_addhead.
+ 1353.        ! The head will not be associated if the initial box, i.e.
+ 1354.        ! the whole CA on this image has to be split, which must always
+ 1355.        ! happen in the beginning of the process.
+ 1356.        if ( stat .eq. 0 ) then
+ 1357.          call cgca_addhead( head, payload )
+                     ^                             
+ftn-3095 ftn: IPA CGCA_PFEM_PARTIN, File = cgca_m3pfem.f90, Line = 1357, Column = 12 
+  "cgca_addhead" (called from "cgca_pfem_partin") was not inlined because the containing loop does I/O.
+
+ 1358.        else
+ 1359.          call cgca_inithead( head, payload )
+                     ^                              
+ftn-3001 ftn: IPA CGCA_PFEM_PARTIN, File = cgca_m3pfem.f90, Line = 1359, Column = 12 
+  The call to tiny leaf routine "cgca_inithead" was textually inlined.
+
+ 1360.        end if
+ 1361.    
+ 1362.        ! The second box.
+ 1363.        payload%lwr = lwr2
+ftn-6271 ftn: VECTOR File = cgca_m3pfem.f90, Line = 1363 
+  A loop starting at line 1363 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3pfem.f90, Line = 1363 
+  A loop starting at line 1363 was unwound.
+
+ 1364.        payload%upr = upr2
+ftn-6004 ftn: SCALAR File = cgca_m3pfem.f90, Line = 1364 
+  A loop starting at line 1364 was fused with the loop starting at line 1363.
+
+ 1365.        call cgca_addhead( head, payload )
+                   ^                             
+ftn-3095 ftn: IPA CGCA_PFEM_PARTIN, File = cgca_m3pfem.f90, Line = 1365, Column = 10 
+  "cgca_addhead" (called from "cgca_pfem_partin") was not inlined because the containing loop does I/O.
+
+ 1366.    
+ 1367.      end if chkiflag
+ 1368.    
+ 1369.      ! increase the iteration counter
+ 1370.      iter = iter + 1
+ 1371.    
+ 1372.    end do list
+ 1373.    
+ 1374.    end subroutine cgca_pfem_partin
+ 1375.    
+ 1376.    !*roboend*
+ 1377.    
+ 1378.    end module cgca_m3pfem
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                         E x t e r n a l   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Name  Messages
+----  --------
+ABORT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ABORT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ALL(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PFEM_CENC in CGCA_M3PFEM (Line 570, file cgca_m3pfem.f90)
+                   CGCA_PFEM_CENC in CGCA_M3PFEM (Line 571, file cgca_m3pfem.f90)
+                   CGCA_PFEM_BOXIN in CGCA_M3PFEM (Line 1179, file cgca_m3pfem.f90)
+                   CGCA_PFEM_BOXIN in CGCA_M3PFEM (Line 1181, file cgca_m3pfem.f90)
+
+Name  Messages
+----  --------
+CGCA_ADDHEAD in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PFEM_PARTIN in CGCA_M3PFEM (Line 1357, file cgca_m3pfem.f90)
+                   CGCA_PFEM_PARTIN in CGCA_M3PFEM (Line 1365, file cgca_m3pfem.f90)
+
+Name  Messages
+----  --------
+CGCA_BOXSPLIT in CGCA_M2GEOM
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PFEM_PARTIN in CGCA_M3PFEM (Line 1344, file cgca_m3pfem.f90)
+
+Name  Messages
+----  --------
+CGCA_INITHEAD in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PFEM_PARTIN in CGCA_M3PFEM (Line 1294, file cgca_m3pfem.f90)
+                   CGCA_PFEM_PARTIN in CGCA_M3PFEM (Line 1359, file cgca_m3pfem.f90)
+
+Name  Messages
+----  --------
+CGCA_LSTDMP in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PFEM_PARTIN in CGCA_M3PFEM (Line 1306, file cgca_m3pfem.f90)
+
+Name  Messages
+----  --------
+CGCA_M1CO
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M3PFEM
+
+Name  Messages
+----  --------
+CGCA_M2GEOM
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M3PFEM
+
+Name  Messages
+----  --------
+CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M3PFEM
+
+Name  Messages
+----  --------
+CGCA_M3PFEM
+      Defined as:  Module (line 10, file cgca_m3pfem.f90)
+
+      Calls:       SELECTED_REAL_KIND(Intrinsic) (Line 67, file cgca_m3pfem.f90)
+
+        Uses:      CGCA_M1CO
+                   CGCA_M2LNKLST
+                   CGCA_M2GEOM
+
+Name  Messages
+----  --------
+CGCA_PFEM_BOXIN in CGCA_M3PFEM
+      Defined as:  Subroutine (line 55, file cgca_m3pfem.f90)
+
+      Interface:   None
+
+      Called By:   CGCA_PFEM_PARTIN in CGCA_M3PFEM (Line 1317, file cgca_m3pfem.f90)
+
+      Calls:       CGCA_PFEM_CELLIN in CGCA_M3PFEM (Line 1166, file cgca_m3pfem.f90)
+                   THIS_IMAGE(Intrinsic) (Line 1107, file cgca_m3pfem.f90)
+                   ALL(Intrinsic) (Line 1179, file cgca_m3pfem.f90)
+                   ALL(Intrinsic) (Line 1181, file cgca_m3pfem.f90)
+
+Name  Messages
+----  --------
+CGCA_PFEM_CELLIN in CGCA_M3PFEM
+      Defined as:  Subroutine (line 55, file cgca_m3pfem.f90)
+
+      Interface:   None
+
+      Called By:   CGCA_PFEM_BOXIN in CGCA_M3PFEM (Line 1166, file cgca_m3pfem.f90)
+
+      Calls:       THIS_IMAGE(Intrinsic) (Line 1002, file cgca_m3pfem.f90)
+                   SIZE(Intrinsic) (Line 1006, file cgca_m3pfem.f90)
+                   SUM(Intrinsic) (Line 1007, file cgca_m3pfem.f90)
+
+Name  Messages
+----  --------
+CGCA_PFEM_CENC in CGCA_M3PFEM
+      Defined as:  Subroutine (line 56, file cgca_m3pfem.f90)
+
+      Interface:   None
+
+      Calls:       shmem_n_pes(Intrinsic) (Line 512, file cgca_m3pfem.f90)
+                   RANDOM_NUMBER(Intrinsic) (Line 527, file cgca_m3pfem.f90)
+                   INT(Intrinsic) (Line 528, file cgca_m3pfem.f90)
+                   SIZE(Intrinsic) (Line 539, file cgca_m3pfem.f90)
+                   SIZE(Intrinsic) (Line 540, file cgca_m3pfem.f90)
+                   SIZE(Intrinsic) (Line 588, file cgca_m3pfem.f90)
+                   MATMUL(Intrinsic) (Line 563, file cgca_m3pfem.f90)
+                   ALL(Intrinsic) (Line 570, file cgca_m3pfem.f90)
+                   ALL(Intrinsic) (Line 571, file cgca_m3pfem.f90)
+                   MOVE_ALLOC(Intrinsic) (Line 591, file cgca_m3pfem.f90)
+                   MOVE_ALLOC(Intrinsic) (Line 620, file cgca_m3pfem.f90)
+
+Name  Messages
+----  --------
+CGCA_PFEM_CENDMP in CGCA_M3PFEM
+      Defined as:  Subroutine (line 56, file cgca_m3pfem.f90)
+
+      Interface:   None
+
+      Calls:       THIS_IMAGE(Intrinsic) (Line 646, file cgca_m3pfem.f90)
+                   SIZE(Intrinsic) (Line 648, file cgca_m3pfem.f90)
+
+Name  Messages
+----  --------
+CGCA_PFEM_CTALLOC in CGCA_M3PFEM
+      Defined as:  Subroutine (line 56, file cgca_m3pfem.f90)
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_CTDALLOC in CGCA_M3PFEM
+      Defined as:  Subroutine (line 57, file cgca_m3pfem.f90)
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_EALLOC in CGCA_M3PFEM
+      Defined as:  Subroutine (line 57, file cgca_m3pfem.f90)
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_EDALLOC in CGCA_M3PFEM
+      Defined as:  Subroutine (line 57, file cgca_m3pfem.f90)
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_INTCALC1 in CGCA_M3PFEM
+      Defined as:  Subroutine (line 58, file cgca_m3pfem.f90)
+
+      Interface:   None
+
+      Calls:       KIND(Intrinsic) (Line 921, file cgca_m3pfem.f90)
+                   REAL(Intrinsic) (Line 928, file cgca_m3pfem.f90)
+                   PRODUCT(Intrinsic) (Line 928, file cgca_m3pfem.f90)
+                   SIZE(Intrinsic) (Line 930, file cgca_m3pfem.f90)
+                   MIN(Intrinsic) (Line 939, file cgca_m3pfem.f90)
+
+Name  Messages
+----  --------
+CGCA_PFEM_INTEGALLOC in CGCA_M3PFEM
+      Defined as:  Subroutine (line 58, file cgca_m3pfem.f90)
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_INTEGDALLOC in CGCA_M3PFEM
+      Defined as:  Subroutine (line 58, file cgca_m3pfem.f90)
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_PARTIN in CGCA_M3PFEM
+      Defined as:  Subroutine (line 59, file cgca_m3pfem.f90)
+
+      Interface:   None
+
+      Calls:       CGCA_PFEM_BOXIN in CGCA_M3PFEM (Line 1317, file cgca_m3pfem.f90)
+                   CGCA_ADDHEAD in CGCA_M2LNKLST (Line 1357, file cgca_m3pfem.f90)
+                   CGCA_ADDHEAD in CGCA_M2LNKLST (Line 1365, file cgca_m3pfem.f90)
+                   CGCA_BOXSPLIT in CGCA_M2GEOM (Line 1344, file cgca_m3pfem.f90)
+                   CGCA_INITHEAD in CGCA_M2LNKLST (Line 1294, file cgca_m3pfem.f90)
+                   CGCA_INITHEAD in CGCA_M2LNKLST (Line 1359, file cgca_m3pfem.f90)
+                   CGCA_LSTDMP in CGCA_M2LNKLST (Line 1306, file cgca_m3pfem.f90)
+                   CGCA_RMHEAD in CGCA_M2LNKLST (Line 1321, file cgca_m3pfem.f90)
+                   THIS_IMAGE(Intrinsic) (Line 1283, file cgca_m3pfem.f90)
+                   INT(Intrinsic) (Line 1288, file cgca_m3pfem.f90)
+
+Name  Messages
+----  --------
+CGCA_PFEM_SALLOC in CGCA_M3PFEM
+      Defined as:  Subroutine (line 60, file cgca_m3pfem.f90)
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_SDALLOC in CGCA_M3PFEM
+      Defined as:  Subroutine (line 60, file cgca_m3pfem.f90)
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_PFEM_SDMP in CGCA_M3PFEM
+      Defined as:  Subroutine (line 60, file cgca_m3pfem.f90)
+
+      Interface:   None
+
+      Calls:       THIS_IMAGE(Intrinsic) (Line 755, file cgca_m3pfem.f90)
+                   SIZE(Intrinsic) (Line 756, file cgca_m3pfem.f90)
+                   SIZE(Intrinsic) (Line 757, file cgca_m3pfem.f90)
+
+Name  Messages
+----  --------
+CGCA_PFEM_SIMG in CGCA_M3PFEM
+      Defined as:  Subroutine (line 60, file cgca_m3pfem.f90)
+
+      Interface:   None
+
+      Calls:       SIZE(Intrinsic) (Line 809, file cgca_m3pfem.f90)
+                   SIZE(Intrinsic) (Line 815, file cgca_m3pfem.f90)
+                   SIZE(Intrinsic) (Line 816, file cgca_m3pfem.f90)
+                   REAL(Intrinsic) (Line 842, file cgca_m3pfem.f90)
+                   REAL(Intrinsic) (Line 870, file cgca_m3pfem.f90)
+                   SUM(Intrinsic) (Line 845, file cgca_m3pfem.f90)
+
+Name  Messages
+----  --------
+CGCA_PFEM_UYM in CGCA_M3PFEM
+      Defined as:  Subroutine (line 61, file cgca_m3pfem.f90)
+
+      Interface:   None
+
+      Calls:       MAX(Intrinsic) (Line 381, file cgca_m3pfem.f90)
+
+Name  Messages
+----  --------
+CGCA_PFEM_WHOLEIN in CGCA_M3PFEM
+      Defined as:  Subroutine (line 61, file cgca_m3pfem.f90)
+
+      Interface:   None
+
+      Calls:       SIZE(Intrinsic) (Line 1216, file cgca_m3pfem.f90)
+
+Name  Messages
+----  --------
+CGCA_RMHEAD in CGCA_M2LNKLST
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PFEM_PARTIN in CGCA_M3PFEM (Line 1321, file cgca_m3pfem.f90)
+
+Name  Messages
+----  --------
+EXIT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH_8
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FTN_LIB_DEFINITIONS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+Name  Messages
+----  --------
+ICEIL
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL_J
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+INT(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PFEM_CENC in CGCA_M3PFEM (Line 528, file cgca_m3pfem.f90)
+                   CGCA_PFEM_PARTIN in CGCA_M3PFEM (Line 1288, file cgca_m3pfem.f90)
+
+Name  Messages
+----  --------
+KIND(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PFEM_INTCALC1 in CGCA_M3PFEM (Line 921, file cgca_m3pfem.f90)
+
+Name  Messages
+----  --------
+MATMUL(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PFEM_CENC in CGCA_M3PFEM (Line 563, file cgca_m3pfem.f90)
+
+Name  Messages
+----  --------
+MAX(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PFEM_UYM in CGCA_M3PFEM (Line 381, file cgca_m3pfem.f90)
+
+Name  Messages
+----  --------
+MIN(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PFEM_INTCALC1 in CGCA_M3PFEM (Line 939, file cgca_m3pfem.f90)
+
+Name  Messages
+----  --------
+MOVE_ALLOC(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PFEM_CENC in CGCA_M3PFEM (Line 591, file cgca_m3pfem.f90)
+                   CGCA_PFEM_CENC in CGCA_M3PFEM (Line 620, file cgca_m3pfem.f90)
+
+Name  Messages
+----  --------
+PRODUCT(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PFEM_INTCALC1 in CGCA_M3PFEM (Line 928, file cgca_m3pfem.f90)
+
+Name  Messages
+----  --------
+RANDOM_NUMBER(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PFEM_CENC in CGCA_M3PFEM (Line 527, file cgca_m3pfem.f90)
+
+Name  Messages
+----  --------
+REAL(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PFEM_SIMG in CGCA_M3PFEM (Line 842, file cgca_m3pfem.f90)
+                   CGCA_PFEM_SIMG in CGCA_M3PFEM (Line 870, file cgca_m3pfem.f90)
+                   CGCA_PFEM_INTCALC1 in CGCA_M3PFEM (Line 928, file cgca_m3pfem.f90)
+
+Name  Messages
+----  --------
+SELECTED_REAL_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_M3PFEM (Line 67, file cgca_m3pfem.f90)
+
+Name  Messages
+----  --------
+SIZE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PFEM_CENC in CGCA_M3PFEM (Line 539, file cgca_m3pfem.f90)
+                   CGCA_PFEM_CENC in CGCA_M3PFEM (Line 540, file cgca_m3pfem.f90)
+                   CGCA_PFEM_CENC in CGCA_M3PFEM (Line 588, file cgca_m3pfem.f90)
+                   CGCA_PFEM_CENDMP in CGCA_M3PFEM (Line 648, file cgca_m3pfem.f90)
+                   CGCA_PFEM_SDMP in CGCA_M3PFEM (Line 756, file cgca_m3pfem.f90)
+                   CGCA_PFEM_SDMP in CGCA_M3PFEM (Line 757, file cgca_m3pfem.f90)
+                   CGCA_PFEM_SIMG in CGCA_M3PFEM (Line 809, file cgca_m3pfem.f90)
+                   CGCA_PFEM_SIMG in CGCA_M3PFEM (Line 815, file cgca_m3pfem.f90)
+                   CGCA_PFEM_SIMG in CGCA_M3PFEM (Line 816, file cgca_m3pfem.f90)
+                   CGCA_PFEM_INTCALC1 in CGCA_M3PFEM (Line 930, file cgca_m3pfem.f90)
+                   CGCA_PFEM_CELLIN in CGCA_M3PFEM (Line 1006, file cgca_m3pfem.f90)
+                   CGCA_PFEM_WHOLEIN in CGCA_M3PFEM (Line 1216, file cgca_m3pfem.f90)
+
+Name  Messages
+----  --------
+SUM(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PFEM_SIMG in CGCA_M3PFEM (Line 845, file cgca_m3pfem.f90)
+                   CGCA_PFEM_CELLIN in CGCA_M3PFEM (Line 1007, file cgca_m3pfem.f90)
+
+Name  Messages
+----  --------
+THIS_IMAGE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PFEM_CENDMP in CGCA_M3PFEM (Line 646, file cgca_m3pfem.f90)
+                   CGCA_PFEM_SDMP in CGCA_M3PFEM (Line 755, file cgca_m3pfem.f90)
+                   CGCA_PFEM_CELLIN in CGCA_M3PFEM (Line 1002, file cgca_m3pfem.f90)
+                   CGCA_PFEM_BOXIN in CGCA_M3PFEM (Line 1107, file cgca_m3pfem.f90)
+                   CGCA_PFEM_PARTIN in CGCA_M3PFEM (Line 1283, file cgca_m3pfem.f90)
+
+Name  Messages
+----  --------
+shmem_n_pes(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PFEM_CENC in CGCA_M3PFEM (Line 512, file cgca_m3pfem.f90)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

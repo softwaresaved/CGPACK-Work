@@ -1,0 +1,675 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S u m m a r y   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Compilation
+-----------
+File     : /home3/y14/y14/di1c13/cgpack/head/cgca_m2phys.f90
+Compiled : 02/18/16  16:36:35
+Compiler : Version 8.3.7
+Ftnlx    : Version 8318 (libcif 83016)
+Target   : x86-64
+Command  : ftn_driver.exe -hcpu=ivybridge -hstatic -D__CRAYXC
+           -D__CRAY_IVYBRIDGE -D__CRAYXT_COMPUTE_LINUX_TARGET -hnetwork=aries
+           -c -eacFn -dm -m2 -rl -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/mpt/7.1.1/gni/mpich2-cray/83/include
+           -I/opt/cray/libsci/13.0.1/CRAY/83/sandybridge/include
+           -I/opt/cray/rca/1.0.0-2.0502.57212.2.56.ari/include
+           -I/opt/cray/alps/5.2.3-2.0502.9295.14.14.ari/include
+           -I/opt/cray/xpmem/0.1-2.0502.57015.1.15.ari/include
+           -I/opt/cray/gni-headers/4.0-1.0502.10317.9.2.ari/include
+           -I/opt/cray/dmapp/7.0.1-1.0502.10246.8.47.ari/include
+           -I/opt/cray/pmi/5.0.6-1.0000.10439.140.2.ari/include
+           -I/opt/cray/ugni/6.0-1.0502.10245.9.9.ari/include
+           -I/opt/cray/udreg/2.3.2-1.0502.9889.2.20.ari/include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/pkgconfig/../include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/wlm_detect/1.0-1.0502.57063.1.1.ari/include
+           -I/opt/cray/krca/1.0.0-2.0502.57202.2.45.ari/include
+           -I/opt/cray-hss-devel/7.2.0/include cgca_m2phys.f90
+
+ftnlx report
+------------
+Source   : /home3/y14/y14/di1c13/cgpack/head/cgca_m2phys.f90
+Date     : 02/18/2016  16:36:35
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S o u r c e   L i s t i n g
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    1.    !$Id: cgca_m2phys.f90 121 2015-10-02 13:19:16Z mexas $
+    2.    
+    3.    !*********************************************************************72
+    4.    
+    5.    !*robodoc*m* CGPACK/cgca_m2phys
+    6.    !  NAME
+    7.    !    cgca_m2phys
+    8.    !  SYNOPSIS
+    9.    
+   10.    module cgca_m2phys
+   11.    
+   12.    !  DESCRIPTION
+   13.    !    Module dealing with physical units - length and time.
+   14.    !  AUTHOR
+   15.    !    Anton Shterenlikht
+   16.    !  COPYRIGHT
+   17.    !    See CGPACK_Copyright
+   18.    !  CONTAINS
+   19.    !    cgca_cadim, cgca_gdim, cgca_imco
+   20.    !  USES
+   21.    !    cgca_m1co
+   22.    !  USED BY
+   23.    !    perhaps the user directly?
+   24.    !  SOURCE
+   25.    
+   26.    use cgca_m1co, only: idef, iarr, rdef
+   27.    implicit none
+   28.    
+   29.    private
+   30.    public :: cgca_gdim, cgca_cadim, cgca_imco
+   31.    
+   32.    contains
+   33.    
+   34.    !*roboend*
+   35.    
+   36.    
+   37.    !*robodoc*s* cgca_m2phys/cgca_gdim
+   38.    !  NAME
+   39.    !    cgca_gdim
+   40.    !  SYNOPSIS
+   41.    
+   42.    subroutine cgca_gdim( n, ir, qual )
+   43.    
+   44.    !  INPUT
+   45.    
+   46.    integer( kind=idef ), intent( in ) :: n
+   47.    
+   48.    !  OUTPUT
+   49.    
+   50.    integer( kind=idef ), intent( out ) :: ir(3)
+   51.    real( kind=rdef ), intent( out ) :: qual
+   52.    
+   53.    !  SIDE EFFECTS
+   54.    !    None
+   55.    !  DESCRIPTION
+   56.    !    The purpose of this routine is to find 3 coarray
+   57.    !    grid dimensions, ir(1) >= ir(2) >= ir(3),
+   58.    !    such that for a given number of images
+   59.    !    the coarray grid is as "cubic" as possible.
+   60.    !    In mathematical terms the aim is to find
+   61.    !    F = min( max( ir(1) - ir(3) ) ).
+   62.    !    The quality of this minimum is defined as QUAL=1-F/(N-1).
+   63.    !    Inputs:
+   64.    !    - N is the total number of images, num_images().
+   65.    !    Outputs:
+   66.    !    - ir - the array of 3 coarray grid dimensions.
+   67.    !    - qual - is the quality of the fitted grid.
+   68.    !      qual=1 means F=0, i.e. the coarray grid is a cube.
+   69.    !      qual=0 means F=N-1, i.e. the coarray grid is 1D, i.e. [N,1,1].
+   70.    !    The outputs of this routine, ir, are used to choose
+   71.    !    the dimensions of space coarray.
+   72.    !    The QUAL output is for information only.
+   73.    !  AUTHOR
+   74.    !    Anton Shterenlikht
+   75.    !  COPYRIGHT
+   76.    !    See CGPACK_Copyright
+   77.    !  NOTES
+   78.    !    If N<1 is given, then the routine returns immediately
+   79.    !    with QUAL=-1. So the caller can/should check for this condition.
+   80.    !  USES
+   81.    !  USED BY
+   82.    !    Supposed to be called prior to calling cgca_cadim
+   83.    !  SOURCE
+   84.    
+   85.    real( kind=rdef ), parameter :: one = 1.0_rdef, zero = 0.0_rdef, &
+   86.      third = one/3.0_rdef
+   87.    integer( kind=idef) :: i, j, k, f, ftrial
+   88.    
+   89.    ! default output
+   90.      ir(1) = n
+   91.    ir(2:3) = 1
+ftn-6271 ftn: VECTOR File = cgca_m2phys.f90, Line = 91 
+  A loop starting at line 91 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m2phys.f90, Line = 91 
+  A loop starting at line 91 was unwound.
+
+   92.       qual = zero
+   93.    
+   94.    ! return immediately if n=1
+   95.    if ( n .eq. 1 ) return
+   96.    
+   97.    ! return with QUAL=-1 if N<1
+   98.    if ( n .lt. 1 ) then
+   99.      qual = -one
+  100.      return
+  101.    end if
+  102.     
+  103.    ! Set the initial value of the objective function
+  104.    f = n-1
+  105.    
+  106.    loopi1: do i = n/2, int( real(n)**third ), -1
+ftn-6254 ftn: VECTOR File = cgca_m2phys.f90, Line = 106 
+  A loop starting at line 106 was not vectorized because a recurrence was found on "f" at line 115.
+
+  107.              if ( mod( n,i ) .ne. 0 ) cycle loopi1
+  108.    loopi2:   do j = n/i, 2, -1
+ftn-6254 ftn: VECTOR File = cgca_m2phys.f90, Line = 108 
+  A loop starting at line 108 was not vectorized because a recurrence was found on "f" at line 115.
+
+  109.                if ( j .gt. i ) cycle loopi2 
+  110.                if ( mod( n,(i*j) ) .ne. 0 ) cycle loopi2
+  111.                k = n/(i*j)
+  112.                if ( k .gt. j ) cycle loopi2
+  113.                ftrial = i-k
+  114.                if ( ftrial .ge. f ) cycle loopi2
+  115.                f = ftrial
+  116.                ir(1) = i
+  117.                ir(2) = j
+  118.                ir(3) = k
+  119.                if ( f .eq. 0 ) exit loopi1
+  120.              end do loopi2
+  121.            end do loopi1
+  122.    
+  123.    qual = one - real(f)/(n-one)
+  124.    
+  125.    end subroutine cgca_gdim
+  126.    
+  127.    !*roboend*
+  128.    
+  129.    
+  130.    !*robodoc*s* cgca_m2phys/cgca_cadim
+  131.    !  NAME
+  132.    !    cgca_cadim
+  133.    !  SYNOPSIS
+  134.    
+  135.    subroutine cgca_cadim( bsz, res, dm, ir, c, lres, ng )
+  136.    
+  137.    !  INPUT
+  138.    
+  139.    real( kind=rdef ), intent( inout ) :: bsz(3)
+  140.    real( kind=rdef ), intent( in ) :: res, dm
+  141.    integer( kind=idef ), intent( inout ) :: ir(size( bsz ))
+  142.    
+  143.    !  OUTPUT
+  144.    
+  145.    integer( kind=iarr ), intent( out ) :: c(size( bsz ))
+  146.    real( kind=rdef ), intent( out ) :: lres
+  147.    integer( kind=idef ), intent( out ) :: ng
+  148.    
+  149.    !  SIDE EFFECTS
+  150.    !    Arrays bsz and ir are input/output. On exit the values of ir are
+  151.    !    rearranged. The values of bsz are changed.
+  152.    !  DESCRIPTION
+  153.    !    Inputs:
+  154.    !    - bsz - box size, the size of the CA space in physical
+  155.    !      units of length. The unit itself is not defined.
+  156.    !      It's use must be consistent across the whole of
+  157.    !      CGPACK. In particular, speeds will depend on the choice
+  158.    !      of the length unit.
+  159.    !    - res - the model resolution, cells per grain. Note that
+  160.    !      this is *not* spatial resolution. The meaning is that
+  161.    !      RES cells are required to resolve the shape of a grain.
+  162.    !      This setting should not depend on the grain size.
+  163.    !    - dm - the mean grain size, in physical units.
+  164.    !    - ir - coarray grid dimensions. The intention is that ir
+  165.    !      is calculate by a call to cgca_gdim. 
+  166.    !    Outputs:
+  167.    !    - ir - rearranged coarray grid dimensions 
+  168.    !    - bsz - new box dimension is calculated, see note 3.
+  169.    !    - c - numbers of cells in the space coarray
+  170.    !    - lres - linear resolution, cells per unit of length 
+  171.    !    - ng - number of grains in the whole model
+  172.    !  AUTHOR
+  173.    !    Anton Shterenlikht
+  174.    !  COPYRIGHT
+  175.    !    See CGPACK_Copyright
+  176.    !  NOTES
+  177.    !    1. The space coarray should be declared with something like this
+  178.    !         space( c(1), c(2), c(3), nlayers )[ir(1),ir(2),*]
+  179.    !    on all images.
+  180.    !
+  181.    !    2. An important feature is that the coarray grid
+  182.    !    dimensions can be rearranged to better suit the physical
+  183.    !    dimensions of the "box". For example, on input ir(1)
+  184.    !    is the biggest. However, if the physical dimension of
+  185.    !    the box is smallest along 1, it makes sense to swap
+  186.    !    ir(1) with ir(3). This will help achive balanced
+  187.    !    linear resolution along each dimension.
+  188.    !
+  189.    !    3. It not generally possible to have the same
+  190.    !    linear resolution is all 3 directions and to keep
+  191.    !    the physical size of the box exactly as given.
+  192.    !    The decision is made here to give preference to
+  193.    !    the linear resolution. So the algorithm chooses
+  194.    !    the same linear resolution in all 3 directions.
+  195.    !    As a consequence, the physical sizes of the box
+  196.    !    along all 3 directions can be slightly smaller or
+  197.    !    bigger than given. The biggest deviations probably
+  198.    !    arise when the shape is very far from cubic.
+  199.    !  USES
+  200.    !  USED BY
+  201.    !    via module cgca_m2phys
+  202.    !  SOURCE
+  203.    
+  204.    real( kind=rdef ), parameter :: one = 1.0_rdef, third = one/3.0_rdef
+  205.    real( kind=rdef ) :: &
+  206.     bvol,               & ! "box" volume in physical units
+  207.     dm3                   ! dm**3
+  208.    integer( kind=idef ) :: irrank(3), tmp
+  209.    
+  210.    ! sort box directions: 1, 2, and 3, in decreasing order
+  211.    ! of dimension, i.e. direction 1 is where the dimension
+  212.    ! is biggest, direction 3 is where the dimension is smallest.
+  213.    ! We start assuming d(1) >= d(2) >= d(3). If this is so
+  214.    ! then no rearrangement is required, and no IF statements
+  215.    ! will be true.
+  216.    
+  217.    ! irrank contains the directions of the box, ranked from
+  218.    ! the biggest to the smallest.
+  219.    irrank = (/ 1, 2, 3 /)
+ftn-6271 ftn: VECTOR File = cgca_m2phys.f90, Line = 219 
+  A loop starting at line 219 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m2phys.f90, Line = 219 
+  A loop starting at line 219 was unwound.
+
+  220.    
+  221.    if ( bsz(1) .lt. bsz(2) ) then
+  222.            tmp = irrank(1)
+  223.      irrank(1) = irrank(2)
+  224.      irrank(2) = tmp
+  225.    end if
+  226.    
+  227.    if ( bsz(2) .lt. bsz(3) ) then
+  228.            tmp = irrank(2)
+  229.      irrank(2) = irrank(3)
+  230.      irrank(3) = tmp
+  231.    end if
+  232.    
+  233.    if ( bsz(1) .lt. bsz(2) ) then
+  234.            tmp = irrank(1)
+  235.      irrank(1) = irrank(2)
+  236.      irrank(2) = tmp
+  237.    end if
+  238.    
+  239.    ! irrank now contains sorted indices of box dimension
+  240.    ! array. So use it as index to rearrange ir.
+  241.    ir = ir(irrank)
+ftn-6271 ftn: VECTOR File = cgca_m2phys.f90, Line = 241 
+  A loop starting at line 241 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m2phys.f90, Line = 241 
+  A loop starting at line 241 was unwound.
+
+  242.    
+  243.    ! box volume
+  244.    bvol = bsz(1)*bsz(2)*bsz(3)
+  245.    
+  246.    ! grain volume
+  247.    dm3 = dm**3
+  248.    
+  249.    ! number of grains in the whole model, integer
+  250.    ng = int( bvol/dm3 )
+  251.    
+  252.    ! linear resolution
+  253.    ! res**third      - cells per mean grain size length, dm
+  254.    ! res**third / dm - cells per unit length
+  255.    lres = res**third / dm
+  256.    
+  257.    ! numbers of cells
+  258.    ! res**third/dm * bsz(i)       - cells per box length along i
+  259.    ! res**third/dm * bsz(i)/ir(i) - cells per image along i
+  260.    c = nint( lres * bsz/ir )
+ftn-6004 ftn: SCALAR File = cgca_m2phys.f90, Line = 260 
+  A loop starting at line 260 was fused with the loop starting at line 241.
+
+  261.    
+  262.    ! cannot have zero as the array dimension
+  263.    if ( c(1) .eq. 0 ) c(1) = 1
+  264.    if ( c(2) .eq. 0 ) c(2) = 1
+  265.    if ( c(3) .eq. 0 ) c(3) = 1
+  266.    
+  267.    ! warn the user, the box is likely to be very different 
+  268.    ! from the input values.
+  269.    if ( any( c .eq. 1 ) ) then
+ftn-6334 ftn: VECTOR File = cgca_m2phys.f90, Line = 269 
+  A loop starting at line 269 was not vectorized because it contains multiple potential exits.
+
+  270.      write (*,"(a)")                                                      &
+  271.       "WARN: cgca_cadim: the new box sizes are probably wrong, check"
+  272.    end if
+  273.    
+  274.    ! new box size
+  275.    bsz = real( ir*c, kind=rdef ) / lres
+ftn-6271 ftn: VECTOR File = cgca_m2phys.f90, Line = 275 
+  A loop starting at line 275 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m2phys.f90, Line = 275 
+  A loop starting at line 275 was unwound.
+
+ftn-6010 ftn: SCALAR File = cgca_m2phys.f90, Line = 275 
+  A divide was turned into a multiply by a reciprocal
+
+  276.    
+  277.    end subroutine cgca_cadim
+  278.    
+  279.    !*roboend*
+  280.    
+  281.    
+  282.    !*robodoc*s* cgca_m2phys/cgca_imco
+  283.    !  NAME
+  284.    !    cgca_imco
+  285.    !  SYNOPSIS
+  286.    
+  287.    subroutine cgca_imco( space, lres, bcol, bcou )
+  288.    
+  289.    !  INPUT
+  290.    
+  291.    integer( kind=iarr ), allocatable, intent( in ) :: &
+  292.     space(:,:,:,:)[:,:,:]
+  293.    real( kind=rdef ), intent( in ) :: lres
+  294.    
+  295.    !  OUTPUT
+  296.    
+  297.    real( kind=rdef ), intent( out ) :: bcol(3), bcou(3)
+  298.    
+  299.    !  DESCRIPTION
+  300.    !    IMCO stands for IMage COordinates. This routine calculates
+  301.    !    the lower and the upper physical coordinates of the
+  302.    !    coarray on this image in CA CS.
+  303.    !  AUTHOR
+  304.    !    Anton Shterenlikht
+  305.    !  COPYRIGHT
+  306.    !    See CGPACK_Copyright
+  307.    !  INPUTS
+  308.    !    - space - the model coarray. Error will result if it's
+  309.    !      not allocated. The array is used only to calculate the
+  310.    !      position of this image within the coarray grid, as
+  311.    !       this_image( space )
+  312.    !    - lres - linear resolution of the space cooarray,
+  313.    !      cells per unit of length.
+  314.    !  OUTPUTS
+  315.    !    - bcol - physical coordinates of the lower bounds of the coarray
+  316.    !      on this image in CA CS.
+  317.    !    - bcou - physical coordinates of the upper bounds of the coarray
+  318.    !      on this image in CA CS.
+  319.    !  SIDE EFFECTS
+  320.    !      none
+  321.    
+  322.    real( kind=rdef ) :: one = 1.0_rdef, half = 0.5_rdef
+  323.    
+  324.    integer( kind=idef ) :: &
+  325.     img(3),                & ! the coarray image grid is always 3D
+  326.     szsp(3)                  ! size of the space array, on one image!
+  327.    
+  328.    real( kind=rdef) :: hcsz  ! half of the cell physical size
+  329.    
+  330.    ! this image index
+  331.    img = this_image( space )
+ftn-6271 ftn: VECTOR File = cgca_m2phys.f90, Line = 331 
+  A loop starting at line 331 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m2phys.f90, Line = 331 
+  A loop starting at line 331 was unwound.
+
+  332.    
+  333.    ! Size of the space array.
+  334.    ! Remember that space array has 1 halo cell on each
+  335.    ! boundary along each dimension. Don't count those:
+  336.    szsp(1) = size( space, dim=1 ) - 2_idef
+  337.    szsp(2) = size( space, dim=2 ) - 2_idef 
+  338.    szsp(3) = size( space, dim=3 ) - 2_idef
+  339.    
+  340.    ! vectors in CA CS
+  341.    bcol = real( ((img-1) * szsp(1:3) + 1), kind=rdef) / lres
+ftn-6004 ftn: SCALAR File = cgca_m2phys.f90, Line = 341 
+  A loop starting at line 341 was fused with the loop starting at line 331.
+
+  342.    bcou = real( img * szsp(1:3), kind=rdef ) / lres
+ftn-6004 ftn: SCALAR File = cgca_m2phys.f90, Line = 342 
+  A loop starting at line 342 was fused with the loop starting at line 331.
+
+  343.    
+  344.    ! Make sure there are no gaps between the upper
+  345.    ! and the next lower boundary. The gap equals to the
+  346.    ! physical size of a single cell. So add half a cell size
+  347.    ! to the upper boundary and subtract half a cell size from
+  348.    ! the lower boundary.
+  349.    hcsz = half * ( one / lres )
+ftn-6010 ftn: SCALAR File = cgca_m2phys.f90, Line = 349 
+  A divide was turned into a multiply by a reciprocal
+
+  350.    bcol = bcol - hcsz
+ftn-6004 ftn: SCALAR File = cgca_m2phys.f90, Line = 350 
+  A loop starting at line 350 was fused with the loop starting at line 331.
+
+  351.    bcou = bcou + hcsz
+ftn-6004 ftn: SCALAR File = cgca_m2phys.f90, Line = 351 
+  A loop starting at line 351 was fused with the loop starting at line 331.
+
+  352.    
+  353.    end subroutine cgca_imco
+  354.    
+  355.    !*roboend*
+  356.    
+  357.    !*********************************************************************72
+  358.    
+  359.    end module cgca_m2phys
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                         E x t e r n a l   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Name  Messages
+----  --------
+ABORT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ABORT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ANY(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_CADIM in CGCA_M2PHYS (Line 269, file cgca_m2phys.f90)
+
+Name  Messages
+----  --------
+CGCA_CADIM in CGCA_M2PHYS
+      Defined as:  Subroutine (line 30, file cgca_m2phys.f90)
+
+      Interface:   None
+
+      Calls:       SIZE(Intrinsic) (Line 141, file cgca_m2phys.f90)
+                   SIZE(Intrinsic) (Line 145, file cgca_m2phys.f90)
+                   INT(Intrinsic) (Line 250, file cgca_m2phys.f90)
+                   NINT(Intrinsic) (Line 260, file cgca_m2phys.f90)
+                   ANY(Intrinsic) (Line 269, file cgca_m2phys.f90)
+                   REAL(Intrinsic) (Line 275, file cgca_m2phys.f90)
+
+Name  Messages
+----  --------
+CGCA_GDIM in CGCA_M2PHYS
+      Defined as:  Subroutine (line 30, file cgca_m2phys.f90)
+
+      Interface:   None
+
+      Calls:       REAL(Intrinsic) (Line 106, file cgca_m2phys.f90)
+                   REAL(Intrinsic) (Line 123, file cgca_m2phys.f90)
+                   INT(Intrinsic) (Line 106, file cgca_m2phys.f90)
+                   MOD(Intrinsic) (Line 107, file cgca_m2phys.f90)
+                   MOD(Intrinsic) (Line 110, file cgca_m2phys.f90)
+
+Name  Messages
+----  --------
+CGCA_IMCO in CGCA_M2PHYS
+      Defined as:  Subroutine (line 30, file cgca_m2phys.f90)
+
+      Interface:   None
+
+      Calls:       THIS_IMAGE(Intrinsic) (Line 331, file cgca_m2phys.f90)
+                   SIZE(Intrinsic) (Line 336, file cgca_m2phys.f90)
+                   SIZE(Intrinsic) (Line 337, file cgca_m2phys.f90)
+                   SIZE(Intrinsic) (Line 338, file cgca_m2phys.f90)
+                   REAL(Intrinsic) (Line 341, file cgca_m2phys.f90)
+                   REAL(Intrinsic) (Line 342, file cgca_m2phys.f90)
+
+Name  Messages
+----  --------
+CGCA_M1CO
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M2PHYS
+
+Name  Messages
+----  --------
+CGCA_M2PHYS
+      Defined as:  Module (line 10, file cgca_m2phys.f90)
+
+        Uses:      CGCA_M1CO
+
+Name  Messages
+----  --------
+EXIT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH_8
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FTN_LIB_DEFINITIONS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+Name  Messages
+----  --------
+ICEIL
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL_J
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+INT(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_GDIM in CGCA_M2PHYS (Line 106, file cgca_m2phys.f90)
+                   CGCA_CADIM in CGCA_M2PHYS (Line 250, file cgca_m2phys.f90)
+
+Name  Messages
+----  --------
+MOD(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_GDIM in CGCA_M2PHYS (Line 107, file cgca_m2phys.f90)
+                   CGCA_GDIM in CGCA_M2PHYS (Line 110, file cgca_m2phys.f90)
+
+Name  Messages
+----  --------
+NINT(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_CADIM in CGCA_M2PHYS (Line 260, file cgca_m2phys.f90)
+
+Name  Messages
+----  --------
+REAL(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_GDIM in CGCA_M2PHYS (Line 106, file cgca_m2phys.f90)
+                   CGCA_GDIM in CGCA_M2PHYS (Line 123, file cgca_m2phys.f90)
+                   CGCA_CADIM in CGCA_M2PHYS (Line 275, file cgca_m2phys.f90)
+                   CGCA_IMCO in CGCA_M2PHYS (Line 341, file cgca_m2phys.f90)
+                   CGCA_IMCO in CGCA_M2PHYS (Line 342, file cgca_m2phys.f90)
+
+Name  Messages
+----  --------
+SIZE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_CADIM in CGCA_M2PHYS (Line 141, file cgca_m2phys.f90)
+                   CGCA_CADIM in CGCA_M2PHYS (Line 145, file cgca_m2phys.f90)
+                   CGCA_IMCO in CGCA_M2PHYS (Line 336, file cgca_m2phys.f90)
+                   CGCA_IMCO in CGCA_M2PHYS (Line 337, file cgca_m2phys.f90)
+                   CGCA_IMCO in CGCA_M2PHYS (Line 338, file cgca_m2phys.f90)
+
+Name  Messages
+----  --------
+THIS_IMAGE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_IMCO in CGCA_M2PHYS (Line 331, file cgca_m2phys.f90)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,0 +1,161 @@
+#$Id: Makefile-bc-shared 219 2016-02-18 17:59:44Z mexas $
+
+#*robodoc*b* CGPACK/Makefile-bc-shared
+#  NAME
+#    Makefile-bc-shared
+#  SYNOPSIS
+
+FC=	ifort
+
+#  PURPOSE
+#    Build/install CGPACK on the University of Bristol BlueCrystal
+#    computer with Intel Fortran compiler.
+#  AUTHOR
+#    Anton Shterenlikht
+#  COPYRIGHT
+#    See CGPACK_Copyright
+#  SOURCE
+
+FFLAGS=		-c -assume realloc_lhs -coarray=distributed \
+		-debug full \
+		-traceback \
+		-free -fPIC -warn all -O2 -qopt-report #-std08 #-warn stderrors
+
+CGPACK=		cgpack
+MYLIB=		lib$(CGPACK).a
+LIBDIR=		$(HOME)/lib
+MODDIR=		$(HOME)/mod
+
+# level 1
+
+SRC_MOD_L1=	cgca_m1co.f90
+MOD_L1=		${SRC_MOD_L1:.f90=.mod}
+OBJ_L1=		${SRC_MOD_L1:.f90=.o}
+RPT_L1=		${SRC_MOD_L1:.f90=.optrpt}
+
+# level 2
+
+SRC_MOD_L2_NOPRE=\
+ cgca_m2alloc.f90 cgca_m2gb.f90 cgca_m2geom.f90 cgca_m2glm.f90 \
+ cgca_m2hx.f90 cgca_m2lnklst.f90 \
+ cgca_m2phys.f90 cgca_m2red.f90 \
+ cgca_m2rnd.f90 cgca_m2rot.f90 cgca_m2stat.f90
+# cgca_m2mpiio.f90	# MPI+coarray not supported in ifort 15?
+MOD_L2_NOPRE=	${SRC_MOD_L2_NOPRE:.f90=.mod}
+OBJ_L2_NOPRE=	${SRC_MOD_L2_NOPRE:.f90=.o}
+RPT_L2_NOPRE=	$(SRC_MOD_L2_NOPRE:.f90=.optrpt)
+
+SRC_MOD_L2_PRE=	cgca_m2out.F90 cgca_m2pck.F90
+MOD_L2_PRE=	${SRC_MOD_L2_PRE:.F90=.mod}
+OBJ_L2_PRE=	${SRC_MOD_L2_PRE:.F90=.o}
+RPT_L2_PRE=	$(SRC_MOD_L2_PRE:.F90=.optrpt)
+
+MOD_L2=		$(MOD_L2_NOPRE) $(MOD_L2_PRE)
+OBJ_L2=		$(OBJ_L2_NOPRE) $(OBJ_L2_PRE)
+RPT_L2=		$(RPT_L2_NOPRE) $(RPT_L2_PRE)
+
+# level 3
+
+SRC_MOD_L3_NOPRE=cgca_m3gbf.f90 cgca_m3nucl.f90 cgca_m3pfem.f90
+MOD_L3_NOPRE=	${SRC_MOD_L3_NOPRE:.f90=.mod}
+OBJ_L3_NOPRE=	${SRC_MOD_L3_NOPRE:.f90=.o}
+RPT_L3_NOPRE=	$(SRC_MOD_L3_NOPRE:.f90=.optrpt)
+
+SRC_MOD_L3_PRE=	cgca_m3clvg.F90 cgca_m3sld.F90
+MOD_L3_PRE=	$(SRC_MOD_L3_PRE:.F90=.mod)
+OBJ_L3_PRE=	${SRC_MOD_L3_PRE:.F90=.o}
+RPT_L3_PRE=	${SRC_MOD_L3_PRE:.F90=.optrpt}
+
+MOD_L3=		$(MOD_L3_NOPRE) $(MOD_L3_PRE)
+OBJ_L3=		$(OBJ_L3_NOPRE) $(OBJ_L3_PRE)
+RPT_L3=		$(RPT_L3_NOPRE) $(RPT_L3_PRE)
+
+# Submodules of module cgca_m3clvg.F90
+MOD3_P1=	cgca_m3clvg
+MOD3_P1_S1_SRC=	m3clvg_sm1.f90
+MOD3_P1_S1_OBJ=	$(MOD3_P1_S1_SRC:.f90=.o)
+MOD3_P1_S1_MOD=	$(MOD3_P1)@$(MOD3_P1_S1_SRC:.f90=.smod)
+MOD3_P1_S1_RPT=	$(MOD3_P1_S1_SRC:.f90=.optrpt)
+MOD3_P1_S2_SRC=	m3clvg_sm2.f90
+MOD3_P1_S2_OBJ=	$(MOD3_P1_S2_SRC:.f90=.o)
+MOD3_P1_S2_MOD=	$(MOD3_P1)@$(MOD3_P1_S2_SRC:.f90=.smod)
+MOD3_P1_S2_RPT=	$(MOD3_P1_S2_SRC:.f90=.optrpt)
+
+MOD3_P1_OBJ=	$(MOD3_P1_S1_OBJ) $(MOD3_P1_S2_OBJ)
+MOD3_P1_MOD=	$(MOD3_P1_S1_MOD) $(MOD3_P1_S2_MOD)
+MOD3_P1_RPT=	$(MOD3_P1_S1_RPT) $(MOD3_P1_S2_RPT)
+
+# level 4
+
+SRC_MOD_L4=	cgca_m4fr.f90
+MOD_L4=		${SRC_MOD_L4:.f90=.mod}
+OBJ_L4=		${SRC_MOD_L4:.f90=.o}
+RPT_L4=		${SRC_MOD_L4:.f90=.optrpt}
+
+# top level
+
+SRC_MOD_LTOP=	cgca.f90
+MOD_LTOP=	${SRC_MOD_LTOP:.f90=.mod}
+OBJ_LTOP=	${SRC_MOD_LTOP:.f90=.o}
+RPT_LTOP=	${SRC_MOD_LTOP:.f90=.optrpt}
+
+ALL_MOD=	${MOD_L1} ${MOD_L2} ${MOD_L3} $(MOD_L4) ${MOD_LTOP}
+ALL_OBJ=	${OBJ_L1} ${OBJ_L2} ${OBJ_L3} $(MOD3_P1_OBJ) $(OBJ_L4) ${OBJ_LTOP}
+ALL_RPT=	$(RPT_L1) $(RPT_L2) $(RPT_L3) $(MOD3_P1_RPT) $(RPT_L4) $(RPT_LTOP)
+
+# All submodules for cleaning
+
+ALL_SUBMOD=     $(MOD3_P1_MOD)
+
+# All clean
+
+ALL_CLEAN=      $(ALL_MOD) $(ALL_SUBMOD) $(ALL_OBJ) $(ALL_RPT) $(MYLIB)
+
+.SUFFIXES:
+.SUFFIXES: .F90 .f90 .mod .o
+
+all: $(ALL_OBJ) $(MYLIB)
+
+.f90.mod:
+	$(FC) $(FFLAGS) $<
+
+.f90.o:
+	$(FC) $(FFLAGS) $<
+
+.F90.mod:
+	$(FC) $(FFLAGS) -DIFORT -DNOMPI $<
+
+.F90.o:
+	$(FC) $(FFLAGS) -DIFORT -DNOMPI $<
+
+# module dependencies
+
+$(MOD_L2) $(OBJ_L2): $(MOD_L1)
+$(MOD_L3) $(OBJ_L3): $(MOD_L2)
+$(MOD3_P1_MOD): $(OBJ_L3) $(MOD_L3)
+$(MOD_L4) $(OBJ_L4): $(MOD_L3)
+$(MOD_LTOP) $(OBJ_LTOP): $(MOD_L4)
+
+$(MYLIB): $(ALL_OBJ)
+	@if [ -e $(MYLIB) ]; then \
+		rm $(MYLIB); \
+	fi
+	ar -r $(MYLIB) $(ALL_OBJ)
+
+install: $(MYLIB) $(ALL_MOD) $(ALL_SUBMOD)
+	@if [ -e $(LIBDIR)/$(MYLIB) ]; then \
+		echo $(LIBDIR)/$(MYLIB) already exists; \
+		echo run \"make deinstall\" first; \
+		exit 1; \
+	fi
+	cp $(MYLIB) $(LIBDIR)
+	cp $(ALL_MOD) $(ALL_SUBMOD) $(MODDIR)
+
+deinstall:
+	cd $(LIBDIR) && rm $(MYLIB)
+	cd $(MODDIR) && rm $(ALL_MOD) $(ALL_SUBMOD)
+
+clean:
+	rm $(ALL_CLEAN)
+
+#*roboend*

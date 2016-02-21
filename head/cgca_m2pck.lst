@@ -1,0 +1,335 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S u m m a r y   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Compilation
+-----------
+File     : /home3/y14/y14/di1c13/cgpack/head/cgca_m2pck.F90
+Compiled : 02/18/16  16:36:37
+Compiler : Version 8.3.7
+Ftnlx    : Version 8318 (libcif 83016)
+Target   : x86-64
+Command  : ftn_driver.exe -hcpu=ivybridge -hstatic -D__CRAYXC
+           -D__CRAY_IVYBRIDGE -D__CRAYXT_COMPUTE_LINUX_TARGET -hnetwork=aries
+           -c -eacFn -dm -m2 -rl -DCRAY=yes
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/mpt/7.1.1/gni/mpich2-cray/83/include
+           -I/opt/cray/libsci/13.0.1/CRAY/83/sandybridge/include
+           -I/opt/cray/rca/1.0.0-2.0502.57212.2.56.ari/include
+           -I/opt/cray/alps/5.2.3-2.0502.9295.14.14.ari/include
+           -I/opt/cray/xpmem/0.1-2.0502.57015.1.15.ari/include
+           -I/opt/cray/gni-headers/4.0-1.0502.10317.9.2.ari/include
+           -I/opt/cray/dmapp/7.0.1-1.0502.10246.8.47.ari/include
+           -I/opt/cray/pmi/5.0.6-1.0000.10439.140.2.ari/include
+           -I/opt/cray/ugni/6.0-1.0502.10245.9.9.ari/include
+           -I/opt/cray/udreg/2.3.2-1.0502.9889.2.20.ari/include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/pkgconfig/../include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/wlm_detect/1.0-1.0502.57063.1.1.ari/include
+           -I/opt/cray/krca/1.0.0-2.0502.57202.2.45.ari/include
+           -I/opt/cray-hss-devel/7.2.0/include cgca_m2pck.F90
+
+ftnlx report
+------------
+Source   : /home3/y14/y14/di1c13/cgpack/head/cgca_m2pck.F90
+Date     : 02/18/2016  16:36:37
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S o u r c e   L i s t i n g
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    1.    !$Id: cgca_m2pck.F90 172 2015-11-04 11:59:43Z mexas $
+    2.    
+    3.    !*********************************************************************72
+    4.    
+    5.    !*robodoc*m* CGPACK/cgca_m2pck
+    6.    !  NAME
+    7.    !    cgca_m2pck
+    8.    !  SYNOPSIS
+    9.    
+   10.    module cgca_m2pck
+   11.    
+   12.    !  DESCRIPTION
+   13.    !    Module dealing with checking consistency of the many various
+   14.    !    global CGPACK parameters set in cgca_m1co.
+   15.    !  AUTHOR
+   16.    !    Anton Shterenlikht
+   17.    !  COPYRIGHT
+   18.    !    See CGPACK_Copyright
+   19.    !  CONTAINS
+   20.    !    cgca_as, cgca_ds, cgca_av, cgca_dv, cgca_art, cgca_drt
+   21.    !  USES
+   22.    !    cgca_m1co
+   23.    !  USED BY
+   24.    !    cgca
+   25.    !  SOURCE
+   26.    
+   27.    use cgca_m1co
+   28.    implicit none
+   29.    
+   30.    private
+   31.    public :: cgca_pdmp
+   32.    
+   33.    contains
+   34.    
+   35.    !*roboend*
+   36.    
+   37.    
+   38.    !*robodoc*s* cgca_m2pck/cgca_pdmp
+   39.    !  NAME
+   40.    !    cgca_pdmp
+   41.    !  SYNOPSIS
+   42.    
+   43.    subroutine cgca_pdmp
+   44.    
+   45.    !  DESCRIPTION
+   46.    !    Dump global CGPACK parameters from cgca_m1co to stdout.
+   47.    !    The user might want to see all values in one place.
+   48.    !  USES
+   49.    !    cgca_m1co
+   50.    !  USED BY
+   51.    !    cgca_m2alloc
+   52.    !  SOURCE
+   53.    
+   54.    #ifndef IFORT
+   55.    ! ifort 16 still does not support this
+   56.    ! Cray apparently has these 2 functions, but *not* in iso_fortran_env!
+   57.    write (* , "(a,a)" ) "CGPACK compiled with: ", compiler_version()
+   58.    write (* , "(a,a)" ) "CGPACK compiler options: ", compiler_options()
+   59.    #endif
+   60.    write (*,"(a)") "CGPACK cell state types:"
+   61.    write (*,"(a40,i0)") "cgca_state_type_grain: ", cgca_state_type_grain
+   62.    write (*,"(a40,i0)") "cgca_state_type_frac: ", cgca_state_type_frac
+   63.    write (*,*)
+   64.    write (*,"(a)") "CGPACK grain layer states:"
+   65.    write (*,"(a40,i0)") "cgca_liquid_state: ", cgca_liquid_state
+   66.    write (*,*)
+   67.    write (*,"(a)") "CGPACK fracture layer states:"
+   68.    write (*,"(a40,i0)") "cgca_state_null: ", cgca_state_null
+   69.    write (*,"(a40,i0)") "cgca_gb_state_intact: ", cgca_gb_state_intact
+   70.    write (*,"(a40,i0)") "cgca_gb_state_fractured: ",                      &
+   71.                          cgca_gb_state_fractured
+   72.    write (*,"(a40,i0)") "cgca_intact_state: ", cgca_intact_state
+   73.    write (*,"(a40,i0)") "cgca_clvg_state_100_flank: ",                    &
+   74.                          cgca_clvg_state_100_flank
+   75.    write (*,"(a40,i0)") "cgca_clvg_state_100_edge: ",                     &
+   76.                          cgca_clvg_state_100_edge
+   77.    write (*,"(a40,i0)") "cgca_clvg_state_110_flank: ",                    &
+   78.                          cgca_clvg_state_110_flank
+   79.    write (*,"(a40,i0)") "cgca_clvg_state_110_edge: ",                     &
+   80.                          cgca_clvg_state_110_edge
+   81.    write (*,"(a40,i0)") "cgca_clvg_state_111_flank: ",                    &
+   82.                          cgca_clvg_state_111_flank
+   83.    write (*,"(a40,i0)") "cgca_clvg_state_111_edge: ",                     &
+   84.                          cgca_clvg_state_111_edge
+   85.    write (*,"(a40,999(i0,tr1))") "cgca_clvg_states_flank: ",              &
+   86.                                   cgca_clvg_states_flank
+   87.    write (*,"(a40,999(i0,tr1))") "cgca_clvg_states_edge: ",               &
+   88.                                   cgca_clvg_states_edge
+   89.    write (*,"(a40,999(i0,tr1))") "cgca_clvg_states: ", cgca_clvg_states
+   90.    write (*,"(a40,999(i0,tr1))") "cgca_frac_states: ", cgca_frac_states
+   91.    write (*,"(a40,i0)") "cgca_clvg_lowest_state: ", cgca_clvg_lowest_state
+   92.    write (*,*)
+   93.    write (*,"(a)") "CGPACK lowest state for both types:"
+   94.    write (*,"(a40,i0)") "cgca_lowest_state: ", cgca_lowest_state
+   95.    write (*,*)
+   96.    write (*,"(a)") "CGPACK kinds:"
+   97.    write (*,"(a40,i0)") "iarr: ", iarr
+   98.    write (*,"(a40,i0)") "idef: ", idef
+   99.    write (*,"(a40,i0)") "ilrg: ", ilrg
+  100.    write (*,"(a40,i0)") "ldef: ", ldef
+  101.    write (*,"(a40,i0)") "rdef: ", rdef
+  102.    write (*,"(a40,i0)") "rlrg: ", rlrg
+  103.    write (*,*)
+  104.    write (*,"(a)") "CGPACK other parameters:"
+  105.    write (*,"(a40,f20.10)") "pi: ", cgca_pi
+  106.    
+  107.    end subroutine cgca_pdmp
+  108.    
+  109.    !*roboend*
+  110.    
+  111.    end module cgca_m2pck
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                         E x t e r n a l   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Name  Messages
+----  --------
+ABORT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ABORT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_M1CO
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M2PCK
+
+Name  Messages
+----  --------
+CGCA_M2PCK
+      Defined as:  Module (line 10, file cgca_m2pck.F90)
+
+        Uses:      CGCA_M1CO
+                   ISO_FORTRAN_ENV  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_PDMP in CGCA_M2PCK
+      Defined as:  Subroutine (line 31, file cgca_m2pck.F90)
+
+      Interface:   None
+
+      Calls:       COMPILER_VERSION(Intrinsic) (Line 57, file cgca_m2pck.F90)
+                   COMPILER_OPTIONS(Intrinsic) (Line 58, file cgca_m2pck.F90)
+
+Name  Messages
+----  --------
+COMPILER_OPTIONS(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PDMP in CGCA_M2PCK (Line 58, file cgca_m2pck.F90)
+
+Name  Messages
+----  --------
+COMPILER_VERSION(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PDMP in CGCA_M2PCK (Line 57, file cgca_m2pck.F90)
+
+Name  Messages
+----  --------
+EXIT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH_8
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FTN_LIB_DEFINITIONS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+Name  Messages
+----  --------
+HUGE(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL_J
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ISO_FORTRAN_ENV
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M2PCK  (indirectly)
+
+Name  Messages
+----  --------
+KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SELECTED_INT_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SELECTED_REAL_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SIZE(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

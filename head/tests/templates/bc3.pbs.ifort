@@ -1,0 +1,25 @@
+#!/bin/sh
+#$Id: bc3.pbs.ifort 188 2015-12-15 21:37:39Z mexas $
+
+# For use with the Intel compiler.
+# Submit with something like:
+#  qsub -q testq -joe -lwalltime=01:00:00,nodes=3:ppn=16
+
+# Switch to current working directory
+cd $PBS_O_WORKDIR
+
+NCNT=`uniq $PBS_NODEFILE | wc -l - | cut -d ' ' -f 1`
+echo "The node count determined from the nodefile is: " $NCNT
+
+cat $PBS_NODEFILE
+export nodes=`cat $PBS_NODEFILE`
+export nnodes=`cat $PBS_NODEFILE | wc -l`
+export confile=nodes
+
+for i in $nodes; do
+   echo ${i} >>$confile
+done
+
+echo "START TIME:" `date`
+./testABW.x
+echo "END TIME:  " `date`

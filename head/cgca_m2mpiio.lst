@@ -1,0 +1,1157 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S u m m a r y   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Compilation
+-----------
+File     : /home3/y14/y14/di1c13/cgpack/head/cgca_m2mpiio.f90
+Compiled : 02/18/16  16:36:35
+Compiler : Version 8.3.7
+Ftnlx    : Version 8318 (libcif 83016)
+Target   : x86-64
+Command  : ftn_driver.exe -hcpu=ivybridge -hstatic -D__CRAYXC
+           -D__CRAY_IVYBRIDGE -D__CRAYXT_COMPUTE_LINUX_TARGET -hnetwork=aries
+           -c -eacFn -dm -m2 -rl -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/mpt/7.1.1/gni/mpich2-cray/83/include
+           -I/opt/cray/libsci/13.0.1/CRAY/83/sandybridge/include
+           -I/opt/cray/rca/1.0.0-2.0502.57212.2.56.ari/include
+           -I/opt/cray/alps/5.2.3-2.0502.9295.14.14.ari/include
+           -I/opt/cray/xpmem/0.1-2.0502.57015.1.15.ari/include
+           -I/opt/cray/gni-headers/4.0-1.0502.10317.9.2.ari/include
+           -I/opt/cray/dmapp/7.0.1-1.0502.10246.8.47.ari/include
+           -I/opt/cray/pmi/5.0.6-1.0000.10439.140.2.ari/include
+           -I/opt/cray/ugni/6.0-1.0502.10245.9.9.ari/include
+           -I/opt/cray/udreg/2.3.2-1.0502.9889.2.20.ari/include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/pkgconfig/../include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/wlm_detect/1.0-1.0502.57063.1.1.ari/include
+           -I/opt/cray/krca/1.0.0-2.0502.57202.2.45.ari/include
+           -I/opt/cray-hss-devel/7.2.0/include cgca_m2mpiio.f90
+
+ftnlx report
+------------
+Source   : /home3/y14/y14/di1c13/cgpack/head/cgca_m2mpiio.f90
+Date     : 02/18/2016  16:36:35
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S o u r c e   L i s t i n g
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    1.    !$Id: cgca_m2mpiio.f90 111 2015-09-18 11:59:03Z mexas $
+    2.    
+    3.    !*robodoc*m* CGPACK/cgca_m2mpiio
+    4.    !  NAME
+    5.    !    cgca_m2mpiio
+    6.    !  SYNOPSIS
+    7.    
+    8.    module cgca_m2mpiio
+    9.    
+   10.    !  AUTHOR
+   11.    !    David Henty, modified by Anton Shterenlikht
+   12.    !  COPYRIGHT
+   13.    !   Note that this routine has special Copyright conditions.
+   14.    !
+   15.    !    !----------------------------------------------------------------------------!
+   16.    !    !                                                                            !
+   17.    !    !  MPI-IO routine for Fortran Coarrays                                       !
+   18.    !    !                                                                            !
+   19.    !    !  David Henty, EPCC; d.henty@epcc.ed.ac.uk                                  !
+   20.    !    !                                                                            !
+   21.    !    !  Copyright 2013 the University of Edinburgh                                !
+   22.    !    !                                                                            !
+   23.    !    !  Licensed under the Apache License, Version 2.0 (the "License");           !
+   24.    !    !  you may not use this file except in compliance with the License.          !
+   25.    !    !  You may obtain a copy of the License at                                   !
+   26.    !    !                                                                            !
+   27.    !    !      http://www.apache.org/licenses/LICENSE-2.0                            !
+   28.    !    !                                                                            !
+   29.    !    !  Unless required by applicable law or agreed to in writing, software       !
+   30.    !    !  distributed under the License is distributed on an "AS IS" BASIS,         !
+   31.    !    !  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  !
+   32.    !    !  See the License for the specific language governing permissions and       !
+   33.    !    !  limitations under the License.                                            !
+   34.    !    !                                                                            !
+   35.    !    !----------------------------------------------------------------------------!
+   36.    !  DESCRIPTION
+   37.    !    Module dealing with parallel IO using MPI/IO library
+   38.    !  CONTAINS
+   39.    !    cgca_pswci
+   40.    !  USES
+   41.    !    cgca_m1co, MPI library
+   42.    !  USED BY
+   43.    !    cgca
+   44.    !  SOURCE
+   45.    
+   46.    use cgca_m1co
+   47.    use mpi
+              ^   
+ftn-1193 ftn: CAUTION CGCA_M2MPIIO, File = cgca_m2mpiio.f90, Line = 47, Column = 5 
+  Module "MPI_BASE" is indirectly used in module "MPI" and is from file
+  "/notbackedup/tmp/ulib/mpt/nightly/7.1/121414-RC/mpich2/xt-gni-cray/src/binding/fortran/use_mpi/mpi_base.o".  That file no longer
+  exists.
+
+              ^   
+ftn-1193 ftn: CAUTION CGCA_M2MPIIO, File = cgca_m2mpiio.f90, Line = 47, Column = 5 
+  Module "MPI_SIZEOFS" is indirectly used in module "MPI" and is from file
+  "/notbackedup/tmp/ulib/mpt/nightly/7.1/121414-RC/mpich2/xt-gni-cray/src/binding/fortran/use_mpi/mpi_sizeofs.o".  That file no
+  longer exists.
+
+              ^   
+ftn-1193 ftn: CAUTION CGCA_M2MPIIO, File = cgca_m2mpiio.f90, Line = 47, Column = 5 
+  Module "MPI_CONSTANTS" is indirectly used in module "MPI" and is from file
+  "/notbackedup/tmp/ulib/mpt/nightly/7.1/121414-RC/mpich2/xt-gni-cray/src/binding/fortran/use_mpi/mpi_constants.o".  That file no
+  longer exists.
+
+   48.    implicit none
+   49.    
+   50.    private
+   51.    public :: cgca_pswci
+   52.    
+   53.    integer, parameter :: totdim = 4, arrdim = totdim-1, coardim = 3
+   54.    
+   55.    contains
+   56.    
+   57.    !*roboend*
+   58.    
+   59.    
+   60.    !*robodoc*s* cgca_m2mpiio/cgca_pswci
+   61.    !  NAME
+   62.    !    cgca_pswci
+   63.    !  SYNOPSIS
+   64.    
+   65.    subroutine cgca_pswci( coarray, stype, fname )
+   66.    
+   67.    !  INPUTS
+   68.     
+   69.    integer( kind=iarr ), intent(in), allocatable :: coarray(:,:,:,:)[:,:,:]
+   70.    integer( kind=idef ), intent(in) :: stype
+   71.    character( len=* ),   intent(in) :: fname
+   72.    
+   73.    !  AUTHOR
+   74.    !    Anton Shterenlikht, adapted from the code
+   75.    !    written by David Henty, EPCC
+   76.    !  SIDE EFFECTS
+   77.    !    A single binary file is created using MPI/IO
+   78.    !    with contents of coarray.
+   79.    !  DESCRIPTION
+   80.    !    Parallel Stream Write Coarray of Integers:
+   81.    !    - coarray - what array to dump
+   82.    !    - stype - what cell state type to dump
+   83.    !    - fname - what file name to use
+   84.    !  NOTES
+   85.    !    All images must call this routine!
+   86.    !
+   87.    !    MPI must be initialised prior to calling this routine,
+   88.    !    most probably in the main program.
+   89.    !    Likewise MPI must be terminated only when no further MPI
+   90.    !    routines can be called. This will most likely be in the
+   91.    !    main program. 
+   92.    !    There are some assumptions about the shape of the passed array.
+   93.    !
+   94.    !    The default integer is assumed for the array at present! 
+   95.    !  USES
+   96.    !    cgca_m1co, MPI library
+   97.    !  USED BY
+   98.    !    none, end user.
+   99.    !  SOURCE
+  100.    
+  101.    integer :: img, nimgs, comm, ierr=0, rank=0, mpisize=0, filetype,      &
+  102.               mpi_subarray, fh, funit
+  103.    integer, dimension(totdim) :: asizehal
+  104.    integer, dimension(arrdim) :: arrsize, arstart, artsize
+  105.    integer, dimension(coardim) :: coarsize, copos
+  106.    integer( kind=MPI_OFFSET_KIND ) :: disp = 0
+  107.    integer, dimension(MPI_STATUS_SIZE) :: mpistat
+  108.    
+  109.      img = this_image()
+  110.    nimgs = num_images()
+  111.    
+  112.    asizehal(:) = shape( coarray )
+ftn-6205 ftn: VECTOR File = cgca_m2mpiio.f90, Line = 112 
+  A loop starting at line 112 was vectorized with a single vector iteration.
+
+  113.       copos(:) = this_image( coarray )
+ftn-6271 ftn: VECTOR File = cgca_m2mpiio.f90, Line = 113 
+  A loop starting at line 113 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m2mpiio.f90, Line = 113 
+  A loop starting at line 113 was unwound.
+
+  114.    
+  115.    ! Subtract halos
+  116.     arrsize(:) = asizehal(1:arrdim) - 2
+ftn-6004 ftn: SCALAR File = cgca_m2mpiio.f90, Line = 116 
+  A loop starting at line 116 was fused with the loop starting at line 113.
+
+  117.    coarsize(:) = ucobound(coarray) - lcobound(coarray) + 1
+ftn-6004 ftn: SCALAR File = cgca_m2mpiio.f90, Line = 117 
+  A loop starting at line 117 was fused with the loop starting at line 113.
+
+  118.    
+  119.    ! Does the array fit exactly?
+  120.    if ( product( coarsize ) .ne. nimgs) then
+ftn-6004 ftn: SCALAR File = cgca_m2mpiio.f90, Line = 120 
+  A loop starting at line 120 was fused with the loop starting at line 113.
+
+  121.     write(*,*) 'ERROR: cgca_pswci: non-conforming coarray'
+  122.     error stop
+  123.    end if
+  124.    
+  125.    comm = MPI_COMM_WORLD
+  126.    call MPI_Comm_size( comm, mpisize, ierr )
+               ^                                    
+ftn-3021 ftn: IPA CGCA_PSWCI, File = cgca_m2mpiio.f90, Line = 126, Column = 6 
+  "mpi_comm_size" (called from "cgca_pswci") was not inlined because the compiler was unable to locate the routine.
+
+  127.    call MPI_Comm_rank( comm, rank, ierr )
+               ^                                 
+ftn-3021 ftn: IPA CGCA_PSWCI, File = cgca_m2mpiio.f90, Line = 127, Column = 6 
+  "mpi_comm_rank" (called from "cgca_pswci") was not inlined because the compiler was unable to locate the routine.
+
+  128.    
+  129.    ! Sanity check
+  130.    if ( mpisize .ne. nimgs .or. rank .ne. img-1 ) then
+  131.      write(*,*) 'ERROR: cgca_pswci: MPI/coarray mismatch'
+  132.      error stop
+  133.    end if
+  134.         
+  135.    ! Define filetype for this process, ie what portion of the global array
+  136.    ! this process owns. Starting positions use C-indexing
+  137.    ! (ie counting from 0).
+  138.    artsize(:) = arrsize(:) * coarsize(:)
+ftn-6271 ftn: VECTOR File = cgca_m2mpiio.f90, Line = 138 
+  A loop starting at line 138 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m2mpiio.f90, Line = 138 
+  A loop starting at line 138 was unwound.
+
+  139.    arstart(:) = arrsize(:) * (copos(:)-1)
+ftn-6004 ftn: SCALAR File = cgca_m2mpiio.f90, Line = 139 
+  A loop starting at line 139 was fused with the loop starting at line 138.
+
+  140.    
+  141.    ! debug
+  142.    !write (*,*) "image",img, "asizehal", asizehal, "copos", copos,         &
+  143.    !  "arrsize", arrsize, "coarsize", coarsize,                            &
+  144.    !  "artsize", artsize, "arstart", arstart, "stype", stype
+  145.    
+  146.    call MPI_Type_create_subarray( arrdim, artsize, arrsize, arstart,      &
+               ^                                                                   
+ftn-3021 ftn: IPA CGCA_PSWCI, File = cgca_m2mpiio.f90, Line = 146, Column = 6 
+  "mpi_type_create_subarray" (called from "cgca_pswci") was not inlined because the compiler was unable to locate the routine.
+
+  147.     MPI_ORDER_FORTRAN, MPI_INTEGER, filetype, ierr )
+  148.    if ( ierr .ne. MPI_SUCCESS ) then
+  149.     write (*,*)                                                           &
+  150.      'ERROR: cgca_pswci: MPI_type_create_subarray filetype: rank ', rank
+  151.     error stop
+  152.    end if
+  153.    
+  154.    call MPI_Type_commit( filetype, ierr )
+               ^                                 
+ftn-3021 ftn: IPA CGCA_PSWCI, File = cgca_m2mpiio.f90, Line = 154, Column = 6 
+  "mpi_type_commit" (called from "cgca_pswci") was not inlined because the compiler was unable to locate the routine.
+
+  155.    
+  156.    ! Define subarray for this process, ie what portion of the local array
+  157.    ! is to be written (excludes halos); starting positions use C-indexing.
+  158.    
+  159.    arstart(:) = 1
+ftn-6271 ftn: VECTOR File = cgca_m2mpiio.f90, Line = 159 
+  A loop starting at line 159 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m2mpiio.f90, Line = 159 
+  A loop starting at line 159 was unwound.
+
+  160.    
+  161.    call MPI_Type_create_subarray( arrdim, asizehal, arrsize, arstart,     &
+               ^                                                                   
+ftn-3021 ftn: IPA CGCA_PSWCI, File = cgca_m2mpiio.f90, Line = 161, Column = 6 
+  "mpi_type_create_subarray" (called from "cgca_pswci") was not inlined because the compiler was unable to locate the routine.
+
+  162.     MPI_ORDER_FORTRAN, MPI_INTEGER, mpi_subarray, ierr)
+  163.    if ( ierr .ne. MPI_SUCCESS ) then
+  164.     write (*,*)                                                           &
+  165.      'ERROR: cgca_pswci: MPI_type_create_subarray mpi_subarray: rank ',   &
+  166.        rank
+  167.     error stop
+  168.    end if
+  169.    
+  170.    call MPI_Type_commit(mpi_subarray, ierr)
+               ^                                   
+ftn-3021 ftn: IPA CGCA_PSWCI, File = cgca_m2mpiio.f90, Line = 170, Column = 6 
+  "mpi_type_commit" (called from "cgca_pswci") was not inlined because the compiler was unable to locate the routine.
+
+  171.    
+  172.    !  "Striping information cannot be changed on an existing
+  173.    ! file, so to set the stripe count (and stripe size) for the amount of
+  174.    ! parallelism you want to achieve, the file must be deleted if it exists."
+  175.    ! From: Cray Getting Started on MPI I/O manual, S-2490-40 - Dec 2009:
+  176.    ! http://docs.cray.com/books/S-2490-40/
+  177.    
+  178.    !if ( rank .eq. 0 ) then
+  179.    !  call MPI_File_delete( fname, MPI_INFO_NULL, ierr )
+  180.    !  if ( ierr .ne. MPI_SUCCESS )                                         &
+  181.    !    error stop "ERROR: cgca_pswci: MPI_file_delete: rank 0"
+  182.    !end if
+  183.    
+  184.    ! All ranks wait till rank 0 deletes the file
+  185.    !call MPI_Barrier( comm, ierr )
+  186.    !if ( ierr .ne. MPI_SUCCESS ) then
+  187.    !  write (*,*) 'ERROR: cgca_pswci: MPI_file_open: rank ', rank
+  188.    !  error stop
+  189.    !end if
+  190.    
+  191.    ! Overwriting MPI/IO files does not involve erasing the file first.
+  192.    ! So if the old file was bigger, the new smaller file will still
+  193.    ! be sized on disk as the old file, with only a part of it overwritten
+  194.    ! with new data. That would be bad. To avoid this
+  195.    ! image 1 removes all previous contents of this file, if it exists.
+  196.    rm: if ( img .eq. 1 ) then
+  197.    
+  198.      ! this should not be necessary, but Cray issues a caution otherwise
+  199.      funit = 0
+  200.    
+  201.      open( newunit=funit, file=fname, status="replace", iostat=ierr )
+            ^                                                                
+ftn-3021 ftn: IPA CGCA_PSWCI, File = cgca_m2mpiio.f90, Line = 201, Column = 3 
+  "_OPEN" (called from "cgca_pswci") was not inlined because the compiler was unable to locate the routine.
+
+  202.      if ( ierr .ne. 0 ) then
+  203.        write (*,*) "ERROR: cgca_m2mpiio: open( fname ), iostat=",ierr
+  204.        error stop
+  205.      end if
+  206.    
+  207.      write( funit, * , iostat=ierr) ""
+  208.      if ( ierr .ne. 0 ) then
+  209.        write (*,*) "ERROR: cgca_m2mpiio: write( fname ), iostat=",ierr
+  210.        error stop
+  211.      end if
+  212.    
+  213.    !  flush( funit, iostat=ierr )
+  214.    !  if ( ierr .ne. 0 ) then
+  215.    !    write (*,*) "ERROR: cgca_m2mpiio: flush( fname ), iostat=",ierr
+  216.    !    error stop
+  217.    !  end if
+  218.    
+  219.      close( funit, iostat=ierr )
+            ^                           
+ftn-3021 ftn: IPA CGCA_PSWCI, File = cgca_m2mpiio.f90, Line = 219, Column = 3 
+  "_CLOSE" (called from "cgca_pswci") was not inlined because the compiler was unable to locate the routine.
+
+  220.      if ( ierr .ne. 0 ) then
+  221.        write (*,*) "ERROR: cgca_m2mpiio: close( fname ), iostat=",ierr
+  222.        error stop
+  223.      end if
+  224.    
+  225.    end if rm
+  226.    
+  227.    ! all images wait till image 1 erases the previous file
+  228.    sync all
+  229.    
+  230.    !  Open the file for writing only and attach to file handle fh
+  231.    !  No IO hints are passed since MPI_INFO_NULL is specified
+  232.    call MPI_File_open( comm, fname, ior(MPI_MODE_WRONLY, MPI_MODE_CREATE),&
+               ^                                                                   
+ftn-3021 ftn: IPA CGCA_PSWCI, File = cgca_m2mpiio.f90, Line = 232, Column = 6 
+  "mpi_file_open" (called from "cgca_pswci") was not inlined because the compiler was unable to locate the routine.
+
+  233.                        MPI_INFO_NULL, fh, ierr )
+  234.    if ( ierr .ne. MPI_SUCCESS ) then
+  235.      write (*,*) 'ERROR: cgca_pswci: MPI_file_open: rank ', rank
+  236.      error stop
+  237.    end if
+  238.    
+  239.    !  Set view for this process using appropriate datatype
+  240.    call MPI_File_set_view(                                                &
+               ^                                                                   
+ftn-3021 ftn: IPA CGCA_PSWCI, File = cgca_m2mpiio.f90, Line = 240, Column = 6 
+  "mpi_file_set_view" (called from "cgca_pswci") was not inlined because the compiler was unable to locate the routine.
+
+  241.     fh, disp, MPI_INTEGER, filetype, 'native', MPI_INFO_NULL, ierr)
+  242.    if ( ierr .ne. MPI_SUCCESS ) then
+  243.      write (*,*) 'ERROR: cgca_pswci: MPI_file_set_view: rank ', rank
+  244.      error stop
+  245.    end if
+  246.    
+  247.    ! Write all the data for this process.
+  248.    ! Remove halo data by passing an explicit Fortran subarray
+  249.    call MPI_File_write_all( fh, coarray(:,:,:,stype), 1, mpi_subarray,    &
+               ^                                                                   
+ftn-3021 ftn: IPA CGCA_PSWCI, File = cgca_m2mpiio.f90, Line = 249, Column = 6 
+  "mpi_file_write_all" (called from "cgca_pswci") was not inlined because the compiler was unable to locate the routine.
+
+  250.                             mpistat, ierr )
+  251.    if ( ierr .ne. MPI_SUCCESS ) then
+  252.      write (*,*) 'ERROR: cgca_pswci: MPI_file_write_all: rank ', rank
+  253.      error stop
+  254.    end if
+  255.    
+  256.    !  Close file
+  257.    call MPI_File_close( fh, ierr )
+               ^                          
+ftn-3021 ftn: IPA CGCA_PSWCI, File = cgca_m2mpiio.f90, Line = 257, Column = 6 
+  "mpi_file_close" (called from "cgca_pswci") was not inlined because the compiler was unable to locate the routine.
+
+  258.    if ( ierr .ne. MPI_SUCCESS ) then
+  259.     write (*,*) 'ERROR: cgca_pswci: MPI_file_close: rank ', rank
+  260.     error stop
+  261.    end if
+  262.    
+  263.    call MPI_Type_free( filetype, ierr )
+               ^                               
+ftn-3021 ftn: IPA CGCA_PSWCI, File = cgca_m2mpiio.f90, Line = 263, Column = 6 
+  "mpi_type_free" (called from "cgca_pswci") was not inlined because the compiler was unable to locate the routine.
+
+  264.    call MPI_Type_free( mpi_subarray, ierr )
+               ^                                   
+ftn-3021 ftn: IPA CGCA_PSWCI, File = cgca_m2mpiio.f90, Line = 264, Column = 6 
+  "mpi_type_free" (called from "cgca_pswci") was not inlined because the compiler was unable to locate the routine.
+
+  265.    
+  266.    end subroutine cgca_pswci
+  267.    
+  268.    !*roboend*
+  269.    
+  270.    end module cgca_m2mpiio
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                     C o m m o n   B l o c k   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Blk  Program Unit                     Messages
+---  ------------                     --------
+/MPIFCMB5/                            Length: 4 bytes
+
+     CGCA_M2MPIIO                     Block is used from MPI_CONSTANTS
+
+Blk  Program Unit                     Messages
+---  ------------                     --------
+/MPIFCMB9/                            Length: 4 bytes
+
+     CGCA_M2MPIIO                     Block is used from MPI_CONSTANTS
+
+Blk  Program Unit                     Messages
+---  ------------                     --------
+/MPIPRIV1/                            Length: 28 bytes
+
+     CGCA_M2MPIIO                     Block is used from MPI_CONSTANTS
+
+Blk  Program Unit                     Messages
+---  ------------                     --------
+/MPIPRIV2/                            Length: 24 bytes
+
+     CGCA_M2MPIIO                     Block is used from MPI_CONSTANTS
+
+Blk  Program Unit                     Messages
+---  ------------                     --------
+/MPIPRIVC/                            Length: 2 bytes
+
+     CGCA_M2MPIIO                     Block is used from MPI_CONSTANTS
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                         E x t e r n a l   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Name  Messages
+----  --------
+ABORT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ABORT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_M1CO
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M2MPIIO
+
+Name  Messages
+----  --------
+CGCA_M2MPIIO
+      Defined as:  Module (line 8, file cgca_m2mpiio.f90)
+
+        Uses:      CGCA_M1CO
+                   ISO_FORTRAN_ENV  (indirectly)
+                   MPI
+                   MPI_BASE  (indirectly)
+                   MPI_SIZEOFS  (indirectly)
+                   MPI_CONSTANTS  (indirectly)
+
+Name  Messages
+----  --------
+CGCA_PSWCI in CGCA_M2MPIIO
+      Defined as:  Subroutine (line 51, file cgca_m2mpiio.f90)
+
+      Interface:   None
+
+      Calls:       MPI_COMM_RANK (Line 127, file cgca_m2mpiio.f90)
+                   MPI_COMM_SIZE (Line 126, file cgca_m2mpiio.f90)
+                   MPI_TYPE_COMMIT (Line 154, file cgca_m2mpiio.f90)
+                   MPI_TYPE_COMMIT (Line 170, file cgca_m2mpiio.f90)
+                   MPI_TYPE_CREATE_SUBARRAY (Line 146, file cgca_m2mpiio.f90)
+                   MPI_TYPE_CREATE_SUBARRAY (Line 161, file cgca_m2mpiio.f90)
+                   MPI_TYPE_FREE (Line 263, file cgca_m2mpiio.f90)
+                   MPI_TYPE_FREE (Line 264, file cgca_m2mpiio.f90)
+                   THIS_IMAGE(Intrinsic) (Line 109, file cgca_m2mpiio.f90)
+                   THIS_IMAGE(Intrinsic) (Line 113, file cgca_m2mpiio.f90)
+                   shmem_n_pes(Intrinsic) (Line 110, file cgca_m2mpiio.f90)
+                   SHAPE(Intrinsic) (Line 112, file cgca_m2mpiio.f90)
+                   UCOBOUND(Intrinsic) (Line 117, file cgca_m2mpiio.f90)
+                   LCOBOUND(Intrinsic) (Line 117, file cgca_m2mpiio.f90)
+                   PRODUCT(Intrinsic) (Line 120, file cgca_m2mpiio.f90)
+                   IOR(Intrinsic) (Line 232, file cgca_m2mpiio.f90)
+                   MPI_FILE_OPEN (Line 232, file cgca_m2mpiio.f90)
+                   MPI_FILE_SET_VIEW (Line 240, file cgca_m2mpiio.f90)
+                   MPI_FILE_WRITE_ALL (Line 249, file cgca_m2mpiio.f90)
+                   MPI_FILE_CLOSE (Line 257, file cgca_m2mpiio.f90)
+
+Name  Messages
+----  --------
+COMMEQ in MPI_CONSTANTS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+COMMNEQ in MPI_CONSTANTS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+DATATYPEEQ in MPI_CONSTANTS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+DATATYPENEQ in MPI_CONSTANTS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ERRHANDLEREQ in MPI_CONSTANTS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ERRHANDLERNEQ in MPI_CONSTANTS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+EXIT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FILEEQ in MPI_CONSTANTS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FILENEQ in MPI_CONSTANTS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH_8
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FTN_LIB_DEFINITIONS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+Name  Messages
+----  --------
+GROUPEQ in MPI_CONSTANTS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+GROUPNEQ in MPI_CONSTANTS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+HUGE(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL_J
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+INFOEQ in MPI_CONSTANTS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+INFONEQ in MPI_CONSTANTS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+IOR(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PSWCI in CGCA_M2MPIIO (Line 232, file cgca_m2mpiio.f90)
+
+Name  Messages
+----  --------
+ISO_FORTRAN_ENV
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M2MPIIO  (indirectly)
+
+Name  Messages
+----  --------
+KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+LCOBOUND(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PSWCI in CGCA_M2MPIIO (Line 117, file cgca_m2mpiio.f90)
+
+Name  Messages
+----  --------
+MESSAGEEQ in MPI_CONSTANTS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+MESSAGENEQ in MPI_CONSTANTS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+MPI
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M2MPIIO
+
+Name  Messages
+----  --------
+MPI_BASE
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M2MPIIO  (indirectly)
+
+Name  Messages
+----  --------
+MPI_COMM_RANK
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PSWCI in CGCA_M2MPIIO (Line 127, file cgca_m2mpiio.f90)
+
+Name  Messages
+----  --------
+MPI_COMM_SIZE
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PSWCI in CGCA_M2MPIIO (Line 126, file cgca_m2mpiio.f90)
+
+Name  Messages
+----  --------
+MPI_CONSTANTS
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M2MPIIO  (indirectly)
+
+Name  Messages
+----  --------
+MPI_FILE_CLOSE
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PSWCI in CGCA_M2MPIIO (Line 257, file cgca_m2mpiio.f90)
+
+Name  Messages
+----  --------
+MPI_FILE_OPEN
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PSWCI in CGCA_M2MPIIO (Line 232, file cgca_m2mpiio.f90)
+
+Name  Messages
+----  --------
+MPI_FILE_SET_VIEW
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PSWCI in CGCA_M2MPIIO (Line 240, file cgca_m2mpiio.f90)
+
+Name  Messages
+----  --------
+MPI_FILE_WRITE_ALL
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PSWCI in CGCA_M2MPIIO (Line 249, file cgca_m2mpiio.f90)
+
+Name  Messages
+----  --------
+MPI_SIZEOFS
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M2MPIIO  (indirectly)
+
+Name  Messages
+----  --------
+MPI_SIZEOF_CH in MPI_SIZEOFS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+MPI_SIZEOF_CHV in MPI_SIZEOFS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+MPI_SIZEOF_CX in MPI_SIZEOFS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+MPI_SIZEOF_CXV in MPI_SIZEOFS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+MPI_SIZEOF_D in MPI_SIZEOFS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+MPI_SIZEOF_DV in MPI_SIZEOFS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+MPI_SIZEOF_I in MPI_SIZEOFS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+MPI_SIZEOF_I1 in MPI_SIZEOFS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+MPI_SIZEOF_I1V in MPI_SIZEOFS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+MPI_SIZEOF_I2 in MPI_SIZEOFS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+MPI_SIZEOF_I2V in MPI_SIZEOFS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+MPI_SIZEOF_I8 in MPI_SIZEOFS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+MPI_SIZEOF_I8V in MPI_SIZEOFS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+MPI_SIZEOF_IV in MPI_SIZEOFS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+MPI_SIZEOF_L in MPI_SIZEOFS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+MPI_SIZEOF_LV in MPI_SIZEOFS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+MPI_SIZEOF_R in MPI_SIZEOFS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+MPI_SIZEOF_RV in MPI_SIZEOFS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+MPI_TYPE_COMMIT
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PSWCI in CGCA_M2MPIIO (Line 154, file cgca_m2mpiio.f90)
+                   CGCA_PSWCI in CGCA_M2MPIIO (Line 170, file cgca_m2mpiio.f90)
+
+Name  Messages
+----  --------
+MPI_TYPE_CREATE_SUBARRAY
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PSWCI in CGCA_M2MPIIO (Line 146, file cgca_m2mpiio.f90)
+                   CGCA_PSWCI in CGCA_M2MPIIO (Line 161, file cgca_m2mpiio.f90)
+
+Name  Messages
+----  --------
+MPI_TYPE_FREE
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PSWCI in CGCA_M2MPIIO (Line 263, file cgca_m2mpiio.f90)
+                   CGCA_PSWCI in CGCA_M2MPIIO (Line 264, file cgca_m2mpiio.f90)
+
+Name  Messages
+----  --------
+OPEQ in MPI_CONSTANTS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+OPNEQ in MPI_CONSTANTS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+PRODUCT(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PSWCI in CGCA_M2MPIIO (Line 120, file cgca_m2mpiio.f90)
+
+Name  Messages
+----  --------
+REQUESTEQ in MPI_CONSTANTS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+REQUESTNEQ in MPI_CONSTANTS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SELECTED_INT_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SELECTED_REAL_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SHAPE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PSWCI in CGCA_M2MPIIO (Line 112, file cgca_m2mpiio.f90)
+
+Name  Messages
+----  --------
+SIZE(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+THIS_IMAGE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PSWCI in CGCA_M2MPIIO (Line 109, file cgca_m2mpiio.f90)
+                   CGCA_PSWCI in CGCA_M2MPIIO (Line 113, file cgca_m2mpiio.f90)
+
+Name  Messages
+----  --------
+UCOBOUND(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PSWCI in CGCA_M2MPIIO (Line 117, file cgca_m2mpiio.f90)
+
+Name  Messages
+----  --------
+WINEQ in MPI_CONSTANTS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+WINNEQ in MPI_CONSTANTS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+shmem_n_pes(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_PSWCI in CGCA_M2MPIIO (Line 110, file cgca_m2mpiio.f90)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

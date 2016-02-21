@@ -1,0 +1,595 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S u m m a r y   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Compilation
+-----------
+File     : /home3/y14/y14/di1c13/cgpack/head/cgca_m3nucl.f90
+Compiled : 02/18/16  16:36:38
+Compiler : Version 8.3.7
+Ftnlx    : Version 8318 (libcif 83016)
+Target   : x86-64
+Command  : ftn_driver.exe -hcpu=ivybridge -hstatic -D__CRAYXC
+           -D__CRAY_IVYBRIDGE -D__CRAYXT_COMPUTE_LINUX_TARGET -hnetwork=aries
+           -c -eacFn -dm -m2 -rl -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/mpt/7.1.1/gni/mpich2-cray/83/include
+           -I/opt/cray/libsci/13.0.1/CRAY/83/sandybridge/include
+           -I/opt/cray/rca/1.0.0-2.0502.57212.2.56.ari/include
+           -I/opt/cray/alps/5.2.3-2.0502.9295.14.14.ari/include
+           -I/opt/cray/xpmem/0.1-2.0502.57015.1.15.ari/include
+           -I/opt/cray/gni-headers/4.0-1.0502.10317.9.2.ari/include
+           -I/opt/cray/dmapp/7.0.1-1.0502.10246.8.47.ari/include
+           -I/opt/cray/pmi/5.0.6-1.0000.10439.140.2.ari/include
+           -I/opt/cray/ugni/6.0-1.0502.10245.9.9.ari/include
+           -I/opt/cray/udreg/2.3.2-1.0502.9889.2.20.ari/include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/pkgconfig/../include
+           -I/opt/cray/cce/8.3.7/craylibs/x86-64/include
+           -I/opt/cray/wlm_detect/1.0-1.0502.57063.1.1.ari/include
+           -I/opt/cray/krca/1.0.0-2.0502.57202.2.45.ari/include
+           -I/opt/cray-hss-devel/7.2.0/include cgca_m3nucl.f90
+
+ftnlx report
+------------
+Source   : /home3/y14/y14/di1c13/cgpack/head/cgca_m3nucl.f90
+Date     : 02/18/2016  16:36:38
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                          S o u r c e   L i s t i n g
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    1.    !$Id: cgca_m3nucl.f90 107 2015-06-12 16:30:57Z mexas $
+    2.    
+    3.    !*robodoc*m* CGPACK/cgca_m3nucl
+    4.    !  NAME
+    5.    !    cgca_m3nucl
+    6.    !  SYNOPSIS
+    7.    
+    8.    module cgca_m3nucl
+    9.    
+   10.    !  DESCRIPTION
+   11.    !    Module dealing with nucleation
+   12.    !  AUTHOR
+   13.    !    Anton Shterenlikht
+   14.    !  COPYRIGHT
+   15.    !    See Copyright
+   16.    !  CONTAINS
+   17.    !    cgca_nr
+   18.    !  USES
+   19.    !    cgca_m2glm
+   20.    !  USED BY
+   21.    !    cgca
+   22.    !  SOURCE
+   23.    
+   24.    use cgca_m1co
+   25.    use cgca_m2glm
+   26.    
+   27.    implicit none
+   28.    
+   29.    private
+   30.    public :: cgca_nr
+   31.    
+   32.    contains
+   33.    
+   34.    !*roboend*
+   35.    
+   36.    
+   37.    !*robodoc*s* cgca_m3nucl/cgca_nr
+   38.    !  NAME
+   39.    !    cgca_nr
+   40.    !  SYNOPSIS
+   41.    
+   42.    subroutine cgca_nr( coarray , number , debug )
+   43.    
+   44.    !  INPUTS
+   45.    
+   46.    integer( kind=iarr ), allocatable, intent(inout) ::                    &
+   47.     coarray(:,:,:,:)[:,:,:]
+   48.    integer( kind=idef ), intent( in ) :: number
+   49.    logical( kind=ldef ), intent( in ) :: debug
+   50.    
+   51.    !  SIDE EFFECTS
+   52.    !    State of coarray changed
+   53.    !  DESCRIPTION
+   54.    !    This routine randomly scatters the given number of grain
+   55.    !    nuclei over the model. The grain nuclei are assigned unique
+   56.    !    numbers starting from zero.
+   57.    !
+   58.    !    All elements of the coarray must be in cgca_liquid_state state.
+   59.    !    If not, the program will stop with a error.
+   60.    !
+   61.    !    The number of nuclei must not greater than "critfract" of
+   62.    !    the model size. I arbitrarily set this to 0.1 for now.
+   63.    !    However, even this is too high. Although, in principle
+   64.    !    each cell can be a nuclei, such model would have no physical
+   65.    !    sense.
+   66.    !
+   67.    !    Inputs:
+   68.    !    - coarray - the model
+   69.    !    - number - number of nuclei to scatter
+   70.    !    - debug - if .true. dump some debug output
+   71.    !  NOTES
+   72.    !    All images must call this routine!
+   73.    !    However, the work will be done only by image 1.
+   74.    !    There's "sync all" at the end of this routine.
+   75.    !  USES
+   76.    !    cgca_gl
+   77.    !  USED BY
+   78.    !    none, end user
+   79.    !  SOURCE
+   80.    
+   81.    real( kind=rdef), parameter :: critfract=0.1
+   82.    
+   83.    integer( kind=idef ) :: &
+   84.      nuc    ,& ! running total of nuclei
+   85.      lbr(4) ,& ! lower bounds of the "real" coarray, lower virtual+1
+   86.      ubr(4) ,& ! upper bounds of the "real" coarray, upper virtual-1
+   87.      szr(3) ,& ! size or the "real" coarray, ubr-lbr+1
+   88.      lcob(3),& ! lower cobounds of the coarray
+   89.      ucob(3),& ! upper cobounds of the coarray
+   90.      supermax(3) ,& ! upper bound of the super array, szr*(ucob-lcob+1)
+   91.      supermin(3) ,& ! lower bound of the super array, always 1.
+   92.      super(3)    ,& ! coordinates in a super array
+   93.      imgpos(3)   ,& ! image position in a grid
+   94.      local(3)    ,& ! coordinates within an image
+   95.      thisimage   ,& ! this_image()
+   96.      nimages        ! num_images()
+   97.    
+   98.    integer( kind=ilrg ) :: coarsize
+   99.    
+  100.    real( kind=rdef ) :: candidate(3), frac
+  101.    logical( kind=ldef ) :: image1
+  102.    
+  103.      nimages = num_images()
+  104.    thisimage = this_image()
+  105.       image1 = .false.
+  106.    if (thisimage .eq. 1) image1=.true.
+  107.    
+  108.    !*********************************************************************72
+  109.    ! checks
+  110.    !*********************************************************************72
+  111.    
+  112.    if ( .not. allocated( coarray ) ) then
+  113.     write (*,'(a,i0)')                                                    &
+  114.         "ERROR: cgca_nr: coarray is not allocated, img: ", thisimage
+  115.     error stop 
+  116.    end if
+  117.    
+  118.    ! check that there are only liqiud cells in coarray.
+  119.    
+  120.    lbr = lbound( coarray ) + 1
+ftn-6205 ftn: VECTOR File = cgca_m3nucl.f90, Line = 120 
+  A loop starting at line 120 was vectorized with a single vector iteration.
+
+  121.    ubr = ubound( coarray ) - 1
+ftn-6004 ftn: SCALAR File = cgca_m3nucl.f90, Line = 121 
+  A loop starting at line 121 was fused with the loop starting at line 120.
+
+  122.    
+  123.    if ( any( coarray(lbr(1):ubr(1),lbr(2):ubr(2),lbr(3):ubr(3),           &
+ftn-6334 ftn: VECTOR File = cgca_m3nucl.f90, Line = 123 
+  A loop starting at line 123 was not vectorized because it contains multiple potential exits.
+
+  124.                  cgca_state_type_grain) .ne. cgca_liquid_state)) then
+  125.     write (*,'(a,i0)')                                                    &
+  126.      "ERROR: cgca_nr: non-liquid elements in coarray, img: ", thisimage
+  127.     error stop
+  128.    end if
+  129.    
+  130.    ! check that the number of nuclei is positive
+  131.    
+  132.    if ( number .lt. 1 ) then
+  133.     write (*,'(a,i0)')                                                    &
+  134.      "ERROR: cgca_nr: number of nuclei must be 1 or more, img:", thisimage
+  135.     error stop
+  136.    end if
+  137.    
+  138.    !*********************************************************************72
+  139.    ! end of checks
+  140.    !*********************************************************************72
+  141.    
+  142.    ! image 1 must not change values in other images before
+  143.    ! all images pass checks
+  144.    sync all
+  145.    
+  146.    img1: if (image1) then
+  147.    
+  148.     ! Warn the user if there are too many nuclei
+  149.     coarsize = size( coarray( lbr(1) : ubr(1) , lbr(2) : ubr(2) ,         &
+  150.                               lbr(3) : ubr(3), cgca_state_type_grain ) ,  &
+  151.                      kind=ilrg )
+  152.    
+  153.     ! number of grains as a fraction of the model
+  154.     frac = number / ( real( nimages ) * real( coarsize ) )
+  155.    
+  156.     if ( frac .gt. critfract )                                            &
+  157.       write (*,'(a,g10.3)')                                               &
+  158.        "WARN: cgca_nr: too many nuclei - no physical sense!&
+  159.        & nuclei/model size: ", frac
+  160.        
+  161.     ! The 4th dimension is the number of cell state types.
+  162.     ! It is not relevant here, so don't use it.
+  163.          szr = ubr(1:3)-lbr(1:3)+1
+ftn-6271 ftn: VECTOR File = cgca_m3nucl.f90, Line = 163 
+  A loop starting at line 163 was not vectorized because its trip count is too small.
+
+ftn-6008 ftn: SCALAR File = cgca_m3nucl.f90, Line = 163 
+  A loop starting at line 163 was unwound.
+
+  164.         lcob = lcobound(coarray)
+ftn-6004 ftn: SCALAR File = cgca_m3nucl.f90, Line = 164 
+  A loop starting at line 164 was fused with the loop starting at line 163.
+
+  165.         ucob = ucobound(coarray)
+ftn-6004 ftn: SCALAR File = cgca_m3nucl.f90, Line = 165 
+  A loop starting at line 165 was fused with the loop starting at line 163.
+
+  166.     supermax = szr * (ucob-lcob+1)
+ftn-6004 ftn: SCALAR File = cgca_m3nucl.f90, Line = 166 
+  A loop starting at line 166 was fused with the loop starting at line 163.
+
+  167.     supermin = 1
+  168.     
+  169.     nuc=1
+  170.     do
+ftn-6288 ftn: VECTOR File = cgca_m3nucl.f90, Line = 170 
+  A loop starting at line 170 was not vectorized because it contains a call to subroutine "cgca_gl" on line 175.
+
+  171.      call random_number(candidate)    ! 0 .le. candidate .lt. 1
+ftn-6271 ftn: VECTOR File = cgca_m3nucl.f90, Line = 171 
+  A loop starting at line 171 was not vectorized because its trip count is too small.
+
+  172.      super=int(candidate*supermax)+1  ! 1 .le. super .le. supermax
+ftn-6004 ftn: SCALAR File = cgca_m3nucl.f90, Line = 172 
+  A loop starting at line 172 was fused with the loop starting at line 171.
+
+  173.      
+  174.      ! now translate to the image and local coordinates
+  175.      call cgca_gl(super,coarray,imgpos,local)
+                 ^                                   
+ftn-3095 ftn: IPA CGCA_NR, File = cgca_m3nucl.f90, Line = 175, Column = 8 
+  "cgca_gl" (called from "cgca_nr") was not inlined because the containing loop does I/O.
+
+  176.      
+  177.      ! if a cell is not liquid then assign the running "nuc"
+  178.      ! number to it
+  179.      ncln: if (coarray(local(1),local(2),local(3),cgca_state_type_grain)  &
+  180.                    [imgpos(1),imgpos(2),imgpos(3)] .le. 0) then
+  181.          coarray(local(1),local(2),local(3),cgca_state_type_grain)  &
+ftn-6077 ftn: SCALAR File = cgca_m3nucl.f90, Line = 181 
+  An implicit non-blocking operation was used for this statement.
+
+  182.                  [imgpos(1),imgpos(2),imgpos(3)] = nuc
+  183.      
+  184.       ! if requested, dump some debug output
+  185.       if (debug) then
+  186.        write (*,'(a,"(",2(i0,","),i0,")")') "DEBUG: cgca_nr: imgpos ",imgpos
+  187.        write (*,'(a,"(",2(i0,","),i0,")")') "DEBUG: cgca_nr: local ",local
+  188.        write (*,'(a,i0)') "DEBUG: cgca_nr: nucleus ",nuc
+  189.       end if
+  190.      
+  191.       ! increment the running total of the nuclei generated
+  192.       nuc=nuc+1
+  193.      end if ncln
+  194.      
+  195.      ! if "number" of nuclei have been generated, exit
+  196.      if (nuc .gt. number) exit
+  197.      
+  198.     end do
+  199.    
+  200.    end if img1
+  201.    
+  202.    ! Global sync is required here
+  203.    sync all
+  204.    
+  205.    end subroutine cgca_nr
+ftn-5001 ftn: NOTE File = cgca_m3nucl.f90, Line = 205 
+  Local variable "SUPERMIN" is assigned a value but never used.
+
+  206.    
+  207.    !*roboend*
+  208.    
+  209.    end module cgca_m3nucl
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                         E x t e r n a l   R e p o r t
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Name  Messages
+----  --------
+ABORT
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ABORT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ALLOCATED(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_NR in CGCA_M3NUCL (Line 112, file cgca_m3nucl.f90)
+
+Name  Messages
+----  --------
+ANY(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_NR in CGCA_M3NUCL (Line 123, file cgca_m3nucl.f90)
+
+Name  Messages
+----  --------
+CGCA_GL in CGCA_M2GLM
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_NR in CGCA_M3NUCL (Line 175, file cgca_m3nucl.f90)
+
+Name  Messages
+----  --------
+CGCA_LG in CGCA_M2GLM
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+CGCA_M1CO
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M3NUCL
+
+Name  Messages
+----  --------
+CGCA_M2GLM
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M3NUCL
+
+Name  Messages
+----  --------
+CGCA_M3NUCL
+      Defined as:  Module (line 8, file cgca_m3nucl.f90)
+
+        Uses:      CGCA_M1CO
+                   ISO_FORTRAN_ENV  (indirectly)
+                   CGCA_M2GLM
+
+Name  Messages
+----  --------
+CGCA_NR in CGCA_M3NUCL
+      Defined as:  Subroutine (line 30, file cgca_m3nucl.f90)
+
+      Interface:   None
+
+      Calls:       CGCA_GL in CGCA_M2GLM (Line 175, file cgca_m3nucl.f90)
+                   SIZE(Intrinsic) (Line 149, file cgca_m3nucl.f90)
+                   shmem_n_pes(Intrinsic) (Line 103, file cgca_m3nucl.f90)
+                   THIS_IMAGE(Intrinsic) (Line 104, file cgca_m3nucl.f90)
+                   ALLOCATED(Intrinsic) (Line 112, file cgca_m3nucl.f90)
+                   LBOUND(Intrinsic) (Line 120, file cgca_m3nucl.f90)
+                   UBOUND(Intrinsic) (Line 121, file cgca_m3nucl.f90)
+                   ANY(Intrinsic) (Line 123, file cgca_m3nucl.f90)
+                   REAL(Intrinsic) (Line 154, file cgca_m3nucl.f90)
+                   REAL(Intrinsic) (Line 154, file cgca_m3nucl.f90)
+                   LCOBOUND(Intrinsic) (Line 164, file cgca_m3nucl.f90)
+                   UCOBOUND(Intrinsic) (Line 165, file cgca_m3nucl.f90)
+                   RANDOM_NUMBER(Intrinsic) (Line 171, file cgca_m3nucl.f90)
+                   INT(Intrinsic) (Line 172, file cgca_m3nucl.f90)
+
+Name  Messages
+----  --------
+EXIT(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FLUSH_8
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+FTN_LIB_DEFINITIONS
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+Name  Messages
+----  --------
+HUGE(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+ICEIL_J
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+INT(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_NR in CGCA_M3NUCL (Line 172, file cgca_m3nucl.f90)
+
+Name  Messages
+----  --------
+ISO_FORTRAN_ENV
+      Defined as:  No definitions.
+
+      Used By:     CGCA_M3NUCL  (indirectly)
+
+Name  Messages
+----  --------
+KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+LBOUND(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_NR in CGCA_M3NUCL (Line 120, file cgca_m3nucl.f90)
+
+Name  Messages
+----  --------
+LCOBOUND(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_NR in CGCA_M3NUCL (Line 164, file cgca_m3nucl.f90)
+
+Name  Messages
+----  --------
+RANDOM_NUMBER(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_NR in CGCA_M3NUCL (Line 171, file cgca_m3nucl.f90)
+
+Name  Messages
+----  --------
+REAL(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_NR in CGCA_M3NUCL (Line 154, file cgca_m3nucl.f90)
+                   CGCA_NR in CGCA_M3NUCL (Line 154, file cgca_m3nucl.f90)
+
+Name  Messages
+----  --------
+SELECTED_INT_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SELECTED_REAL_KIND(Intrinsic)
+      Defined as:  No definitions.
+
+                   No calls.  It is not called and does not use any procedure.
+
+      Interface:   None
+
+Name  Messages
+----  --------
+SIZE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_NR in CGCA_M3NUCL (Line 149, file cgca_m3nucl.f90)
+
+Name  Messages
+----  --------
+THIS_IMAGE(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_NR in CGCA_M3NUCL (Line 104, file cgca_m3nucl.f90)
+
+Name  Messages
+----  --------
+UBOUND(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_NR in CGCA_M3NUCL (Line 121, file cgca_m3nucl.f90)
+
+Name  Messages
+----  --------
+UCOBOUND(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_NR in CGCA_M3NUCL (Line 165, file cgca_m3nucl.f90)
+
+Name  Messages
+----  --------
+shmem_n_pes(Intrinsic)
+      Defined as:  No definitions.
+
+      Interface:   None
+
+      Called By:   CGCA_NR in CGCA_M3NUCL (Line 103, file cgca_m3nucl.f90)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

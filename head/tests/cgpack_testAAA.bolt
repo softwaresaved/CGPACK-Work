@@ -1,0 +1,20 @@
+#!/bin/bash --login
+#
+# Serial script produced by bolt
+#        Resource: ARCHER (Cray XC30 (24-core per node))
+#    Batch system: PBSPro_select
+#
+# bolt is written by EPCC (http://www.epcc.ed.ac.uk)
+#
+#PBS -N cgpack_testAAA
+#PBS -A y14
+#PBS -l walltime=0:5:0
+#PBS -l select=serial=true:ncpus=1
+
+# Switch to current working directory
+cd $PBS_O_WORKDIR
+
+# Run the serial program
+testAAA.x 2 2
+
+
